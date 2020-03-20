@@ -41,7 +41,8 @@ gsbm <- sbm %>%
   ggplot() +
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, color=`Habitat`), alpha=0.5) +
-  # geom_label_repel(
+  # labels from a former map
+  # geom_label_repel(   
   #   aes(x=longitude, y=latitude, label = site_code),family = 'Times',
   #   segment.size = 0.5, segment.alpha = 0.5,
   #   size = 3, 
@@ -67,4 +68,11 @@ gsbm <- sbm %>%
 gsbm
 
 # Save as PNG
+# Emma's path
 ggsave('~/Dropbox/Projects/SeedbankMap/Plots/gsbm_map.png', width = 36, height = 15.22, units = "in", dpi = 90)
+
+# Ali's path
+
+
+
+
