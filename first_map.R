@@ -18,6 +18,9 @@ sbm<-read_sheet("https://https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzT
 colnames(sbm)
 
 
+# This code copied from 'Data to Vis'  here:
+# https://www.data-to-viz.com/graph/bubblemap.html
+
 theme_set(theme_bw())
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
