@@ -1,5 +1,6 @@
 
 install.packages("googlesheets4")
+
 library("googlesheets4")
 library(tidyverse)
 library("ggplot2")
@@ -12,7 +13,7 @@ library(mapdata)
 library(ggrepel)
 
 
-
+# Read oue google sheet!
 sbm<-read_sheet("https://https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0")
 colnames(sbm)
 
@@ -62,5 +63,5 @@ gsbm <- sbm %>%
 
 gsbm
 
-# Save at PNG
-ggsave('~/Dropbox/Projects/NutNet/Plots/nn_map.png', width = 36, height = 15.22, units = "in", dpi = 90)
+# Save as PNG
+ggsave('~/Dropbox/Projects/SeedbankMap/Plots/gsbm_map.png', width = 36, height = 15.22, units = "in", dpi = 90)
