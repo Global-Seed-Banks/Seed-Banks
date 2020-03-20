@@ -13,7 +13,7 @@ library(mapdata)
 library(ggrepel)
 
 
-# Read oue google sheet!
+# Read our google sheet!
 sbm<-read_sheet("https://https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0")
 colnames(sbm)
 
