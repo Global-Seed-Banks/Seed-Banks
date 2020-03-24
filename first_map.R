@@ -64,13 +64,13 @@ gsbm <- sb %>%
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, color=`Habitat`), alpha=0.5) +
   # labels from a former map
-  # geom_label_repel(   
-  #   aes(x=longitude, y=latitude, label = site_code),family = 'Times',
+  # geom_label_repel(
+  #   aes(x=Lon_Deg, y=Lat_Deg, label = Lon_Deg),family = 'Times',
   #   segment.size = 0.5, segment.alpha = 0.5,
-  #   size = 3, 
+  #   size = 3,
   #   box.padding = 0.1, point.padding = 0.3, fill = NA,
   #   segment.color = 'grey50') +
-  scale_color_viridis(discrete=TRUE,name="Habitat") +
+  # scale_color_viridis(discrete=TRUE,name="Habitat") +
   #scale_size_continuous(range=c(2,8), name="Length of Study") +
   coord_equal() +
   theme_void() +
