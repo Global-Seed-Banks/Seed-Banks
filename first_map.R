@@ -22,11 +22,17 @@ sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have b
 sb.dec<-sb[grep("\\.", sb$Lat_Deg),]
 sb<-sb[!grepl("\\.", sb$Lat_Deg),]
 
-# Then account for mistakes in coordinates - need to work out properly later, but do this for now
-sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
-#emma's new line
-sb$Lon_Deg[sb$Lon_Deg>180]<-180 # remove rows with impossible longitudes
-sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
+
+summary(sb$Lon_Deg)
+summary(sb$Lon_Min)
+summary(sb$Lon_Sec)
+
+
+# Then account for mistakes in coordinates - 
+# run if google sheet has not been cleaned
+#sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
+#sb$Lon_Deg[sb$Lon_Deg>180]<-180 # remove rows with impossible longitudes
+#sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
 
 # add zeroes for minutes/seconds where they are blank
 sb$Lon_Min[is.na(sb$Lon_Min)]<-0; sb$Lat_Min[is.na(sb$Lat_Min)]<-0  
