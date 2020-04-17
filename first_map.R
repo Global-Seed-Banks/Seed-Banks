@@ -13,7 +13,7 @@ library(ggrepel)
 library(sp) # For converting to decimal degrees
 
 # Read our google sheet!
-sb<-read_sheet("https://https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0")
+sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0")
 
 # Ali's Lat Long wrangling code
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
@@ -24,6 +24,8 @@ sb<-sb[!grepl("\\.", sb$Lat_Deg),]
 
 # Then account for mistakes in coordinates - need to work out properly later, but do this for now
 sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
+#emma's new line
+sb$Lon_Deg[sb$Lon_Deg>180]<-180 # remove rows with impossible longitudes
 sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
 
 # add zeroes for minutes/seconds where they are blank
@@ -33,6 +35,10 @@ sb$Lat_Sec[is.na(sb$Lat_Sec)]<-0; sb$Lon_Sec[is.na(sb$Lon_Sec)]<-0
 # for conversion - first paste together the coordinates with d, m, s as separators (needed later)
 sb$Lat<-paste0(sb$Lat_Deg,"d",sb$Lat_Min,"m",round(as.numeric(sb$Lat_Sec)),"s",sb$Lat_NS) 
 sb$Lon<-paste0(sb$Lon_Deg,"d",sb$Lon_Min,"m",round(as.numeric(sb$Lon_Sec)),"s",sb$Lon_EW)
+
+summary(sb$Lon_Deg)
+summary(sb$Lon_Min)
+summary(sb$Lon_Sec)
 
 # then char2dms converts the coordinates to decimals, using the separators we just added. Overwrite original column
 sb$Lat_Deg<-as.numeric(char2dms(sb$Lat,"d","m","s"))
@@ -70,7 +76,7 @@ gsbm <- sb %>%
   #   size = 3,
   #   box.padding = 0.1, point.padding = 0.3, fill = NA,
   #   segment.color = 'grey50') +
-  # scale_color_viridis(discrete=TRUE,name="Habitat") +
+  scale_color_viridis(discrete=TRUE,name="Habitat") +
   #scale_size_continuous(range=c(2,8), name="Length of Study") +
   coord_equal() +
   theme_void() +
