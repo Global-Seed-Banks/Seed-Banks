@@ -13,7 +13,8 @@ library(ggrepel)
 library(sp) # For converting to decimal degrees
 
 # Read our google sheet!
-sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0")
+sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
+
 
 # Ali's Lat Long wrangling code
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
@@ -42,9 +43,10 @@ sb$Lat_Sec[is.na(sb$Lat_Sec)]<-0; sb$Lon_Sec[is.na(sb$Lon_Sec)]<-0
 sb$Lat<-paste0(sb$Lat_Deg,"d",sb$Lat_Min,"m",round(as.numeric(sb$Lat_Sec)),"s",sb$Lat_NS) 
 sb$Lon<-paste0(sb$Lon_Deg,"d",sb$Lon_Min,"m",round(as.numeric(sb$Lon_Sec)),"s",sb$Lon_EW)
 
-summary(sb$Lon_Deg)
-summary(sb$Lon_Min)
-summary(sb$Lon_Sec)
+# check values
+# summary(sb$Lon_Deg)
+# summary(sb$Lon_Min)
+# summary(sb$Lon_Sec)
 
 # then char2dms converts the coordinates to decimals, using the separators we just added. Overwrite original column
 sb$Lat_Deg<-as.numeric(char2dms(sb$Lat,"d","m","s"))
@@ -53,6 +55,7 @@ sb$Lon_Deg<-as.numeric(char2dms(sb$Lon,"d","m","s"))
 sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data frames line up again 
 
 sb<-rbind(sb,sb.dec) # bind back together
+
 
 # This code copied from 'Data to Vis'  here:
 # https://www.data-to-viz.com/graph/bubblemap.html
@@ -67,14 +70,15 @@ ggplot(data = world) +
 # Get the world polygon
 world <- map_data("world")
 
-colnames(sb)
-
 
 gsbm <- sb %>%
   #group_by(latitude, longitude, site_code, `Length of study`, continent) %>%
   ggplot() +
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
-  geom_point(aes(x=Lon_Deg, y=Lat_Deg, color=`Habitat`), alpha=0.5) +
+  geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
+                 color=`Habitat`
+                 #color=`Total_Species`
+                 ), alpha=0.5) +
   # labels from a former map
   # geom_label_repel(
   #   aes(x=Lon_Deg, y=Lat_Deg, label = Lon_Deg),family = 'Times',
@@ -83,6 +87,7 @@ gsbm <- sb %>%
   #   box.padding = 0.1, point.padding = 0.3, fill = NA,
   #   segment.color = 'grey50') +
   scale_color_viridis(discrete=TRUE,name="Habitat") +
+  #scale_color_viridis(discrete=FALSE,name="Total_Species",option="A") +
   #scale_size_continuous(range=c(2,8), name="Length of Study") +
   coord_equal() +
   theme_void() +
