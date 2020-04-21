@@ -11,9 +11,9 @@ library(raster)
 # get worldclim data
 r <- getData("worldclim",var="bio",res=10)
 
-
 r <- r[[c(1,12)]]
 names(r) <- c("Temp","Prec")
+
 
 # seedbank data
 sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
@@ -41,10 +41,6 @@ sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data f
 
 sb<-rbind(sb,sb.dec) # bind back together
 
-nrow(sb)
-colnames(sb)
-
-is.data.frame(sb)
 
 coords <- sb %>% dplyr::select(Lat_Deg,Lon_Deg) %>%
   mutate(x=Lon_Deg) %>%
@@ -56,13 +52,17 @@ values <- extract(r,points)
 
 sb_clim_dat <- cbind.data.frame(coordinates(points),values)
 
+# remove NA's
+sb_clim_dat<-sb_clim_dat %>% drop_na()
 
+# adjust the world clim data to cm and celcius 
+sb_clim_dat$Prec_cm<-sb_clim_dat$Prec / 10
+sb_clim_dat$Temp_a<-sb_clim_dat$Temp / 10
 
 # In order to intersect the study points with the Whittaker biomes polygons, we
 # need to transform the climate data to spatial point object, forcing
 # temperature and precipitation (cm) data as coordinates without a CRS.
-points_sp <- sp::SpatialPoints(coords = sb_clim_dat[, c("Temp", "Prec")])
-
+points_sp <- sp::SpatialPoints(coords = sb_clim_dat[, c("Temp_a", "Prec_cm")])
 
 # Extract biomes for each study location. # Whittaker biomes as polygons (comes
 # with the plotbiomes package)
@@ -71,13 +71,17 @@ Whittaker_biomes_df <- sp::over(x = points_sp,
 
 clim_dat <- cbind(sb_clim_dat, Whittaker_biomes_df)
 
-write.csv(clim_dat, file = "~/Dropbox/Projects/NutNet/Data/clim_dat_with_Whittaker_biomes.csv", row.names = FALSE)
+head(clim_dat)
+
+# also label biogeographic Realms by latitude
+sb_clim_dat$Realm <- ifelse(sb_clim_dat$Lat_Deg > 23.5 & sb_clim_dat$y < 60, 'Temperate',
+                      ifelse(sb_clim_dat$Lat_Deg >23.5 , 'Tropical',
+                             ifelse(sb_clim_dat$Lat_Deg  < 60, 'Polar', 'other')))
 
 
-View(sb_clim_dat)
+#write.csv(clim_dat, file = "./data/try/Whittaker_biomes.csv", row.names = FALSE)
 
-sb_clim_dat$Prec_cm<-sb_clim_dat$Prec / 10
-sb_clim_dat$Temp_a<-sb_clim_dat$Temp / 10
+
 
 whittaker_base_plot() +
   geom_point(data = sb_clim_dat, 
@@ -92,15 +96,6 @@ whittaker_base_plot() +
   theme_bw()
 
 
-
-
-# also label biogeographic Realms by latitude
-
-
-
-meta3$Realm <- ifelse(meta3$latitude.p > 23.5 & meta3$latitude.p < 60, 'Temperate',
-                      ifelse(meta3$latitude.p >23.5 , 'Tropical',
-                             ifelse(meta3$latitude.p  < 60, 'Polar', 'other')))
 
 
 
