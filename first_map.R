@@ -56,6 +56,8 @@ sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data f
 
 sb<-rbind(sb,sb.dec) # bind back together
 
+nrow(sb)
+
 
 # This code copied from 'Data to Vis'  here:
 # https://www.data-to-viz.com/graph/bubblemap.html
@@ -87,7 +89,7 @@ gsbm <- sb %>%
   #   box.padding = 0.1, point.padding = 0.3, fill = NA,
   #   segment.color = 'grey50') +
   scale_color_viridis(discrete=TRUE,name="Habitat") +
-  #scale_color_viridis(discrete=FALSE,name="Total_Species",option="A") +
+ # scale_color_viridis(discrete=FALSE,name="Total_Species",option="A") +
   #scale_size_continuous(range=c(2,8), name="Length of Study") +
   coord_equal() +
   theme_void() +
@@ -98,7 +100,7 @@ gsbm <- sb %>%
     legend.direction="horizontal"
   ) +
   ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 7, label = paste("Soil Seedbanks of the World"), color = "Black") +
-  ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Experimental Locations"), color = "black", alpha = 0.5) +
+  ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations n=891"), color = "black", alpha = 0.5) +
   xlim(-180,180) +
   ylim(-60,80) +
   scale_x_continuous(expand = c(0.006, 0.006)) +
