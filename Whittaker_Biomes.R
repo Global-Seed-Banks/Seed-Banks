@@ -51,8 +51,9 @@ points <- SpatialPoints(coords, proj4string = r@crs)
 values <- extract(r,points)
 
 sb_clim_dat <- cbind.data.frame(coordinates(points),values)
+#lots of NA's and doesnt match up well, need to get higher resolution/work on matching nearest neighbour
 
-# remove NA's
+# but for now- remove NA's
 sb_clim_dat<-sb_clim_dat %>% drop_na()
 
 # adjust the world clim data to cm and celcius 
