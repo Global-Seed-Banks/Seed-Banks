@@ -46,12 +46,21 @@ coords <- sb %>% dplyr::select(Lat_Deg,Lon_Deg) %>%
   mutate(x=Lon_Deg) %>%
   mutate(y=Lat_Deg) 
 
-points <- SpatialPoints(coords, proj4string = r@crs)
+# Me
+#points <- SpatialPoints(coords, proj4string = r@crs)
 
-values <- extract(r,points)
+#values <- extract(r,points)
 
-sb_clim_dat <- cbind.data.frame(coordinates(points),values)
+#sb_clim_dat <- cbind.data.frame(coordinates(points),values)
 #lots of NA's and doesnt match up well, need to get higher resolution/work on matching nearest neighbour
+
+#Ali
+plot.points<-SpatialPoints(coords,proj4string=CRS("+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"))
+plot.clim<-data.frame(extract(r,plot.points))
+sb_clim_dat <- cbind.data.frame(coordinates(plot.points),plot.clim)
+
+# still 0's
+View(sb_clim_dat)
 
 # but for now- remove NA's
 sb_clim_dat<-sb_clim_dat %>% drop_na()
@@ -60,6 +69,7 @@ sb_clim_dat<-sb_clim_dat %>% drop_na()
 sb_clim_dat$Prec_cm<-sb_clim_dat$Prec / 10
 sb_clim_dat$Temp_a<-sb_clim_dat$Temp / 10
 
+#dataset of whittaker biomes
 # In order to intersect the study points with the Whittaker biomes polygons, we
 # need to transform the climate data to spatial point object, forcing
 # temperature and precipitation (cm) data as coordinates without a CRS.
@@ -83,7 +93,7 @@ sb_clim_dat$Realm <- ifelse(sb_clim_dat$Lat_Deg > 23.5 & sb_clim_dat$y < 60, 'Te
 #write.csv(clim_dat, file = "./data/try/Whittaker_biomes.csv", row.names = FALSE)
 
 
-
+#plot
 whittaker_base_plot() +
   geom_point(data = sb_clim_dat, 
              aes(x = Temp_a, 
