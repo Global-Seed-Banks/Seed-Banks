@@ -10,10 +10,15 @@
 
 ### So this is just copying the spreadsheet and saving as csv ###
 
-library(maps) # For plotting map
+#library(maps) # For plotting map
 library(sp) # For converting to decimal degrees
+library(scales)
+library(rgdal)
 
-sb<-read.csv("/home/auff/Dropbox/Global seed banks/for_map.csv", stringsAsFactors = FALSE)
+world<-readOGR("GIS","CNTR_RG_60M_2014", stringsAsFactors = FALSE) # import world map
+
+system("curl -o sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data")
+sb<-read.csv("sbtemp.csv",stringsAsFactors = FALSE)
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
 
 # First have to split the dataset into those with decimals and those without
@@ -37,19 +42,40 @@ sb$Lat_Deg<-as.numeric(char2dms(sb$Lat,"d","m","s"))
 sb$Lon_Deg<-as.numeric(char2dms(sb$Lon,"d","m","s"))
 
 sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data frames line up again 
-
 sb<-rbind(sb,sb.dec) # bind back together
 
 
 # plot
 #pdf("seedbankworldtour.pdf", height = 3, width = 5)
-map("world") # plot a world map
-#points(Lat_Deg~Lon_Deg, data=sb, col="blue", pch=19, cex=0.25) # add the points!
-points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], bg="gold", pch=21, cex=0.35,lwd=0.3) # add the points!
-points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Forest",], bg="forestgreen", pch=21, cex=0.35,lwd=0.3)
-points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Grassland",], bg="darkseagreen1", pch=21, cex=0.35,lwd=0.3) 
-points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Wetland",], bg="blue", pch=21, cex=0.35,lwd=0.3) 
-points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],bg="navyblue", pch=21, cex=0.35,lwd=0.3) 
+par(mar=c(1,1,1,1))
+plot(world, lwd=0.5, col="lightgrey", border="grey")
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], col=alpha("gold",0.4), pch=16, cex=0.3,lwd=0.3)
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Forest",], col=alpha("forestgreen",0.4), pch=16, cex=0.3,lwd=0.3)
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Grassland",], col=alpha("darkseagreen1",0.4), pch=16, cex=0.3,lwd=0.3) 
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Wetland",], col=alpha("blue",0.4), pch=16, cex=0.3,lwd=0.3) 
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],col=alpha("navyblue",0.4), pch=16, cex=0.3,lwd=0.3) 
 
-legend(-180,50,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=21,cex=0.35,pt.bg=c("gold", "forestgreen","darkseagreen1", "blue","navyblue"),bty="n", pt.lwd=0.3)
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], bg="gold", pch=21, cex=0.35,lwd=0.3) # add the points!
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Forest",], bg="forestgreen", pch=21, cex=0.35,lwd=0.3)
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Grassland",], bg="darkseagreen1", pch=21, cex=0.35,lwd=0.3) 
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Wetland",], bg="blue", pch=21, cex=0.35,lwd=0.3) 
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],bg="navyblue", pch=21, cex=0.35,lwd=0.3) 
+text(-120,-15,"Seed banks of the world", cex=0.5)
+legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex=0.35,col=c("gold", "forestgreen","darkseagreen1", "blue","navyblue"),bty="n", pt.lwd=0.3)
 #dev.off()
+
+
+# Anomaly map
+# lost the fucking code - but I read in that shapefile, converted to wgs84, made a spatialpointsdf of the 
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+proj=longlat +ellps=GRS80 +no_defs"))
+ 
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+init=epsg:4326"))
+world<-readOGR("/home/auff/Dropbox/GIS/World map Eurostat/Data","CNTR_RG_60M_2014", stringsAsFactors = FALSE) #
+world<-spTransform(world,"+init=epsg:4326")
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+init=epsg:4326"))
+plot(world)
+plot(sb.shp,add=TRUE)
+sb.out<-sb.shp[which(!rownames(sb.shp@data) %in% rownames(sb.shp[world,]@data)),]
+plot(sb.out, add=TRUE, pch=19, col="red")
+plot(sb.out, pch=19, col="red")
+plot(world, add=TRUE)
