@@ -14,8 +14,11 @@
 library(sp) # For converting to decimal degrees
 library(scales)
 library(rgdal)
+library(rgeos)
 
 world<-readOGR("GIS","CNTR_RG_60M_2014", stringsAsFactors = FALSE) # import world map
+cc<-read.csv("GIS/countrycodes.csv",stringsAsFactors = FALSE)
+world$country<-cc$Name[match(world$CNTR_ID,cc$Code)]
 
 system("curl -o sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data")
 sb<-read.csv("sbtemp.csv",stringsAsFactors = FALSE)
@@ -65,17 +68,26 @@ legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex
 #dev.off()
 
 
-# Anomaly map
-# lost the fucking code - but I read in that shapefile, converted to wgs84, made a spatialpointsdf of the 
-sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+proj=longlat +ellps=GRS80 +no_defs"))
+## Geographical error checking
  
+# make shapefile of points
 sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+init=epsg:4326"))
-world<-readOGR("/home/auff/Dropbox/GIS/World map Eurostat/Data","CNTR_RG_60M_2014", stringsAsFactors = FALSE) #
-world<-spTransform(world,"+init=epsg:4326")
-sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+init=epsg:4326"))
-plot(world)
-plot(sb.shp,add=TRUE)
+
+# subset by rows which do not intersect with world map
 sb.out<-sb.shp[which(!rownames(sb.shp@data) %in% rownames(sb.shp[world,]@data)),]
-plot(sb.out, add=TRUE, pch=19, col="red")
-plot(sb.out, pch=19, col="red")
-plot(world, add=TRUE)
+
+# plot on world map
+plot(sb.out, pch=19, col="red") # first plot points (as some may be outside the known world)
+plot(world, lwd=0.5, col="lightgrey", border="grey", add=TRUE) # add world map
+plot(sb.out, pch=19, col="red", add=TRUE) # add points back on top
+
+# Show in table
+sb.out[,which(names(sb.out)=="Human"):which(names(sb.out)=="Location")]
+
+
+# More error checking - Mixed up decimal and nondecimal degrees.
+sb.dec[(sign(sb.dec$Lat_Deg)==1 & sb.dec$Lat_NS=="S") | (sign(sb.dec$Lon_Deg)==1 & sb.dec$Lon_EW=="W") ,]
+
+# coverage info. Which countries not covered.
+world.cov<-world[sb.shp,]
+world$country[!world$country %in% world.cov$country]
