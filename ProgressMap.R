@@ -22,7 +22,12 @@ world$country<-cc$Name[match(world$CNTR_ID,cc$Code)]
 
 system("curl -o sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data")
 sb<-read.csv("sbtemp.csv",stringsAsFactors = FALSE)
+
+nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
+
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
+
+
 
 # First have to split the dataset into those with decimals and those without
 sb.dec<-sb[grep("\\.", sb$Lat_Deg),]
