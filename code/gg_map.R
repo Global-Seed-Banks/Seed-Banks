@@ -100,7 +100,7 @@ gsbm <- sb %>%
     legend.direction="horizontal"
   ) +
   ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 7, label = paste("Soil Seedbanks of the World"), color = "Black") +
-  ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations n=966"), color = "black", alpha = 0.5) +
+  ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations n=973"), color = "black", alpha = 0.5) +
   xlim(-180,180) +
   ylim(-60,80) +
   scale_x_continuous(expand = c(0.006, 0.006)) +
