@@ -11,6 +11,8 @@ library(hrbrthemes)
 library(mapdata)
 library(ggrepel)
 library(sp) # For converting to decimal degrees
+library(maps)
+library(mapproj)
 
 # Read our google sheet!
 sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
@@ -82,16 +84,10 @@ gsbm <- sb %>%
                  color=`Habitat`
                  #color=`Total_Species`
                  ), alpha=0.5) +
-  # labels from a former map
-  # geom_label_repel(
-  #   aes(x=Lon_Deg, y=Lat_Deg, label = Lon_Deg),family = 'Times',
-  #   segment.size = 0.5, segment.alpha = 0.5,
-  #   size = 3,
-  #   box.padding = 0.1, point.padding = 0.3, fill = NA,
-  #   segment.color = 'grey50') +
   scale_color_viridis(discrete=TRUE,name="Habitat") +
  # scale_color_viridis(discrete=FALSE,name="Total_Species",option="A") +
-  #scale_size_continuous(range=c(2,8), name="Length of Study") +
+  #scale_size_continuous(range=c(2,8), name="") +
+  #coord_map(projection="mollweide")+
   coord_equal() +
   theme_void() +
   theme(
@@ -107,10 +103,9 @@ gsbm <- sb %>%
             aes(x=-150, y=-44,
                 label=paste('n[study] == ', n_study)),
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
-  xlim(-180,180) +
+  xlim(-190,190) +
   ylim(-60,80) +
-  scale_x_continuous(expand = c(0.006, 0.006)) +
-  coord_equal() 
+  scale_x_continuous(expand = c(0.006, 0.006)) 
 
 gsbm
 
