@@ -57,6 +57,7 @@ sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data f
 sb<-rbind(sb,sb.dec) # bind back together
 
 nrow(sb)
+colnames(sb)
 
 
 # This code copied from 'Data to Vis'  here:
@@ -100,7 +101,12 @@ gsbm <- sb %>%
     legend.direction="horizontal"
   ) +
   ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 7, label = paste("Soil Seedbanks of the World"), color = "Black") +
-  ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations n=973"), color = "black", alpha = 0.5) +
+  ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations"), color = "black", alpha = 0.5) +
+  geom_text(data= sb %>% mutate(n_study = nrow(sb)) %>%
+            distinct( n_study, .keep_all = T),
+            aes(x=-150, y=-44,
+                label=paste('n[study] == ', n_study)),
+            hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   xlim(-180,180) +
   ylim(-60,80) +
   scale_x_continuous(expand = c(0.006, 0.006)) +
@@ -108,10 +114,9 @@ gsbm <- sb %>%
 
 gsbm
 
-# Save as PNG
-# Emma's path
-ggsave('~/Dropbox/Projects/SeedbankMap/Plots/gsbm_map.png', width = 36, height = 15.22, units = "in", dpi = 90)
-# Ali's path
+# Save as PNG in plots folder
+ggsave('./plots/map_update.png', width = 36, height = 15.22, units = "in", dpi = 90)
+
 
 
 
