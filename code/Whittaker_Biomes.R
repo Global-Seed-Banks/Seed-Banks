@@ -2,7 +2,7 @@
 rm(list=ls())
 # Note to self: Download World Clim data, and join with google sheet lat longs
 # can extract whittaker biomes and make a whittaker plot
-
+library(googlesheets4)
 library(tidyverse)
 library(plotbiomes)
 library(sp)
@@ -10,6 +10,7 @@ library(raster)
 
 # get worldclim data
 r <- getData("worldclim",var="bio",res=10)
+
 
 r <- r[[c(1,12)]]
 names(r) <- c("Temp","Prec")
@@ -44,8 +45,10 @@ sb<-rbind(sb,sb.dec) # bind back together
 
 coords <- sb %>% dplyr::select(Lat_Deg,Lon_Deg) %>%
   mutate(x=Lon_Deg) %>%
-  mutate(y=Lat_Deg) 
+  mutate(y=Lat_Deg)  %>% dplyr::select(x,y)
 
+
+View(coords)
 # Me
 #points <- SpatialPoints(coords, proj4string = r@crs)
 
@@ -104,6 +107,11 @@ whittaker_base_plot() +
              fill   = "black",
              stroke = 1,
              alpha  = 0.5) +
+  geom_text(data= sb_clim_dat %>% mutate(n_study = nrow(sb_clim_dat)) %>%
+              distinct( n_study, .keep_all = T),
+            aes(x=-12, y=400,
+                label=paste('n[study] == ', n_study)),
+            hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   theme_bw()
 
 

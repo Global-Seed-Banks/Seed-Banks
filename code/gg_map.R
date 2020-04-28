@@ -75,7 +75,7 @@ ggplot(data = world) +
 # Get the world polygon
 world <- map_data("world")
 
-
+# coord_equal version
 gsbm <- sb %>%
   #group_by(latitude, longitude, site_code, `Length of study`, continent) %>%
   ggplot() +
@@ -111,8 +111,6 @@ gsbm
 
 # Save as PNG in plots folder
 ggsave('./plots/map_update.png', width = 13, height = 8.27, units = "in", dpi = 90)
-
-
 
 
 
