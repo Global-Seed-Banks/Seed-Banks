@@ -88,9 +88,11 @@ clim_dat <- cbind(sb_clim_dat, Whittaker_biomes_df)
 head(clim_dat)
 
 # also label biogeographic Realms by latitude
-sb_clim_dat$Realm <- ifelse(sb_clim_dat$Lat_Deg > 23.5 & sb_clim_dat$y < 60, 'Temperate',
-                      ifelse(sb_clim_dat$Lat_Deg >23.5 , 'Tropical',
-                             ifelse(sb_clim_dat$Lat_Deg  < 60, 'Polar', 'other')))
+sb_clim_dat$Realm <- ifelse(sb_clim_dat$y > 23.5 & sb_clim_dat$y < 60, 'Temperate',
+                      ifelse(sb_clim_dat$y >23.5 , 'Tropical',
+                             ifelse(sb_clim_dat$y  < 60, 'Polar', 'other')))
+
+head(sb_clim_dat)
 
 
 #write.csv(clim_dat, file = "./data/try/Whittaker_biomes.csv", row.names = FALSE)
