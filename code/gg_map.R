@@ -101,7 +101,7 @@ gsbm <- sb %>%
   geom_text(data= sb %>% mutate(n_study = nrow(sb)) %>%
             distinct( n_study, .keep_all = T),
             aes(x=-150, y=-44,
-                label=paste('n[study] == ', n_study)),
+                label=paste('n[location] == ', n_study)),
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   xlim(-190,190) +
   ylim(-60,80) +

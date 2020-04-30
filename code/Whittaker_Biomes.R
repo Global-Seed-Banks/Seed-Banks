@@ -103,7 +103,7 @@ whittaker_base_plot() +
   geom_point(data = sb_clim_dat, 
              aes(x = Temp_a, 
                  y = Prec_cm), 
-             size   = 3,
+             size   = 2,
              shape  = 21,
              colour = "gray95", 
              fill   = "black",
@@ -112,7 +112,7 @@ whittaker_base_plot() +
   geom_text(data= sb_clim_dat %>% mutate(n_study = nrow(sb_clim_dat)) %>%
               distinct( n_study, .keep_all = T),
             aes(x=-12, y=400,
-                label=paste('n[study] == ', n_study)),
+                label=paste('n[location] == ', n_study)),
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   theme_bw()
 
