@@ -33,9 +33,10 @@ summary(sb$Lon_Sec)
 
 # Then account for mistakes in coordinates - 
 # run if google sheet has not been cleaned
-#sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
-#sb$Lon_Deg[sb$Lon_Deg>180]<-180 # remove rows with impossible longitudes
-#sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
+sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
+sb$Lon_Deg[sb$Lon_Deg>180]<-180 # remove rows with impossible longitudes
+sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>59]<-59 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
+sb$Lat_Sec[sb$Lat_Sec>59]<-59; sb$Lon_Sec[sb$Lon_Sec>59]<-59
 
 # add zeroes for minutes/seconds where they are blank
 sb$Lon_Min[is.na(sb$Lon_Min)]<-0; sb$Lat_Min[is.na(sb$Lat_Min)]<-0  
@@ -46,9 +47,9 @@ sb$Lat<-paste0(sb$Lat_Deg,"d",sb$Lat_Min,"m",round(as.numeric(sb$Lat_Sec)),"s",s
 sb$Lon<-paste0(sb$Lon_Deg,"d",sb$Lon_Min,"m",round(as.numeric(sb$Lon_Sec)),"s",sb$Lon_EW)
 
 # check values
-# summary(sb$Lon_Deg)
-# summary(sb$Lon_Min)
-# summary(sb$Lon_Sec)
+ summary(sb$Lon_Deg)
+ summary(sb$Lon_Min)
+ summary(sb$Lon_Sec)
 
 # then char2dms converts the coordinates to decimals, using the separators we just added. Overwrite original column
 sb$Lat_Deg<-as.numeric(char2dms(sb$Lat,"d","m","s"))
