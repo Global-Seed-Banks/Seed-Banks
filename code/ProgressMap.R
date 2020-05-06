@@ -27,15 +27,18 @@ nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for inf
 
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
 
-
-
 # First have to split the dataset into those with decimals and those without
-sb.dec<-sb[grep("\\.", sb$Lat_Deg),]
-sb<-sb[!grepl("\\.", sb$Lat_Deg),]
+sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),]
+sb<-sb[!sb$URL %in% sb.dec$URL,]
+
+# Then change sign for those dec degrees with compass directions where needed
+sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1] <-sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1]*-1
+sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1] <-sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1]*-1
 
 # Then account for mistakes in coordinates - need to work out properly later, but do this for now
+nrow(sb[sb$Lat_Deg>90,])
 sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
-sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
+#sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
 
 # add zeroes for minutes/seconds where they are blank
 sb$Lon_Min[is.na(sb$Lon_Min)]<-0; sb$Lat_Min[is.na(sb$Lat_Min)]<-0  
