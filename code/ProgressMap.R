@@ -6,7 +6,7 @@
 # #install.packages("googlesheets4")
 # library(googlesheets4)
 # #sheets_auth("ali.auffret@gmail.com") # 
-# sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4")
+#sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
 
 ### So this is just copying the spreadsheet and saving as csv ###
 
