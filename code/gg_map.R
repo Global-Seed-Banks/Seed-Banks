@@ -18,32 +18,35 @@ library(mapproj)
 sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
 
 
+nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
+
 # Ali's Lat Long wrangling code
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
 
 # First have to split the dataset into those with decimals and those without
-sb.dec<-sb[grep("\\.", sb$Lat_Deg),]
-sb<-sb[!grepl("\\.", sb$Lat_Deg),]
+sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),]
+sb<-sb[!sb$URL %in% sb.dec$URL,]
+
+# Then change sign for those dec degrees with compass directions where needed
+# doesnt work for me, but does for ali
+# sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1] <-sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1]*-1
+# sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1] <-sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1]*-1
 
 
-summary(sb$Lon_Deg)
-summary(sb$Lon_Min)
-summary(sb$Lon_Sec)
-
-
-# Then account for mistakes in coordinates - 
+# Then account for mistakes in coordinates -
 # run if google sheet has not been cleaned
-sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
-sb$Lon_Deg[sb$Lon_Deg>180]<-180 # remove rows with impossible longitudes
-sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>59]<-59 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
-sb$Lat_Sec[sb$Lat_Sec>59]<-59; sb$Lon_Sec[sb$Lon_Sec>59]<-59
+nrow(sb[sb$Lat_Deg>90,]) # check for impossibles
+# sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
+# sb$Lon_Deg[sb$Lon_Deg>180]<-180 # remove rows with impossible longitudes
+# sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>59]<-59 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
+# sb$Lat_Sec[sb$Lat_Sec>59]<-59; sb$Lon_Sec[sb$Lon_Sec>59]<-59
 
 # add zeroes for minutes/seconds where they are blank
-sb$Lon_Min[is.na(sb$Lon_Min)]<-0; sb$Lat_Min[is.na(sb$Lat_Min)]<-0  
-sb$Lat_Sec[is.na(sb$Lat_Sec)]<-0; sb$Lon_Sec[is.na(sb$Lon_Sec)]<-0 
+sb$Lon_Min[is.na(sb$Lon_Min)]<-0; sb$Lat_Min[is.na(sb$Lat_Min)]<-0
+sb$Lat_Sec[is.na(sb$Lat_Sec)]<-0; sb$Lon_Sec[is.na(sb$Lon_Sec)]<-0
 
 # for conversion - first paste together the coordinates with d, m, s as separators (needed later)
-sb$Lat<-paste0(sb$Lat_Deg,"d",sb$Lat_Min,"m",round(as.numeric(sb$Lat_Sec)),"s",sb$Lat_NS) 
+sb$Lat<-paste0(sb$Lat_Deg,"d",sb$Lat_Min,"m",round(as.numeric(sb$Lat_Sec)),"s",sb$Lat_NS)
 sb$Lon<-paste0(sb$Lon_Deg,"d",sb$Lon_Min,"m",round(as.numeric(sb$Lon_Sec)),"s",sb$Lon_EW)
 
 # check values
@@ -55,7 +58,7 @@ sb$Lon<-paste0(sb$Lon_Deg,"d",sb$Lon_Min,"m",round(as.numeric(sb$Lon_Sec)),"s",s
 sb$Lat_Deg<-as.numeric(char2dms(sb$Lat,"d","m","s"))
 sb$Lon_Deg<-as.numeric(char2dms(sb$Lon,"d","m","s"))
 
-sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data frames line up again 
+sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data frames line up again
 
 sb<-rbind(sb,sb.dec) # bind back together
 
@@ -75,6 +78,7 @@ ggplot(data = world) +
   geom_sf()
 # Get the world polygon
 world <- map_data("world")
+
 
 # coord_equal version
 gsbm <- sb %>%
@@ -104,8 +108,8 @@ gsbm <- sb %>%
             aes(x=-150, y=-44,
                 label=paste('n[location] == ', n_study)),
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
-  xlim(-190,190) +
-  ylim(-60,80) +
+  # xlim(-190,190) +
+  # ylim(-60,80) +
   scale_x_continuous(expand = c(0.006, 0.006)) 
 
 gsbm
