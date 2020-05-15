@@ -25,6 +25,8 @@ sb<-read.csv("sbtemp.csv",stringsAsFactors = FALSE)
 
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
 
+write.csv(sb[is.na(sb$Lat_Deg) & !sb$Location=="", 1:which(names(sb)=="Target_Habitat")], "sb.findloc.csv", row.names=FALSE)
+
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
 
 # First have to split the dataset into those with decimals and those without
@@ -80,6 +82,8 @@ legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex
  
 # make shapefile of points
 sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+init=epsg:4326"))
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+proj=longlat +ellps=GRS80 +no_defs"))
+
 
 # subset by rows which do not intersect with world map
 sb.out<-sb.shp[which(!rownames(sb.shp@data) %in% rownames(sb.shp[world,]@data)),]
@@ -90,7 +94,7 @@ plot(world, lwd=0.5, col="lightgrey", border="grey", add=TRUE) # add world map
 plot(sb.out, pch=19, col="red", add=TRUE) # add points back on top
 
 # Show in table
-sb.out[,which(names(sb.out)=="Human"):which(names(sb.out)=="Location")]
+sb.out[,which(names(sb.out)=="Human"):which(names(sb.out)=="Habitat")]
 
 
 # More error checking - Mixed up decimal and nondecimal degrees.
