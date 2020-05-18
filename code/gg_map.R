@@ -101,11 +101,11 @@ gsbm <- sb %>%
     legend.position=c(0.20,0.001),
     legend.direction="horizontal"
   ) +
-  ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 7, label = paste("Soil Seedbanks of the World"), color = "Black") +
+  ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 5, label = paste("Soil Seedbanks of the World"), color = "Black") +
   ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations"), color = "black", alpha = 0.5) +
   geom_text(data= sb %>% mutate(n_study = nrow(sb)) %>%
             distinct( n_study, .keep_all = T),
-            aes(x=-150, y=-44,
+            aes(x=-147, y=-44,
                 label=paste('n[location] == ', n_study)),
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   # xlim(-190,190) +
