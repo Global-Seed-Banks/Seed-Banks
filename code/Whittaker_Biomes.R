@@ -42,6 +42,7 @@ sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data f
 
 sb<-rbind(sb,sb.dec) # bind back together
 
+View(sb)
 
 coords <- sb %>% dplyr::select(Lat_Deg,Lon_Deg) %>%
   mutate(x=Lon_Deg) %>%
@@ -64,6 +65,10 @@ sb_clim_dat <- cbind.data.frame(coordinates(plot.points),plot.clim)
 
 # still 0's
 View(sb_clim_dat)
+
+clim_check <- sb_clim_dat %>% rename(Lon_Deg=x,Lat_Deg=y) %>% left_join(sb)
+
+write.csv(clim_check,"./clim_check.csv")
 
 # but for now- remove NA's
 sb_clim_dat<-sb_clim_dat %>% drop_na()
@@ -94,6 +99,8 @@ sb_clim_dat$Realm <- ifelse(sb_clim_dat$y > 23.5 & sb_clim_dat$y < 60, 'Temperat
 
 head(sb_clim_dat)
 
+View(sb_clim_dat)
+
 
 #write.csv(clim_dat, file = "./data/try/Whittaker_biomes.csv", row.names = FALSE)
 
@@ -103,7 +110,7 @@ whittaker_base_plot() +
   geom_point(data = sb_clim_dat, 
              aes(x = Temp_a, 
                  y = Prec_cm), 
-             size   = 2,
+             size   = 1,
              shape  = 21,
              colour = "gray95", 
              fill   = "black",

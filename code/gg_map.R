@@ -88,7 +88,7 @@ gsbm <- sb %>%
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
                  color=`Habitat`
                  #color=`Total_Species`
-                 ), alpha=0.5) +
+                 ), size=0.75,alpha=0.5) +
   scale_color_viridis(discrete=TRUE,name="Habitat") +
  # scale_color_viridis(discrete=FALSE,name="Total_Species",option="A") +
   #scale_size_continuous(range=c(2,8), name="") +
