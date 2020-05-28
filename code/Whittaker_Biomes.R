@@ -68,7 +68,7 @@ View(sb_clim_dat)
 
 clim_check <- sb_clim_dat %>% rename(Lon_Deg=x,Lat_Deg=y) %>% left_join(sb)
 
-write.csv(clim_check,"./clim_check.csv")
+write.csv(clim_check,"./data/clim_check.csv")
 
 # but for now- remove NA's
 sb_clim_dat<-sb_clim_dat %>% drop_na()

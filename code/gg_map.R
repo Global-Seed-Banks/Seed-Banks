@@ -114,6 +114,9 @@ gsbm <- sb %>%
 
 gsbm
 
+
+
+
 # Save as PNG in plots folder
 ggsave('./plots/map_update.png', width = 13, height = 8.27, units = "in", dpi = 90)
 
