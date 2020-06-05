@@ -102,7 +102,7 @@ head(sb_clim_dat)
 View(sb_clim_dat)
 
 
-#write.csv(clim_dat, file = "./data/try/Whittaker_biomes.csv", row.names = FALSE)
+write.csv(sb_clim_dat, file = "./data/try/Whittaker_biomes.csv", row.names = FALSE)
 
 
 #plot
