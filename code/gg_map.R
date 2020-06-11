@@ -65,6 +65,9 @@ sb<-rbind(sb,sb.dec) # bind back together
 nrow(sb)
 colnames(sb)
 
+# sbd <- sb %>% filter(is.na(Habitat))
+# View(sbd)
+
 
 # This code copied from 'Data to Vis'  here:
 # https://www.data-to-viz.com/graph/bubblemap.html
