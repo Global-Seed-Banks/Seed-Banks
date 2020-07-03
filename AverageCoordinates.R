@@ -53,5 +53,16 @@ mean(coords.trans@coords[,2]) # LATITUDE
 mean(coords.trans@coords[,1]) # LONGITUDE
 
 
+## British national grid coordinates (e.g. SY 865923)
+# First edit the tmpfiles/bng_in.csv file so that the first column has the grid squares that need coordinates (no header)
+library(rgdal)
 
+system(paste0(paste0("cd '",getwd(),"' | "), "perl ngconv.pl tmpfiles/bng_in.csv -o=bng_out.csv -point=mid -includengr"))
+
+bng<-read.csv("tmpfiles/bng_out.csv", stringsAsFactors = FALSE, header=FALSE)
+coords<-SpatialPoints(bng[,2:3], proj4string=CRS("+init=epsg:27700"))
+(coords.trans<-spTransform(coords, CRS("+proj=longlat +datum=WGS84") ))
+
+mean(coords.trans@coords[,2]) # LATITUDE
+mean(coords.trans@coords[,1]) # LONGITUDE
 
