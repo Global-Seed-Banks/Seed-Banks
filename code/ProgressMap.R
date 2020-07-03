@@ -25,7 +25,7 @@ sb<-read.csv("sbtemp.csv",stringsAsFactors = FALSE)
 
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
 
-write.csv(sb[is.na(sb$Lat_Deg) & !sb$Location=="", 1:which(names(sb)=="Target_Habitat")], "sb.findloc.csv", row.names=FALSE)
+#write.csv(sb[is.na(sb$Lat_Deg) & !sb$Location=="", 1:which(names(sb)=="Target_Habitat")], "sb.findloc.csv", row.names=FALSE)
 
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
 
@@ -59,13 +59,13 @@ sb<-rbind(sb,sb.dec) # bind back together
 
 
 # plot
-#pdf("seedbankworldtour.pdf", height = 3, width = 5)
+pdf("seedbankworldtour.pdf", height = 3, width = 5)
 par(mar=c(1,1,1,1))
 plot(world, lwd=0.5, col="lightgrey", border="grey")
 points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], col=alpha("gold",0.4), pch=16, cex=0.3,lwd=0.3)
 points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Forest",], col=alpha("forestgreen",0.4), pch=16, cex=0.3,lwd=0.3)
 points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Grassland",], col=alpha("darkseagreen1",0.4), pch=16, cex=0.3,lwd=0.3) 
-points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Wetland",], col=alpha("blue",0.4), pch=16, cex=0.3,lwd=0.3) 
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Wetland",], col=alpha("lightblue",0.4), pch=16, cex=0.3,lwd=0.3) 
 points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],col=alpha("navyblue",0.4), pch=16, cex=0.3,lwd=0.3) 
 
 # points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], bg="gold", pch=21, cex=0.35,lwd=0.3) # add the points!
@@ -74,8 +74,8 @@ points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],col=alpha("navyblue",0.4
 # points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Wetland",], bg="blue", pch=21, cex=0.35,lwd=0.3) 
 # points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],bg="navyblue", pch=21, cex=0.35,lwd=0.3) 
 text(-120,-15,"Seed banks of the world", cex=0.5)
-legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex=0.35,col=c("gold", "forestgreen","darkseagreen1", "blue","navyblue"),bty="n", pt.lwd=0.3)
-#dev.off()
+legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex=0.35,col=c("gold", "forestgreen","darkseagreen1", "lightblue","navyblue"),bty="n", pt.lwd=0.3)
+dev.off()
 
 
 ## Geographical error checking
@@ -94,8 +94,8 @@ plot(world, lwd=0.5, col="lightgrey", border="grey", add=TRUE) # add world map
 plot(sb.out, pch=19, col="red", add=TRUE) # add points back on top
 
 # Show in table
-sb.out[,which(names(sb.out)=="Human"):which(names(sb.out)=="Habitat")]
-
+sb.out<-sb.out[,which(names(sb.out)=="Human"):which(names(sb.out)=="Habitat")]
+sb.out[sign(sb.out$Lon_Deg)==-1,]
 
 # More error checking - Mixed up decimal and nondecimal degrees.
 sb.dec[(sign(sb.dec$Lat_Deg)==1 & sb.dec$Lat_NS=="S") | (sign(sb.dec$Lon_Deg)==1 & sb.dec$Lon_EW=="W") ,]

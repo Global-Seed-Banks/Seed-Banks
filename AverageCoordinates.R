@@ -3,7 +3,7 @@
 
 # Then read in the csv
 coords<-read.csv("coortemp.csv", header=TRUE, stringsAsFactors = FALSE)
-coords<-data.frame(Latitude=c('11°50’36"N', '12°11’20"N'), Longitude=c('39°37’26"E','39°45’15"E'), stringsAsFactors = FALSE)
+coords<-data.frame(Latitude=c('44°33’00"N', '44°58’00"N','43°59’00"N', '43°43’00"N' ), Longitude=c('87°43’00"W','88°2’0"W','83°31’00"W','83°56’0"W'), stringsAsFactors = FALSE)
 
 # Load the required packaged
 library(sp)
@@ -28,3 +28,30 @@ mean(coords$Lon_Deg)
 # or according to habitat or something else.
 mean(coords$Lat_Deg[!coords$Type=="Natural wetland"])
 mean(coords$Lon_Deg[!coords$Type=="Natural wetland"])
+
+
+### Coordinate  conversion
+library(rgdal)
+
+## UTM
+# This first study gave e.g.
+# UTM 34 05029 E, 86 701 N.
+# UTM 34 05048 E, 86 694 N
+# The first number is the zone (you need the specific latitudinal zone for UTM) so apply that below. Also the numbers (E without the 34)  needed 00 on the end for it to make sense.
+
+zone<-34
+
+coords<-SpatialPoints(cbind(
+  c(418300, 421600, 422300), # X (EW) COORDINATES
+  c(7733100, 7725100,7726600)),
+    proj4string=CRS(paste0("+proj=utm +zone=",zone," ellps=WGS84")))
+
+(coords.trans<-spTransform(coords, CRS("+proj=longlat +datum=WGS84") ))
+
+# means
+mean(coords.trans@coords[,2]) # LATITUDE
+mean(coords.trans@coords[,1]) # LONGITUDE
+
+
+
+
