@@ -3,6 +3,9 @@
 
 # Data source: Vladimir Onipchenko vonipchenko@mail.ru, shared on September 4, 2020
 # All Russian and USSR seed bank studies up until the year 2000, collected for Ken Thompson's book under NATO (?) funding (feels relevant)
+# Data codes interpreted from https://uol.de/f/5/inst/biologie/ag/landeco/download/LEDA/Standards/Leda-S3-5_seed_traits.pdf
+# and from Thompson, K. Soil seedbanks of ....
+
 
 library(tidyverse)
 library(openxlsx)
@@ -19,13 +22,18 @@ colnames(sites)
 colnames(refs)
 
 # join references with the site information
-siteref <- refs %>% left_join(sites)
+siteref <- refs %>% left_join(sites) %>%
+  rename(method_code = Method) %>%
+  mutate( Method = case_when(method_code == 4 ~ "Extraction",
+                             method_code == 5 ~ "Greenhouse",) ) %>%
+  rename(Area_unit_code = `Area.unit`) %>%
+  mutate( Area_unit = case_when(Area_unit_code == 2 ~ "M") )
 
 
 head(siteref)
 
-# species and density sheet are the same
-# use the density sheet
+# species and density sheet are almost the same because most studies units were reported in m2
+# se we use density because all units are in m2
 head(density)
 View(density)
 
