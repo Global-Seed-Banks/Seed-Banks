@@ -80,7 +80,7 @@ sum_dat <- siteref %>% left_join(species_summary) %>% # join site and reference 
    left_join(trial_dat) %>%
    mutate(  Volume.sampled.cm = (Area.sampled * Total.depth),
             Volume.sampled.mm = (Volume.sampled.cm * 1000 ) , # assuming the volume is cm3 X 1000 for mm3
-            Total.Volume.mm = (Volume.sampled.mm * Trial)) # i think the size of sample is per trial... or per sample
+            Total.Volume.mm = (Volume.sampled.mm * Trial)) # the size of sample is per trial
  
 
  
