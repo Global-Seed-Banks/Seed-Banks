@@ -2,7 +2,7 @@
 # First, copy from table or text, then save as a csv.
 
 # Then read in the csv
-coords<-read.csv("coortemp.csv", header=TRUE, stringsAsFactors = FALSE)
+coords<-read.csv("tmpfiles/coortemp.csv", header=TRUE, stringsAsFactors = FALSE)
 coords<-data.frame(Latitude=c('44°33’00"N', '44°58’00"N','43°59’00"N', '43°43’00"N' ), Longitude=c('87°43’00"W','88°2’0"W','83°31’00"W','83°56’0"W'), stringsAsFactors = FALSE)
 
 # Load the required packaged
@@ -10,7 +10,7 @@ library(sp)
 
 # The package requires you to give separators for your coordinates, i.e. what comes after the degree number, the minute number or the second number. The defaults are "d", "'", and "\". But your data might be different, in which case assign them as objects, e.g.
 degsign<-"°"
-minsign<-"’" 
+minsign<-"′" 
 secsign<-'"'
 
 # In my original case, the coordinates looked like this "47°44.227N". The function didn't accept "N" as the minute separator, so I added one as below
@@ -26,8 +26,8 @@ mean(coords$Lat_Deg)
 mean(coords$Lon_Deg)
 
 # or according to habitat or something else.
-mean(coords$Lat_Deg[!coords$Type=="Natural wetland"])
-mean(coords$Lon_Deg[!coords$Type=="Natural wetland"])
+mean(coords$Lat_Deg[coords$Cat=="Deveg"])
+mean(coords$Lon_Deg[coords$Cat=="Deveg"])
 
 
 ### Coordinate  conversion

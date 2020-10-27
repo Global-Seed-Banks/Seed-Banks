@@ -25,7 +25,7 @@ sb<-read.csv("tmpfiles/sbtemp.csv",stringsAsFactors = FALSE)
 
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
 
-#write.csv(sb[is.na(sb$Lat_Deg) & !sb$Location=="", 1:which(names(sb)=="Target_Habitat")], "sb.findloc.csv", row.names=FALSE)
+write.csv(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & !sb$Habitat, 1:which(names(sb)=="Target_Habitat")], "sb.findloc.csv", row.names=FALSE)
 
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
 
