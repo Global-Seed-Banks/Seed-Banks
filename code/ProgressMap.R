@@ -23,11 +23,16 @@ world$country<-cc$Name[match(world$CNTR_ID,cc$Code)]
 system("curl -o tmpfiles/sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data")
 sb<-read.csv("tmpfiles/sbtemp.csv",stringsAsFactors = FALSE)
 
+
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
 
-write.csv(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & !sb$Habitat, 1:which(names(sb)=="Target_Habitat")], "sb.findloc.csv", row.names=FALSE)
+# Finding errors
+sb.noloc<-sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & !is.na(sb$Habitat), 1:which(names(sb)=="Target_Habitat")]
+write.csv(sb.noloc, "sb.findloc.csv", row.names=FALSE)
 
-sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
+
+# remove rows that don't have both lat and long at degree resolution
+sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] 
 
 # First have to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),]
@@ -37,8 +42,8 @@ sb<-sb[!sb$URL %in% sb.dec$URL,]
 sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1] <-sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1]*-1
 sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1] <-sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1]*-1
 
-# Then account for mistakes in coordinates - need to work out properly later, but do this for now
-nrow(sb[sb$Lat_Deg>90,])
+# Ident
+sb[sb$Lat_Deg>90 | sb$Lon_Deg>180,] 
 sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
 #sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
 
