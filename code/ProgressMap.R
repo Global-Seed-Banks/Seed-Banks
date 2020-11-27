@@ -23,13 +23,11 @@ world$country<-cc$Name[match(world$CNTR_ID,cc$Code)]
 system("curl -o tmpfiles/sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data")
 sb<-read.csv("tmpfiles/sbtemp.csv",stringsAsFactors = FALSE)
 
-
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
 
 # Finding errors
-sb.noloc<-sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & !is.na(sb$Habitat), 1:which(names(sb)=="Target_Habitat")]
+sb.noloc<-sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & nchar(sb$Habitat)>0, 1:which(names(sb)=="Target_Habitat")]
 write.csv(sb.noloc, "sb.findloc.csv", row.names=FALSE)
-
 
 # remove rows that don't have both lat and long at degree resolution
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] 
@@ -64,7 +62,7 @@ sb<-rbind(sb,sb.dec) # bind back together
 
 
 # plot
-pdf("seedbankworldtour.pdf", height = 3, width = 5)
+pdf("plots/seedbankworldtour.pdf", height = 3, width = 5)
 par(mar=c(1,1,1,1))
 plot(world, lwd=0.5, col="lightgrey", border="grey")
 points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], col=alpha("gold",0.5), pch=16, cex=0.3,lwd=0.3)
@@ -80,6 +78,14 @@ points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],col=alpha("navyblue",0.5
 # points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],bg="navyblue", pch=21, cex=0.35,lwd=0.3) 
 text(-120,-15,"Seed banks of the world", cex=0.5)
 legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex=0.35,col=c("gold", "forestgreen","darkseagreen1", "skyblue3","navyblue"),bty="n", pt.lwd=0.3)
+dev.off()
+
+### Simple map for succseed
+#world
+pdf("plots/succseedmap.pdf", height = 3, width = 5)
+par(mar=c(1,1,1,1))
+plot(world, lwd=0.5, col="lightgrey", border="grey")
+points(Lat_Deg~Lon_Deg, data=sb, col=alpha("forestgreen",0.3), pch=16, cex=0.3,lwd=0.3)
 dev.off()
 
 
