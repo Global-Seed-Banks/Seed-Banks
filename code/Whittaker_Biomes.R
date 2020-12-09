@@ -110,11 +110,11 @@ whittaker_base_plot() +
   geom_point(data = sb_clim_dat, 
              aes(x = Temp_a, 
                  y = Prec_cm), 
-             size   = 1,
+             size   = 1.5,
              shape  = 21,
              colour = "gray95", 
              fill   = "black",
-             stroke = 1,
+             stroke = 0.75,
              alpha  = 0.5) +
   geom_text(data= sb_clim_dat %>% mutate(n_study = nrow(sb_clim_dat)) %>%
               distinct( n_study, .keep_all = T),
