@@ -25,9 +25,12 @@ sb<-read.csv("tmpfiles/sbtemp.csv",stringsAsFactors = FALSE)
 
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
 
-#write.csv(sb[is.na(sb$Lat_Deg) & !sb$Location=="", 1:which(names(sb)=="Target_Habitat")], "sb.findloc.csv", row.names=FALSE)
+# Finding errors
+sb.noloc<-sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & nchar(sb$Habitat)>0, 1:which(names(sb)=="Target_Habitat")]
+write.csv(sb.noloc, "sb.findloc.csv", row.names=FALSE)
 
-sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
+# remove rows that don't have both lat and long at degree resolution
+sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] 
 
 # First have to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),]
@@ -37,8 +40,8 @@ sb<-sb[!sb$URL %in% sb.dec$URL,]
 sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1] <-sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1]*-1
 sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1] <-sb.dec$Lon_Deg[sb.dec$Lon_EW=="W" & sign(sb.dec$Lon_Deg)==1]*-1
 
-# Then account for mistakes in coordinates - need to work out properly later, but do this for now
-nrow(sb[sb$Lat_Deg>90,])
+# Ident
+sb[sb$Lat_Deg>90 | sb$Lon_Deg>180,] 
 sb<-sb[!sb$Lat_Deg>90,] # remove rows with impossible latitudes
 #sb$Lat_Min[sb$Lat_Min>59]<-59; sb$Lon_Min[sb$Lon_Min>179]<-179 # Some places have minutes (and some seconds) above 60, which I think is impossible. Need to sort these out better eventually but the conversion seems to work anyway.
 
@@ -59,7 +62,7 @@ sb<-rbind(sb,sb.dec) # bind back together
 
 
 # plot
-pdf("seedbankworldtour.pdf", height = 3, width = 5)
+pdf("plots/seedbankworldtour.pdf", height = 3, width = 5)
 par(mar=c(1,1,1,1))
 plot(world, lwd=0.5, col="lightgrey", border="grey")
 points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], col=alpha("gold",0.5), pch=16, cex=0.3,lwd=0.3)
@@ -75,6 +78,14 @@ points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],col=alpha("navyblue",0.5
 # points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],bg="navyblue", pch=21, cex=0.35,lwd=0.3) 
 text(-120,-15,"Seed banks of the world", cex=0.5)
 legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex=0.35,col=c("gold", "forestgreen","darkseagreen1", "skyblue3","navyblue"),bty="n", pt.lwd=0.3)
+dev.off()
+
+### Simple map for succseed
+#world
+pdf("plots/succseedmap.pdf", height = 3, width = 5)
+par(mar=c(1,1,1,1))
+plot(world, lwd=0.5, col="lightgrey", border="grey")
+points(Lat_Deg~Lon_Deg, data=sb, col=alpha("forestgreen",0.3), pch=16, cex=0.3,lwd=0.3)
 dev.off()
 
 
