@@ -89,9 +89,6 @@ sapply(sb,class)
 sum(lapply(unique(sb$Title), function(x) length(unique(sb$Doi[sb$Title==x])))>1)
 # unique(sb$Title)[lapply(unique(sb$Title), function(x) length(unique(sb$Doi[sb$Title==x])))>1]
 
-# The following needs checking - Jan added it himself and then it was added later when the non-doi papers were added. Someone else did it then, and the method inputs seem to be different.
-"Germinable soil seed bank of desert plant communities in wadi Al-Ammaria, Riyadh, Saudi Arabia" 
-
 
 ## Habitats - Green section ##
 
@@ -103,12 +100,16 @@ table(sb$Target_Habitat)
 
 # Arable plus has target habitat - need checking as should only be rare occasion that it is at that point in a transition (i.e. a restored grassland on an arable field would be a sort of grassland in the first year)
 sb[sb$Habitat=="Arable" & nchar(sb$Target_Habitat)>0,]
+araplustarget<-sb$Title[sb$Habitat=="Arable" & nchar(sb$Target_Habitat)>0]
+araplustargetcheck<-write.csv(sb[sb$Title %in% araplustarget,], "tmpfiles/ara_plus_target_check.csv", row.names = FALSE)
 
 # Arable as target habitat - need checking, but probably just editing to remove the target. Sites should be arable fields, or if not we should look at them as degraded/restored habitats rather than degraded arable fields
 sb[sb$Target_Habitat=="Arable",]
+unique(sb$Doi[sb$Target_Habitat=="Arable"])
 
 # Rows with target habitats but no habitat 
 nrow(sb[is.na(sb$Habitat) & !is.na(sb$Target_Habitat),])
+
 
 # Experiment should be 1 or empty
 table(sb$Experiment)
