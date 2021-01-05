@@ -98,10 +98,15 @@ table(sb$Habitat)
 # Target habitats
 table(sb$Target_Habitat)
 
-# Arable plus has target habitat - need checking as should only be rare occasion that it is at that point in a transition (i.e. a restored grassland on an arable field would be a sort of grassland in the first year)
+# Arable plus has target habitat - need checking as should only be rare occasion that it is at that point in a transition (i.e. a restored grassland on an arable field would be a sort of grassland in the first year).
 sb[sb$Habitat=="Arable" & nchar(sb$Target_Habitat)>0,]
 araplustarget<-sb$Title[sb$Habitat=="Arable" & nchar(sb$Target_Habitat)>0]
 araplustargetcheck<-write.csv(sb[sb$Title %in% araplustarget,], "tmpfiles/ara_plus_target_check.csv", row.names = FALSE)
+# Checked 4-5/1 2021 - all now changed so that arable is always arable. Even after 1 year of succession towards target forest, it is now forest forest, as I think that we should see it as a degraded forest that is managed/treated as a forest. Next step is then to check other Grassland Forest, to make sure that they are all managed/treated as grasslands rather than just something in between arable and forest.
+
+# Checking Grassland Forest then.
+sb[sb$Habitat=="Grassland" & sb$Target_Habitat=="Forest",]
+
 
 # Arable as target habitat - need checking, but probably just editing to remove the target. Sites should be arable fields, or if not we should look at them as degraded/restored habitats rather than degraded arable fields
 sb[sb$Target_Habitat=="Arable",]
