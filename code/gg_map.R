@@ -19,8 +19,11 @@ library(rworldmap)
 # Read our google sheet!
 sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
 
-
+colnames(sb)
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
+# how many individual studies?
+sb %>% distinct(Title)
+# 1,434 papers 
 
 # Ali's Lat Long wrangling code
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] # remove rows that don't have both lat and long at degree resolution
@@ -106,7 +109,7 @@ gsbm <- sb %>%
     legend.position=c(0.20,0.001),
     legend.direction="horizontal"
   ) +
-  ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 5, label = paste("Soil Seedbanks of the World"), color = "Black") +
+  ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 5, label = paste("The Global Soil Seed Bank"), color = "Black") +
   ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations"), color = "black", alpha = 0.5) +
   geom_text(data= sb %>% mutate(n_study = nrow(sb)) %>%
             distinct( n_study, .keep_all = T),
@@ -118,9 +121,6 @@ gsbm <- sb %>%
   scale_x_continuous(expand = c(0.006, 0.006)) 
 
 gsbm
-
-
-
 
 
 
