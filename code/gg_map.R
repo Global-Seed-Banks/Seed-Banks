@@ -96,9 +96,9 @@ gsbm <- sb %>%
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
                  color=`Habitat`
                  #color=`Total_Species`
-                 ), size=0.75,alpha=0.5,shape=1) +
-  scale_color_viridis(discrete=TRUE,name="Habitat") +
- # scale_color_viridis(discrete=FALSE,name="Total_Species",option="A") +
+                 ), size=0.85,alpha=0.7) +
+  #scale_color_viridis(discrete=TRUE,name="Habitat") +
+ scale_color_manual( values= c("#39568CFF", "#FDE725FF", "#228B22","#95D840FF","#440154FF"))+
   #scale_size_continuous(range=c(2,8), name="") +
   #coord_map(projection="mollweide")+
   coord_equal() +
