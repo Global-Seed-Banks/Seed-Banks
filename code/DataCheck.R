@@ -103,30 +103,30 @@ sb[sb$Habitat=="Arable" & nchar(sb$Target_Habitat)>0,]
 #araplustarget<-sb$Title[sb$Habitat=="Arable" & nchar(sb$Target_Habitat)>0]
 #write.csv(sb[sb$Title %in% araplustarget,], "tmpfiles/ara_plus_target_check.csv", row.names = FALSE)
 
-# Checked 4-5/1 2021 - all now changed so that arable is always arable. Even after 1 year of succession towards target forest, it is now forest forest, as I think that we should see it as a degraded forest that is managed/treated as a forest. Next step is then to check other Grassland Forest, to make sure that they are all managed/treated as grasslands rather than just something in between arable and forest.
+# Checked 4-5/1 2021 - all now changed so that arable is always arable. Even after 1 year of succession towards target forest, it is now forest forest, as I think that we should see it as a degraded forest that is managed/treated as a forest. Next step is then to check other Grassland Forest, to make sure that they are all managed/treated as grasslands rather than just something in between arable and forest
 
 # Checking Grassland Forest then.
-sb[sb$Habitat=="Grassland" & sb$Target_Habitat=="Forest",]
-grasslandforest<-sb$Title[sb$Habitat=="Grassland" & sb$Target_Habitat=="Forest"]
-write.csv(sb[sb$Title %in% grasslandforest,], "tmpfiles/grassland_forest_check.csv", row.names=FALSE)
+nrow(sb[sb$Habitat=="Grassland" & sb$Target_Habitat=="Forest",]) # post check this is 19
+#grasslandforest<-sb$Title[sb$Habitat=="Grassland" & sb$Target_Habitat=="Forest"]
+#write.csv(sb[sb$Title %in% grasslandforest,], "tmpfiles/grassland_forest_check.csv", row.names=FALSE)
+
+# Checked 11-12/1 2021 - Grassland Forest retained where grassland is naturally or anthropogenically stable. In many cases the study biome and author language determine whether it is Forest Forest (rainforest degradation, abandonment of slash and burn agriculture) or Grassland Grassland - deterioration of traditional, long term native and species rich grasslands, or Grassland Forest where 'bad' pasture activities or other stability means that it is Grassland but with Forest target.
+
 
 # Checking Wetland Forest then.
-sb[sb$Habitat=="Wetland" & sb$Target_Habitat=="Forest",]
-
+sb[sb$Habitat=="Wetland" & sb$Target_Habitat=="Forest",] # there are none
 
 
 # Arable as target habitat - need checking, but probably just editing to remove the target. Sites should be arable fields, or if not we should look at them as degraded/restored habitats rather than degraded arable fields
-sb[sb$Target_Habitat=="Arable",]
-unique(sb$Doi[sb$Target_Habitat=="Arable"])
+nrow(sb[sb$Target_Habitat=="Arable",])
+
 
 # Rows with target habitats but no habitat 
-nrow(sb[is.na(sb$Habitat) & !is.na(sb$Target_Habitat),])
+nrow(sb[is.na(sb$Habitat) & !is.na(sb$Target_Habitat),]) # none
 
 
 # Experiment should be 1 or empty
-table(sb$Experiment)
-
-sort(sb$Sample_Area_mm2, decreasing = TRUE)
+table(sb$Experiment) # okay
 
 
 ## Sampling - Yellow section ##
