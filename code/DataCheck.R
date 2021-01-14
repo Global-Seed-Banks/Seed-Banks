@@ -124,6 +124,27 @@ nrow(sb[sb$Target_Habitat=="Arable",])
 # Rows with target habitats but no habitat 
 nrow(sb[is.na(sb$Habitat) & !is.na(sb$Target_Habitat),]) # none
 
+# What is left:
+unique(cbind(sb$Habitat, sb$Target_Habitat))
+
+# [1,] "Grassland" ""          # Managed or natural grassland (including shrublands like dehesa, fynbos)
+# [2,] "Grassland" "Grassland" # Degraded grassland, can also be early abandonment
+# [3,] "Wetland"   ""          # Managed or natural wetland
+# [4,] "Forest"    ""          # Mature forest communities
+# [5,] "Arable"    ""          # Arable fields, orchards
+# [6,] "Wetland"   "Wetland"   # Degraded wetlands
+# [7,] "Forest"    "Forest"    # Degraded forest, includes range of successional stages and plantations
+# [8,] "Forest"    "Grassland" # Secondary forest or plantation where managed grassland is ideal community
+# [9,] "Grassland" "Forest"    # Managed or natural grassland where forest is ideal community (usually tropical)
+# [10,] "Aquatic"   ""         # Natural rivers, lakes, ponds
+# [11,] "Aquatic"   "Aquatic"  # Degraded rivers, lakes, ponds
+# [12,] "Grassland" "Wetland"  # Degraded fens and riparian habitats (2 papers)
+# [13,] "Forest"    "Wetland"  # Secondary forest or plantation where wetland is ideal community
+# [14,] "Aquatic"   "Wetland"  # aquatic undergoing conversion to wetland (1 paper)
+
+sb[sb$Habitat=="Grassland" & sb$Target_Habitat=="Wetland",] # there are none
+
+
 
 # Experiment should be 1 or empty
 table(sb$Experiment) # okay
