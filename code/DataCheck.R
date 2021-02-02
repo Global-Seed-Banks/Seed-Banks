@@ -142,9 +142,6 @@ unique(cbind(sb$Habitat, sb$Target_Habitat))
 # [13,] "Forest"    "Wetland"  # Secondary forest or plantation where wetland is ideal community
 # [14,] "Aquatic"   "Wetland"  # aquatic undergoing conversion to wetland (1 paper)
 
-sb[sb$Habitat=="Grassland" & sb$Target_Habitat=="Wetland",] # there are none
-
-
 
 # Experiment should be 1 or empty
 table(sb$Experiment) # okay
@@ -154,7 +151,16 @@ table(sb$Experiment) # okay
 
 # do published areas and calculated areas match up where both diameter and area are given?
 sb_multiarea<-sb[!is.na(sb$Sample_Diameter_mm) & !is.na(sb$Sample_Area_mm2),]
-cbind(pi*(0.5*sb_multiarea$Sample_Diameter_mm)^2,sb_multiarea$Sample_Area_mm2)
+(sb_multiarea_check<-cbind(pi*(0.5*sb_multiarea$Sample_Diameter_mm)^2,sb_multiarea$Sample_Area_mm2, sb_multiarea))
+#write.csv(sb_multiarea_check, "tmpfiles/multi_sampling_area_check.csv", row.names = FALSE)
+# After check, 7 rows, all close enough (to be overwritten)
+
+# same but for volumes
+sb_multivol<-sb[(!is.na(sb$Sample_Diameter_mm) | !is.na(sb$Sample_Area_mm2)) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
+(sb_multivol_check<-cbind(sb_multivol$Sample_Diameter_mm,((pi*(0.5*sb_multivol$Sample_Diameter_mm)^2)*sb_multivol$Sample_Depth_mm),sb_multivol$Sample_Area_mm2*sb_multivol$Sample_Depth_mm, sb_multivol))
+
+
+
 
 # tbc
 
