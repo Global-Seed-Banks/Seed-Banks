@@ -120,7 +120,7 @@ whittaker_base_plot() +
               distinct( n_study, .keep_all = T),
             aes(x=-12, y=400,
                 label=paste('n[location] == ', n_study)),
-            hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
+            hjust = 0, size=5, color="black", alpha=0.5, parse=T) +
   theme_bw()
 
 

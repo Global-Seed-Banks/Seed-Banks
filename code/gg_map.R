@@ -13,7 +13,7 @@ library(ggrepel)
 library(sp) # For converting to decimal degrees
 library(maps)
 library(mapproj)
-library(ggmaps)
+library(ggmap)
 library(rworldmap)
 
 # Read our google sheet!
@@ -130,6 +130,8 @@ ggsave('./plots/map_update.png', width = 13, height = 8.27, units = "in", dpi = 
 
 #------------------------------------------------------------------------
  
+colnames(sb)
+
 gsbm.S <- sb %>%
   filter(Total_Species < 22602.00) %>%
   ggplot() +
@@ -139,7 +141,8 @@ gsbm.S <- sb %>%
                  color=`Total_Species`
   ), size=0.75,alpha=0.5,shape=1) +
   #scale_color_viridis(discrete=TRUE,name="Habitat") +
-  scale_color_viridis(discrete=FALSE,name="Total_Species",option="A",trans="log10") +
+  scale_color_viridis(discrete=FALSE,name="Total_Seeds",option="A",trans="log10"
+                      ) +
   #scale_size_continuous(range=c(2,8), name="") +
   #coord_map(projection="mollweide")+
   coord_equal() +
