@@ -162,14 +162,10 @@ sb_multivol<-sb[(!is.na(sb$Sample_Diameter_mm) | !is.na(sb$Sample_Area_mm2)) & !
 # After check, 56 rows, all close enough (to be overwritten)
 
 
-
-
-# tbc
-
-
-
-
 ### Outlier checks - i.e. outliers that should be checked in case of errors ###
+
+
+
 
 sapply(sb,class)
 

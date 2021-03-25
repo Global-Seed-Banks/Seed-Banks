@@ -27,7 +27,7 @@ nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for inf
 
 # Finding errors
 sb.noloc<-sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & nchar(sb$Habitat)>0, 1:which(names(sb)=="Target_Habitat")]
-write.csv(sb.noloc, "sb.findloc.csv", row.names=FALSE)
+#write.csv(sb.noloc, "sb.findloc.csv", row.names=FALSE)
 
 # remove rows that don't have both lat and long at degree resolution
 sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] 
