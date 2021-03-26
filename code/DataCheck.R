@@ -231,5 +231,3 @@ SpeFracCheck<-sb[!is.na(sb$Total_Species),]
 TotChar<-as.character(SpeFracCheck$Total_Species)
 sum(grepl("\\.",TotChar))
 nrow(SpeFracCheck[grepl("\\.",TotChar),])
-
-Riiiiight. Method categories are checked, and I've also checked that the Method fraction is never larger than 1, and the method volume is never larger than the samples volume. Species richness and seed numbers are now no longer fractions (e.g incorrect use of means or 
