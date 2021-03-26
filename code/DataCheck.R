@@ -161,10 +161,24 @@ sb_multivol<-sb[(!is.na(sb$Sample_Diameter_mm) | !is.na(sb$Sample_Area_mm2)) & !
 #write.csv(sb_multivol_check, "tmpfiles/multi_sampling_vol_check.csv", row.names = FALSE)
 # After check, 56 rows, all close enough (to be overwritten)
 
+## Sites and Plots - Purple Section ##
 
+sb_multiplot<-sb[!is.na(sb$Number_Sites) & !is.na(sb$Samples_Per_Site) & !is.na(sb$Total_Number_Samples) ,]
+sb_multiplot[!sb_multiplot$Total_Number_Samples == sb_multiplot$Number_Sites*sb_multiplot$Samples_Per_Site,]
+
+
+
+
+
+## Method - Beige section ##
+
+# Actual method
+table(sb$Method)
+MethCheck<-sb[sb$Method %in% c("","Unknown"),] # looks good after checks
+#write.csv(MethCheck, "tmpfiles/method_check.csv", row.names = FALSE)
 ### Outlier checks - i.e. outliers that should be checked in case of errors ###
 
-
+# 
 
 
 sapply(sb,class)
