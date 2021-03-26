@@ -151,23 +151,39 @@ table(sb$Experiment) # okay
 
 # do published areas and calculated areas match up where both diameter and area are given?
 sb_multiarea<-sb[!is.na(sb$Sample_Diameter_mm) & !is.na(sb$Sample_Area_mm2),]
-(sb_multiarea_check<-cbind(pi*(0.5*sb_multiarea$Sample_Diameter_mm)^2,sb_multiarea$Sample_Area_mm2, sb_multiarea))
+sb_multiarea_check<-cbind(pi*(0.5*sb_multiarea$Sample_Diameter_mm)^2,sb_multiarea$Sample_Area_mm2, sb_multiarea)
+nrow(sb_multiarea_check)
 #write.csv(sb_multiarea_check, "tmpfiles/multi_sampling_area_check.csv", row.names = FALSE)
 # After check, 7 rows, all close enough (to be overwritten)
 
 # same but for volumes
 sb_multivol<-sb[(!is.na(sb$Sample_Diameter_mm) | !is.na(sb$Sample_Area_mm2)) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
-(sb_multivol_check<-cbind(sb_multivol$Sample_Volume_mm3,((pi*(0.5*sb_multivol$Sample_Diameter_mm)^2)*sb_multivol$Sample_Depth_mm),sb_multivol$Sample_Area_mm2*sb_multivol$Sample_Depth_mm, sb_multivol))
+sb_multivol_check<-cbind(sb_multivol$Sample_Volume_mm3,((pi*(0.5*sb_multivol$Sample_Diameter_mm)^2)*sb_multivol$Sample_Depth_mm),sb_multivol$Sample_Area_mm2*sb_multivol$Sample_Depth_mm, sb_multivol)
+nrow(sb_multivol_check)
 #write.csv(sb_multivol_check, "tmpfiles/multi_sampling_vol_check.csv", row.names = FALSE)
 # After check, 56 rows, all close enough (to be overwritten)
 
+# So now overwrite!
+sb$Sample_Area_mm2[is.na(sb$Sample_Area_mm2)]<-pi*(sb$Sample_Diameter_mm[is.na(sb$Sample_Area_mm2)]/2)^2
+sb$Sample_Volume_mm3[is.na(sb$Sample_Volume_mm3)]<-sb$Sample_Area_mm2[is.na(sb$Sample_Volume_mm3)] * sb$Sample_Depth_mm[is.na(sb$Sample_Volume_mm3)] 
+
+
 ## Sites and Plots - Purple Section ##
 
+# Check that total plots equals sites * plots when all are given.
 sb_multiplot<-sb[!is.na(sb$Number_Sites) & !is.na(sb$Samples_Per_Site) & !is.na(sb$Total_Number_Samples) ,]
-sb_multiplot[!sb_multiplot$Total_Number_Samples == sb_multiplot$Number_Sites*sb_multiplot$Samples_Per_Site,]
+nrow(sb_multiplot[!sb_multiplot$Total_Number_Samples == sb_multiplot$Number_Sites*sb_multiplot$Samples_Per_Site,])
 
+# Empty number of sites - where samples per site given, it is important
+sb_sps<-sb[!is.na(sb$Samples_Per_Site),]
+nrow(sb_sps[is.na(sb_sps$Number_Sites),])
 
+# Empty number of sites - but total sample number there, so less important but still good to look at
+sb_tns<-sb[!is.na(sb$Total_Number_Samples),]
+nrow(sb_tns[is.na(sb_tns$Number_Sites),])
 
+# Now can actually calculate total plots
+sb$Total_Number_Samples[is.na(sb$Total_Number_Samples)]<-sb$Number_Sites[is.na(sb$Total_Number_Samples)]*sb$Samples_Per_Site[is.na(sb$Total_Number_Samples)]
 
 
 ## Method - Beige section ##
@@ -178,9 +194,42 @@ MethCheck<-sb[sb$Method %in% c("","Unknown"),] # looks good after checks
 #write.csv(MethCheck, "tmpfiles/method_check.csv", row.names = FALSE)
 ### Outlier checks - i.e. outliers that should be checked in case of errors ###
 
-# 
+# Fraction bigger than 1?
+nrow(sb[sb$Method_Volume_Fraction>1 & !is.na(sb$Method_Volume_Fraction),])
+
+# Method volume mm3 bigger than sampled volume mm3
+MethVolCheck<-sb[!is.na(sb$Method_Volume_mm3) & !is.na(sb$Sample_Volume_mm3),]
+nrow(MethVolCheck[(MethVolCheck$Sample_Volume_mm3>MethVolCheck$Sample_Volume_mm3*MethVolCheck$Total_Number_Samples),])
 
 
-sapply(sb,class)
+## Results - Blue section ##
 
-#lso check for decimals in species numne
+# More species than seeds?
+SeedSpeCheck<-sb[!is.na(sb$Total_Seeds) & !is.na(sb$Total_Species),]
+nrow(SeedSpeCheck[SeedSpeCheck$Total_Species>SeedSpeCheck$Total_Seeds,])
+
+# Pos species
+PosSpeCheck<-sb[!is.na(sb$Pos_Species) & !is.na(sb$Total_Species),]
+nrow(PosSpeCheck[PosSpeCheck$Pos_Species>PosSpeCheck$Total_Species,])
+
+# Neg species
+NegSpeCheck<-sb[!is.na(sb$Neg_Species) & !is.na(sb$Total_Species),]
+nrow(NegSpeCheck[NegSpeCheck$Neg_Species>NegSpeCheck$Total_Species,])
+
+# Pos + Neg species
+PosNegSpeCheck<-sb[!is.na(sb$Pos_Species) & !is.na(sb$Neg_Species) & !is.na(sb$Total_Species),]
+nrow(PosNegSpeCheck[PosNegSpeCheck$Neg_Species+PosNegSpeCheck$Pos_Species>PosNegSpeCheck$Total_Species,])
+
+# Seed number ever a fraction?
+SeedFracCheck<-sb[!is.na(sb$Total_Seeds),]
+TotChar<-as.character(SeedFracCheck$Total_Seeds)
+sum(grepl("\\.",TotChar))
+nrow(SeedFracCheck[grepl("\\.",TotChar),])
+
+# Species number ever a fraction?
+SpeFracCheck<-sb[!is.na(sb$Total_Species),]
+TotChar<-as.character(SpeFracCheck$Total_Species)
+sum(grepl("\\.",TotChar))
+nrow(SpeFracCheck[grepl("\\.",TotChar),])
+
+Riiiiight. Method categories are checked, and I've also checked that the Method fraction is never larger than 1, and the method volume is never larger than the samples volume. Species richness and seed numbers are now no longer fractions (e.g incorrect use of means or 
