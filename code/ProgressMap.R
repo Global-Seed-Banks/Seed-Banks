@@ -17,16 +17,16 @@ library(rgdal)
 library(rgeos)
 
 world<-readOGR("GIS","CNTR_RG_60M_2014", stringsAsFactors = FALSE) # import world map
-cc<-read.csv("GIS/countrycodes.csv",stringsAsFactors = FALSE)
-world$country<-cc$Name[match(world$CNTR_ID,cc$Code)]
+#cc<-read.csv("GIS/countrycodes.csv",stringsAsFactors = FALSE)
+#world$country<-cc$Name[match(world$CNTR_ID,cc$Code)]
 
 system("curl -o tmpfiles/sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data")
 sb<-read.csv("tmpfiles/sbtemp.csv",stringsAsFactors = FALSE)
 
-nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
+nrow(sb[!is.na(sb$Total_Species) | !is.na(sb$Total_Seeds) | !is.na(sb$Seed_density_m2),]) # count rows with species data, just for info
 
 # Finding errors
-sb.noloc<-sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & nchar(sb$Habitat)>0, 1:which(names(sb)=="Target_Habitat")]
+sb.noloc<-sb[(is.na(sb$Lat_Deg) | is.na(sb$Lon_Deg)) & nchar(sb$Habitat)>0, 1:which(names(sb)=="Target_Habitat")]
 #write.csv(sb.noloc, "sb.findloc.csv", row.names=FALSE)
 
 # remove rows that don't have both lat and long at degree resolution
@@ -34,7 +34,7 @@ sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),]
 
 # First have to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),]
-sb<-sb[!sb$URL %in% sb.dec$URL,]
+sb<-sb[!sb$Title %in% sb.dec$Title,]
 
 # Then change sign for those dec degrees with compass directions where needed
 sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1] <-sb.dec$Lat_Deg[sb.dec$Lat_NS=="S" & sign(sb.dec$Lat_Deg)==1]*-1
@@ -61,6 +61,59 @@ sb<-sb[,1:(ncol(sb)-2)] # removing the new pre-conversion columns so that data f
 sb<-rbind(sb,sb.dec) # bind back together
 
 
+##### # Very rough summary info # #####
+
+nrow(sb[!is.na(sb$Total_Species) | !is.na(sb$Total_Seeds) | !is.na(sb$Seed_density_m2) | !is.na(sb$Seed_density_litre),]) # 2971 data points
+
+length(unique(paste(sb$Authors,sb$Title))) # 1458 papers
+
+sb$Number_Sites[is.na(sb$Number_Sites)]<-1
+sum(sb$Number_Sites, na.rm=TRUE) # 18439 sites!
+
+sum(sb$Total_Number_Samples, na.rm=TRUE) + sum(sb$Number_Sites[is.na(sb$Total_Number_Samples)]*sb$Samples_Per_Site[is.na(sb$Total_Number_Samples)],na.rm=TRUE) # 1 059 579 samples
+
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+proj=longlat +ellps=GRS80 +no_defs"))
+sb.world.df<-over(sb.shp,world)
+sb.shp$countryID<-sb.world.df$CNTR_ID
+sb$countryID<-sb.world.df$CNTR_ID
+#sb$country<-sb.world.df$country
+
+sb.sea<-sb.shp[is.na(sb.shp$countryID),]
+sb.sea.dist<-gDistance(sb.sea,world, byid=TRUE)
+sb$countryID[is.na(sb$countryID)]<-sapply(1:nrow(sb.sea),function(x) world$CNTR_ID[which.min(sb.sea.dist[,x])])
+
+
+length(unique(sb$countryID)) # 96 countries
+
+sb$Target_Habitat[sb$Habitat=="Arable"]<-""
+
+hab.res.list<-list()
+for(i in unique(sb$Habitat)){
+  hab.res.list[[i]]<-nrow(sb[sb$Habitat==i & nchar(sb$Target_Habitat)==0,])
+  hab.res.list[[paste0(i,".deg")]]<-nrow(sb[sb$Habitat==i & nchar(sb$Target_Habitat)>0,])
+}
+hab.tot<-do.call(c,hab.res.list)
+
+barplot(as.matrix(hab.tot), horiz=TRUE,col=c(
+  alpha("darkseagreen1",0.8),alpha("darkseagreen1",0.8),
+  alpha("skyblue3",0.8),alpha("skyblue3",0.8),
+  alpha("forestgreen",0.8),alpha("forestgreen",0.8),
+  alpha("gold",0.8),alpha("gold",0.8),
+  alpha("navyblue",0.8),alpha("navyblue",0.8)), border=NA
+  , axes=FALSE)
+
+barplot(as.matrix(hab.tot), horiz=TRUE,density= rep(c(0,5),length(unique(sb$Habitat))), angle=45, add=TRUE, border=TRUE, axes=FALSE, col="black")
+
+sb$Habitat[nchar(sb$Target_Habitat)>0]<-sb$Target_Habitat[nchar(sb$Target_Habitat)>0]
+coun.hab.list<-list()
+#pc<-"FI"
+for(pc in c("BE", "FI", "DE", "NL", "ZA", "SE")){
+  sb.pc<-sb[sb$countryID==pc,]
+  sapply(unique(sb$Habitat), function(x) sum(sb.pc$Number_Sites[sb.pc$Habitat==x],na.rm=TRUE))
+  coun.hab.list[[pc]]<-sapply(unique(sb$Habitat), function(x) sum(sb.pc$Number_Sites[sb.pc$Habitat==x],na.rm=TRUE))
+}
+do.call(rbind,coun.hab.list)
+
 # plot
 pdf("plots/seedbankworldtour.pdf", height = 3, width = 5)
 par(mar=c(1,1,1,1))
@@ -80,19 +133,30 @@ text(-120,-15,"Seed banks of the world", cex=0.5)
 legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex=0.35,col=c("gold", "forestgreen","darkseagreen1", "skyblue3","navyblue"),bty="n", pt.lwd=0.3)
 dev.off()
 
-### Simple map for succseed
-#world
+### Plots for succseed
+#world map
 pdf("plots/succseedmap.pdf", height = 3, width = 5)
 par(mar=c(1,1,1,1))
 plot(world, lwd=0.5, col="lightgrey", border="grey")
-points(Lat_Deg~Lon_Deg, data=sb, col=alpha("forestgreen",0.3), pch=16, cex=0.3,lwd=0.3)
+points(Lat_Deg~Lon_Deg, data=sb, col=alpha("black",0.3), pch=16, cex=0.3,lwd=0.3)
+dev.off()
+
+pdf("plots/succseedbar.pdf", height = 3, width = 9)
+barplot(as.matrix(hab.tot), horiz=TRUE,col=c(
+  alpha("darkseagreen1",0.8),alpha("darkseagreen1",0.8),
+  alpha("skyblue3",0.8),alpha("skyblue3",0.8),
+  alpha("forestgreen",0.8),alpha("forestgreen",0.8),
+  alpha("gold",0.8),alpha("gold",0.8),
+  alpha("navyblue",0.8),alpha("navyblue",0.8)), border=NA
+  , axes=FALSE)
+barplot(as.matrix(hab.tot), horiz=TRUE,density= rep(c(0,5),length(unique(sb$Habitat))), angle=45, add=TRUE, border=TRUE, axes=FALSE, col="black")
 dev.off()
 
 
 ## Geographical error checking
  
 # make shapefile of points
-sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+init=epsg:4326"))
+#sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+init=epsg:4326"))
 sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS("+proj=longlat +ellps=GRS80 +no_defs"))
 
 

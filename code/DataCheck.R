@@ -22,21 +22,24 @@ library(sp) # for converting to decimal degrees
 ### GEOGRAPHICAL CHECKS AND CONVERSION ###
 
 # Any rows with data that do not have lat and lon? Check according to seeds, species and density, because all data papers should have at least one of those.
-nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & !is.na(sb$Seed_density_m2),])
-nrow(sb[(is.na(sb$Lon_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Seed_density_m2),])
+nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Seed_density_m2),])
 
-nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & !is.na(sb$Total_Species),])
-nrow(sb[(is.na(sb$Lon_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Total_Species),])
+nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Total_Species),])
 
-nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lat_Deg)) & !is.na(sb$Total_Seeds),])
-nrow(sb[(is.na(sb$Lon_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Total_Seeds),])
+nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Total_Seeds),])
+
+nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Seed_density_litre),])
+
+# Also check where there is lat or lon but not the other
+nrow(sb[!is.na(sb$Lon_Deg) & is.na(sb$Lat_Deg),] )
+nrow(sb[!is.na(sb$Lat_Deg) & is.na(sb$Lon_Deg),] )
 
 # remove rows that don't have both lat and long at degree resolution (i.e. no data)
-sb<-sb[!is.na(sb$Lat_Deg) & !is.na(sb$Lon_Deg),] 
+sb<-sb[!is.na(sb$Lon_Deg) & !is.na(sb$Lat_Deg),] # 3015 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),]
-sb<-sb[!sb$URL %in% sb.dec$URL,]
+sb<-sb[!sb$Title %in% sb.dec$Title,]
 
 sb$URL[!sb$Lat_NS %in% c("N","S")]
 sb$URL[!sb$Lon_EW %in% c("E","W")]
