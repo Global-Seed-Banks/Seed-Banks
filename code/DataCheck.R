@@ -34,13 +34,22 @@ nrow(sb[(is.na(sb$Lat_Deg) | is.na(sb$Lon_Deg)) & !is.na(sb$Seed_density_litre),
 nrow(sb[!is.na(sb$Lon_Deg) & is.na(sb$Lat_Deg),] )
 nrow(sb[!is.na(sb$Lat_Deg) & is.na(sb$Lon_Deg),] )
 
+# And if there is a direction in one column but not the other
+nrow(sb[nchar(sb$Lat_NS)==0 & !nchar(sb$Lon_EW)==0,])
+nrow(sb[!nchar(sb$Lat_NS)==0 & nchar(sb$Lon_EW)==0,])
+
 # remove rows that don't have both lat and long at degree resolution (i.e. no data)
-sb<-sb[!is.na(sb$Lon_Deg) & !is.na(sb$Lat_Deg),] # 3015 rows with coordinates
+sb<-sb[!is.na(sb$Lon_Deg) & !is.na(sb$Lat_Deg),] 
+nrow(sb) # 3015 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
-sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),]
-sb<-sb[!sb$Title %in% sb.dec$Title,]
+sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] #1303
+nrow(sb.dec) #1303
 
+sb<-sb[!rownames(sb) %in% rownames(sb.dec),]
+nrow(sb) # 1712
+
+# Any strange directions?
 sb$URL[!sb$Lat_NS %in% c("N","S")]
 sb$URL[!sb$Lon_EW %in% c("E","W")]
 
@@ -70,6 +79,7 @@ sb$Lat_Deg<-as.numeric(char2dms(sb_LatConv,"d","m","s"))
 sb$Lon_Deg<-as.numeric(char2dms(sb_LonConv,"d","m","s"))
 
 sb<-rbind(sb,sb.dec) # bind back together
+nrow(sb)
 
 sb<-sb[,!names(sb) %in% c("Lat_Min","Lat_Sec", "Lat_NS", "Lon_Min", "Lon_Sec", "Lon_EW" )]
 
