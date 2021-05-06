@@ -192,6 +192,9 @@ sb_sps<-sb[!is.na(sb$Samples_Per_Site),]
 nrow(sb_sps[is.na(sb_sps$Number_Sites),])
 
 # Empty number of sites - but total sample number there, so less important but still good to look at
+sb_nonosites<-sb[is.na(sb$Number_Sites),]
+write.csv(sb_nonosites, "tmpfiles/sb_nonosites_check.csv", row.names = FALSE)
+
 sb_tns<-sb[!is.na(sb$Total_Number_Samples),]
 nrow(sb_tns[is.na(sb_tns$Number_Sites),])
 
