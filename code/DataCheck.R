@@ -40,14 +40,14 @@ nrow(sb[!nchar(sb$Lat_NS)==0 & nchar(sb$Lon_EW)==0,])
 
 # remove rows that don't have both lat and long at degree resolution (i.e. no data)
 sb<-sb[!is.na(sb$Lon_Deg) & !is.na(sb$Lat_Deg),] 
-nrow(sb) # 3025 rows with coordinates
+nrow(sb) # 3026 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] 
 nrow(sb.dec) #1293
 
 sb<-sb[!rownames(sb) %in% rownames(sb.dec),]
-nrow(sb) # 17232
+nrow(sb) # 1733
 
 # Any strange directions?
 sb$URL[!sb$Lat_NS %in% c("N","S")]
@@ -79,7 +79,7 @@ sb$Lat_Deg<-as.numeric(char2dms(sb_LatConv,"d","m","s"))
 sb$Lon_Deg<-as.numeric(char2dms(sb_LonConv,"d","m","s"))
 
 sb<-rbind(sb,sb.dec) # bind back together
-nrow(sb) # 3025
+nrow(sb) # 3026
 
 sb<-sb[,!names(sb) %in% c("Lat_Min","Lat_Sec", "Lat_NS", "Lon_Min", "Lon_Sec", "Lon_EW" )]
 
@@ -193,7 +193,7 @@ nrow(sb_sps[is.na(sb_sps$Number_Sites),])
 
 # Empty number of samples per site when number of site is given.. also important.
 sb_nositeonly<-sb[!is.na(sb$Number_Sites) & is.na(sb$Total_Number_Samples) & is.na(sb$Samples_Per_Site),] # cam 
-nrow(sb_nositeonly) # 16 ... all with unclear sampling
+nrow(sb_nositeonly) # 9 ... all with unclear sampling
 #write.csv(sb_nositeonly, "tmpfiles/sb_nositeonly_check.csv", row.names = FALSE)
 
 # Empty number of sites - but total sample number there, so less important but still good to look at
@@ -257,8 +257,108 @@ DensTotCheck<-sb[!is.na(sb$Total_Seeds) & !is.na(sb$Seed_density_m2),]
 DensTotCheck$DensityCalc<-DensTotCheck$Total_Seeds/(DensTotCheck$Total_Number_Samples*(DensTotCheck$Sample_Area_mm2/1000000))
 DensTotCheck$DensityCalcMultiple<-DensTotCheck$Seed_density_m2/DensTotCheck$DensityCalc
 DensTotCheck<-DensTotCheck[!is.na(DensTotCheck$DensityCalc) & (DensTotCheck$DensityCalcMultiple>1.05 | DensTotCheck$DensityCalcMultiple<0.95),]
-
-write.csv(DensTotCheck,"tmpfiles/Calc_Dens_check_part2.csv", row.names=FALSE)
+nrow(DensTotCheck) # 32 post check
+#write.csv(DensTotCheck,"tmpfiles/Calc_Dens_check_part2.csv", row.names=FALSE)
 ### Outlier checks - i.e. outliers that should be checked in case of errors ###
 
 
+### Infilling and back-calculation ###
+
+# First calculate density if possible (overwriting the weird ones)
+sb.denscalc1<-sb[is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
+sb.denscalc1.rows<-which(is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds))
+sb$Seed_density_m2[sb.denscalc1.rows]<-sb.denscalc1$Total_Seeds/((sb.denscalc1$Sample_Area_mm2*sb.denscalc1$Total_Number_Samples)/1000000)
+
+# if unknown number of sites -> 1
+sb$Number_Sites[is.na(sb$Number_Sites)]<-1
+
+# First, a simple area from volume and depth
+sb.areacalc1<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
+sb.areacalc1.rows<-which(is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3))
+sb$Sample_Area_mm2[sb.areacalc1.rows]<-sb.areacalc1$Sample_Volume_mm3/sb.areacalc1$Sample_Depth_mm
+
+# Then area from seeds, samples and density
+sb.areacalc2<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
+sb.areacalc2.rows<-which(is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds))
+sb$Sample_Area_mm2[sb.areacalc2.rows]<-round(((sb.areacalc2$Total_Seeds/sb.areacalc2$Seed_density_m2)*1000000)/sb.areacalc2$Total_Number_Samples)
+
+# Then area from volume and depth where there is no density.
+sb.areacalc3<-sb[is.na(sb$Sample_Area_mm2) & is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
+sb.areacalc3.rows<-which(is.na(sb$Sample_Area_mm2) & is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3))
+sb$Sample_Area_mm2[sb.areacalc3.rows]<-sb.areacalc3$Sample_Volume_mm3/sb.areacalc3$Sample_Depth_mm
+
+# Then area from volume and assumed 10 mm depth
+sb.areacalc4<-sb[is.na(sb$Sample_Area_mm2) & is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
+sb.areacalc4.rows<-which(is.na(sb$Sample_Area_mm2) & is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3))
+sb$Sample_Area_mm2[sb.areacalc4.rows]<-sb.areacalc4$Sample_Volume_mm3/100
+
+# Then try again to calculate density
+sb.denscalc2<-sb[is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
+sb.denscalc2.rows<-which(is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds))
+sb$Seed_density_m2[sb.denscalc2.rows]<-sb.denscalc2$Total_Seeds/((sb.denscalc2$Sample_Area_mm2*sb.denscalc2$Total_Number_Samples)/1000000)
+
+# what about with Litres?
+sb.denscalc3<-sb[is.na(sb$Seed_density_m2) & !is.na(sb$Seed_density_litre) & !is.na(sb$Sample_Area_mm2) &!is.na(sb$Total_Number_Samples),]
+sb.denscalc3.rows<-which(is.na(sb$Seed_density_m2) & !is.na(sb$Seed_density_litre) & !is.na(sb$Sample_Area_mm2) &!is.na(sb$Total_Number_Samples))
+
+sb.denscalc3.totseeds<-sb.denscalc3$Seed_density_litre*((sb.denscalc3$Sample_Volume_mm3*sb.denscalc3$Total_Number_Samples)/1000000)
+sb$Seed_density_m2[sb.denscalc3.rows]<-sb.denscalc3.totseeds/((sb.denscalc3$Total_Number_Samples*sb.denscalc3$Sample_Area_mm2)/1000000)
+
+
+# below stuff is not finished
+
+
+
+
+
+
+
+
+
+# seeds and sample size but no number of samples?
+sb.samplecalc1<-sb[!is.na(sb$Sample_Area_mm2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
+sb.samplecalc1.rows<-which(!is.na(sb$Sample_Area_mm2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds))
+
+
+sb.samplecalc1$Seed_density_m2/(sb.samplecalc1$Sample_Area_mm2/1000000)
+
+
+
+
+
+
+
+
+what about no dens but still the otheres...
+
+sb.areaguess<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
+
+
+
+# 2. Yes: Density, Samples; No: Area, Seeds - nothing to be done?
+sb.sampcalc2<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Total_Number_Samples) & is.na(sb$Total_Seeds),]
+
+# 3. Yes: Density, Seeds; No: Area, Samples - none
+sb.sampcalc3<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
+
+# 4. Yes: Density, Seeds; No: Area, Samples - none
+sb.sampcalc4<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
+
+
+_Area_mm2/1000000)
+
+
+sb.sampcalc1$Total_Seeds
+
+
+### OUTLIER CHECKS ###
+
+
+
+area sampled
+depth sampled
+
+species m2
+seeds m2
+
+first maybe need to back-calculate things? assume 1 site where not stated?
