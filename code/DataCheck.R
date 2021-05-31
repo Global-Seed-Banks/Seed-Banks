@@ -40,14 +40,14 @@ nrow(sb[!nchar(sb$Lat_NS)==0 & nchar(sb$Lon_EW)==0,])
 
 # remove rows that don't have both lat and long at degree resolution (i.e. no data)
 sb<-sb[!is.na(sb$Lon_Deg) & !is.na(sb$Lat_Deg),] 
-nrow(sb) # 3022 rows with coordinates
+nrow(sb) # 3025 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
-sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] #1303
-nrow(sb.dec) #1302
+sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] 
+nrow(sb.dec) #1293
 
 sb<-sb[!rownames(sb) %in% rownames(sb.dec),]
-nrow(sb) # 1720
+nrow(sb) # 17232
 
 # Any strange directions?
 sb$URL[!sb$Lat_NS %in% c("N","S")]
@@ -79,7 +79,7 @@ sb$Lat_Deg<-as.numeric(char2dms(sb_LatConv,"d","m","s"))
 sb$Lon_Deg<-as.numeric(char2dms(sb_LonConv,"d","m","s"))
 
 sb<-rbind(sb,sb.dec) # bind back together
-nrow(sb) # 3022
+nrow(sb) # 3025
 
 sb<-sb[,!names(sb) %in% c("Lat_Min","Lat_Sec", "Lat_NS", "Lon_Min", "Lon_Sec", "Lon_EW" )]
 
@@ -174,7 +174,7 @@ sb_multivol<-sb[(!is.na(sb$Sample_Diameter_mm) | !is.na(sb$Sample_Area_mm2)) & !
 sb_multivol_check<-cbind(sb_multivol$Sample_Volume_mm3,((pi*(0.5*sb_multivol$Sample_Diameter_mm)^2)*sb_multivol$Sample_Depth_mm),sb_multivol$Sample_Area_mm2*sb_multivol$Sample_Depth_mm, sb_multivol)
 nrow(sb_multivol_check)
 #write.csv(sb_multivol_check, "tmpfiles/multi_sampling_vol_check.csv", row.names = FALSE)
-# After check, 56 rows, all close enough (to be overwritten)
+# After check, 51 rows, all close enough (to be overwritten)
 
 # So now overwrite!
 sb$Sample_Area_mm2[is.na(sb$Sample_Area_mm2)]<-pi*(sb$Sample_Diameter_mm[is.na(sb$Sample_Area_mm2)]/2)^2
@@ -193,7 +193,7 @@ nrow(sb_sps[is.na(sb_sps$Number_Sites),])
 
 # Empty number of samples per site when number of site is given.. also important.
 sb_nositeonly<-sb[!is.na(sb$Number_Sites) & is.na(sb$Total_Number_Samples) & is.na(sb$Samples_Per_Site),] # cam 
-nrow(sb_nositeonly) # 17 ... all with unclear sampling
+nrow(sb_nositeonly) # 16 ... all with unclear sampling
 #write.csv(sb_nositeonly, "tmpfiles/sb_nositeonly_check.csv", row.names = FALSE)
 
 # Empty number of sites - but total sample number there, so less important but still good to look at
@@ -210,6 +210,7 @@ sb$Total_Number_Samples[is.na(sb$Total_Number_Samples)]<-sb$Number_Sites[is.na(s
 # Actual method
 table(sb$Method)
 MethCheck<-sb[sb$Method %in% c("","Unknown"),] # looks good after checks --- 20
+nrow(MethCheck)
 #write.csv(MethCheck, "tmpfiles/method_check.csv", row.names = FALSE)
 
 
@@ -254,7 +255,10 @@ nrow(SpeFracCheck[grepl("\\.",TotChar),])
 # How does calculated vs. given seed density match up?
 DensTotCheck<-sb[!is.na(sb$Total_Seeds) & !is.na(sb$Seed_density_m2),]
 DensTotCheck$DensityCalc<-DensTotCheck$Total_Seeds/(DensTotCheck$Total_Number_Samples*(DensTotCheck$Sample_Area_mm2/1000000))
-write.csv(DensTotCheck,"tmpfiles/Calc_Dens_check.csv", row.names=FALSE)
+DensTotCheck$DensityCalcMultiple<-DensTotCheck$Seed_density_m2/DensTotCheck$DensityCalc
+DensTotCheck<-DensTotCheck[!is.na(DensTotCheck$DensityCalc) & (DensTotCheck$DensityCalcMultiple>1.05 | DensTotCheck$DensityCalcMultiple<0.95),]
+
+write.csv(DensTotCheck,"tmpfiles/Calc_Dens_check_part2.csv", row.names=FALSE)
 ### Outlier checks - i.e. outliers that should be checked in case of errors ###
 
 
