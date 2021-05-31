@@ -162,6 +162,13 @@ table(sb$Experiment) # okay
 
 ## Sampling - Yellow section ##
 
+# quick sanity check - diameters and depths
+sort(unique(sb$Sample_Diameter_mm)) # diameters checked and okay
+#sb$URL[sb$Sample_Diameter_mm==330 & !is.na(sb$Sample_Diameter_mm)]
+sort(unique(sb$Sample_Depth_mm)) # depths checked and okay
+#sb$URL[sb$Sample_Depth_mm==2 & !is.na(sb$Sample_Depth_mm)]
+
+
 # do published areas and calculated areas match up where both diameter and area are given?
 sb_multiarea<-sb[!is.na(sb$Sample_Diameter_mm) & !is.na(sb$Sample_Area_mm2),]
 sb_multiarea_check<-cbind(pi*(0.5*sb_multiarea$Sample_Diameter_mm)^2,sb_multiarea$Sample_Area_mm2, sb_multiarea)
@@ -259,18 +266,17 @@ DensTotCheck$DensityCalcMultiple<-DensTotCheck$Seed_density_m2/DensTotCheck$Dens
 DensTotCheck<-DensTotCheck[!is.na(DensTotCheck$DensityCalc) & (DensTotCheck$DensityCalcMultiple>1.05 | DensTotCheck$DensityCalcMultiple<0.95),]
 nrow(DensTotCheck) # 32 post check
 #write.csv(DensTotCheck,"tmpfiles/Calc_Dens_check_part2.csv", row.names=FALSE)
-### Outlier checks - i.e. outliers that should be checked in case of errors ###
 
 
 ### Infilling and back-calculation ###
+
+# if unknown number of sites -> 1
+sb$Number_Sites[is.na(sb$Number_Sites)]<-1
 
 # First calculate density if possible (overwriting the weird ones)
 sb.denscalc1<-sb[is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
 sb.denscalc1.rows<-which(is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds))
 sb$Seed_density_m2[sb.denscalc1.rows]<-sb.denscalc1$Total_Seeds/((sb.denscalc1$Sample_Area_mm2*sb.denscalc1$Total_Number_Samples)/1000000)
-
-# if unknown number of sites -> 1
-sb$Number_Sites[is.na(sb$Number_Sites)]<-1
 
 # First, a simple area from volume and depth
 sb.areacalc1<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
@@ -303,6 +309,52 @@ sb.denscalc3.rows<-which(is.na(sb$Seed_density_m2) & !is.na(sb$Seed_density_litr
 
 sb.denscalc3.totseeds<-sb.denscalc3$Seed_density_litre*((sb.denscalc3$Sample_Volume_mm3*sb.denscalc3$Total_Number_Samples)/1000000)
 sb$Seed_density_m2[sb.denscalc3.rows]<-sb.denscalc3.totseeds/((sb.denscalc3$Total_Number_Samples*sb.denscalc3$Sample_Area_mm2)/1000000)
+
+# seeds and sample size but no number of samples? -- none
+sb[!is.na(sb$Sample_Area_mm2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds) &!is.na(sb$Seed_density_m2),]
+
+# Calculate species density
+sb$Species_Density_m2<-sb$Total_Species/((sb$Sample_Area_mm2/1000000)*sb$Total_Number_Samples)
+
+# And for simplicity, total sampled area
+sb$Total_sampled_area_m2<-((sb$Sample_Area_mm2/1000000)*sb$Total_Number_Samples)
+
+
+### OUTLIER CHECKS ###
+
+# area sampled
+boxplot(sb$Total_sampled_area_m2)
+sb.area.out<-sb[sb$Total_sampled_area_m2 %in% boxplot.stats(sb$Total_sampled_area_m2)$out,]
+sb.area.out<-sb.area.out[order(sb.area.out$Total_sampled_area_m2),]
+sb.area.out<-sb.area.out[!duplicated(sb.area.out$Title),]
+
+area.mean<-mean(sb$Total_sampled_area_m2, na.rm=TRUE)
+area.3sd<-sd(sb$Total_sampled_area_m2, na.rm=TRUE)*3
+
+sb[sb$Total_sampled_area_m2 > (area.mean+area.3sd) & !is.na(sb$Total_sampled_area_m2),]
+sb[sb$Total_sampled_area_m2 < (area.mean-area.3sd) & !is.na(sb$Total_sampled_area_m2),]
+
+
+#species m2
+boxplot(sb$Species_Density_m2)
+boxplot.stats(sb$Species_Density_m2)
+
+spedens.mean<-mean(sb$Species_Density_m2, na.rm=TRUE)
+spedens.3sd<-sd(sb$Species_Density_m2, na.rm=TRUE)*3
+
+sb[sb$Species_Density_m2 > (spedens.mean+spedens.3sd) & !is.na(sb$Species_Density_m2),]
+sb[sb$Species_Density_m2 < (spedens.mean-spedens.3sd) & !is.na(sb$Species_Density_m2),]
+
+
+#seeds m2
+boxplot(sb$Seed_density_m2)
+boxplot.stats(sb$Seed_density_m2)
+
+seeddens.mean<-mean(sb$Seed_density_m2, na.rm=TRUE)
+seeddens.3sd<-sd(sb$Seed_density_m2, na.rm=TRUE)*3
+
+sb[sb$sb$Seed_density_m2 > (seeddens.mean+seeddens.3sd) & !is.na(sb$Seed_density_m2),]
+sb[sb$sb$Seed_density_m2 < (seeddens.mean-seeddens.3sd) & !is.na(sb$Seed_density_m2),]
 
 
 # below stuff is not finished
@@ -351,14 +403,8 @@ _Area_mm2/1000000)
 sb.sampcalc1$Total_Seeds
 
 
-### OUTLIER CHECKS ###
 
 
 
-area sampled
-depth sampled
-
-species m2
-seeds m2
 
 first maybe need to back-calculate things? assume 1 site where not stated?
