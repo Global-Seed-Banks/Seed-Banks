@@ -44,10 +44,10 @@ nrow(sb) # 3026 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] 
-nrow(sb.dec) #1293
+nrow(sb.dec) #1293 with decimals
 
 sb<-sb[!rownames(sb) %in% rownames(sb.dec),]
-nrow(sb) # 1733
+nrow(sb) # 1733 without that need converting
 
 # Any strange directions?
 sb$URL[!sb$Lat_NS %in% c("N","S")]
@@ -172,16 +172,16 @@ sort(unique(sb$Sample_Depth_mm)) # depths checked and okay
 # do published areas and calculated areas match up where both diameter and area are given?
 sb_multiarea<-sb[!is.na(sb$Sample_Diameter_mm) & !is.na(sb$Sample_Area_mm2),]
 sb_multiarea_check<-cbind(pi*(0.5*sb_multiarea$Sample_Diameter_mm)^2,sb_multiarea$Sample_Area_mm2, sb_multiarea)
-nrow(sb_multiarea_check)
+nrow(sb_multiarea_check) # After check, 7 rows, all close enough (to be overwritten)
 #write.csv(sb_multiarea_check, "tmpfiles/multi_sampling_area_check.csv", row.names = FALSE)
-# After check, 7 rows, all close enough (to be overwritten)
+
 
 # same but for volumes
 sb_multivol<-sb[(!is.na(sb$Sample_Diameter_mm) | !is.na(sb$Sample_Area_mm2)) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
 sb_multivol_check<-cbind(sb_multivol$Sample_Volume_mm3,((pi*(0.5*sb_multivol$Sample_Diameter_mm)^2)*sb_multivol$Sample_Depth_mm),sb_multivol$Sample_Area_mm2*sb_multivol$Sample_Depth_mm, sb_multivol)
-nrow(sb_multivol_check)
+nrow(sb_multivol_check) # After check, 51 rows, all close enough (to be overwritten)
+
 #write.csv(sb_multivol_check, "tmpfiles/multi_sampling_vol_check.csv", row.names = FALSE)
-# After check, 51 rows, all close enough (to be overwritten)
 
 # So now overwrite!
 sb$Sample_Area_mm2[is.na(sb$Sample_Area_mm2)]<-pi*(sb$Sample_Diameter_mm[is.na(sb$Sample_Area_mm2)]/2)^2
@@ -313,11 +313,12 @@ sb$Seed_density_m2[sb.denscalc3.rows]<-sb.denscalc3.totseeds/((sb.denscalc3$Tota
 # seeds and sample size but no number of samples? -- none
 sb[!is.na(sb$Sample_Area_mm2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds) &!is.na(sb$Seed_density_m2),]
 
-# Calculate species density
-sb$Species_Density_m2<-sb$Total_Species/((sb$Sample_Area_mm2/1000000)*sb$Total_Number_Samples)
-
-# And for simplicity, total sampled area
+# Calculate for simplicity, total sampled area
 sb$Total_sampled_area_m2<-((sb$Sample_Area_mm2/1000000)*sb$Total_Number_Samples)
+
+# And now species density
+sb$Species_Density_m2<-sb$Total_Species/sb$Total_sampled_area_m2
+
 
 
 ### OUTLIER CHECKS ###
