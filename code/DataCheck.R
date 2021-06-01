@@ -335,8 +335,8 @@ area.3sd<-sd(sb$Total_sampled_area_m2, na.rm=TRUE)*3
 (out.area.up<-sb[sb$Total_sampled_area_m2 > (area.mean+area.3sd) & !is.na(sb$Total_sampled_area_m2),])
 (out.area.lo<-sb[sb$Total_sampled_area_m2 < (area.mean-area.3sd) & !is.na(sb$Total_sampled_area_m2),])
 
-write.csv(out.area.up,"outliers_area_up_1.csv", row.names=FALSE)
-#write.csv(out.area.lo,"outliers_area_up_1.csv", row.names=FALSE)
+write.csv(out.area.up,"tmpfiles/outliers_area_up_1.csv", row.names=FALSE)
+#write.csv(out.area.lo,"tmpfiles/outliers_area_up_1.csv", row.names=FALSE)
 
 
 # seeds m2
@@ -349,8 +349,8 @@ seeddens.3sd<-sd(sb$Seed_density_m2, na.rm=TRUE)*3
 (out.seed.up<-sb[sb$sb$Seed_density_m2 > (seeddens.mean+seeddens.3sd) & !is.na(sb$Seed_density_m2),])
 (out.seed.lo<-sb[sb$sb$Seed_density_m2 < (seeddens.mean-seeddens.3sd) & !is.na(sb$Seed_density_m2),])
 
-#write.csv(out.seed.up,"outliers_seed_up_1.csv", row.names=FALSE)
-#write.csv(out.seed.lo,"outliers_seed_up_1.csv", row.names=FALSE)
+#write.csv(out.seed.up,"tmpfiles/outliers_seed_up_1.csv", row.names=FALSE)
+#write.csv(out.seed.lo,"tmpfiles/outliers_seed_up_1.csv", row.names=FALSE)
 
 # species m2
 # boxplot(sb$Species_Density_m2)
@@ -362,8 +362,8 @@ spedens.3sd<-sd(sb$Species_Density_m2, na.rm=TRUE)*3
 (out.spe.up<-sb[sb$Species_Density_m2 > (spedens.mean+spedens.3sd) & !is.na(sb$Species_Density_m2),]) # $Human
 (out.spe.lo<-sb[sb$Species_Density_m2 < (spedens.mean-spedens.3sd) & !is.na(sb$Species_Density_m2),])
 
-write.csv(out.spe.up,"outliers_spe_up_1.csv", row.names=FALSE)
-#write.csv(out.spe.lo,"outliers_spe_up_1.csv", row.names=FALSE)
+write.csv(out.spe.up,"tmpfiles/outliers_spe_up_1.csv", row.names=FALSE)
+#write.csv(out.spe.lo,"tmpfiles/outliers_spe_up_1.csv", row.names=FALSE)
 
 
 
