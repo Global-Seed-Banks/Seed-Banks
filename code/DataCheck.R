@@ -335,7 +335,7 @@ area.3sd<-sd(sb$Total_sampled_area_m2, na.rm=TRUE)*3
 (out.area.up<-sb[sb$Total_sampled_area_m2 > (area.mean+area.3sd) & !is.na(sb$Total_sampled_area_m2),])
 (out.area.lo<-sb[sb$Total_sampled_area_m2 < (area.mean-area.3sd) & !is.na(sb$Total_sampled_area_m2),])
 
-write.csv(out.area.up,"tmpfiles/outliers_area_up_1.csv", row.names=FALSE)
+#write.csv(out.area.up,"tmpfiles/outliers_area_up_2.csv", row.names=FALSE)
 #write.csv(out.area.lo,"tmpfiles/outliers_area_up_1.csv", row.names=FALSE)
 
 
@@ -362,7 +362,7 @@ spedens.3sd<-sd(sb$Species_Density_m2, na.rm=TRUE)*3
 (out.spe.up<-sb[sb$Species_Density_m2 > (spedens.mean+spedens.3sd) & !is.na(sb$Species_Density_m2),]) # $Human
 (out.spe.lo<-sb[sb$Species_Density_m2 < (spedens.mean-spedens.3sd) & !is.na(sb$Species_Density_m2),])
 
-write.csv(out.spe.up,"tmpfiles/outliers_spe_up_1.csv", row.names=FALSE)
+#write.csv(out.spe.up,"tmpfiles/outliers_spe_up_3.csv", row.names=FALSE)
 #write.csv(out.spe.lo,"tmpfiles/outliers_spe_up_1.csv", row.names=FALSE)
 
 
