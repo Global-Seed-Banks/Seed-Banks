@@ -40,14 +40,14 @@ nrow(sb[!nchar(sb$Lat_NS)==0 & nchar(sb$Lon_EW)==0,])
 
 # remove rows that don't have both lat and long at degree resolution (i.e. no data)
 sb<-sb[!is.na(sb$Lon_Deg) & !is.na(sb$Lat_Deg),] 
-nrow(sb) # 3031 rows with coordinates
+nrow(sb) # 3084 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] 
-nrow(sb.dec) #1295 with decimals
+nrow(sb.dec) #1319 with decimals
 
 sb<-sb[!rownames(sb) %in% rownames(sb.dec),]
-nrow(sb) # 1736 without that need converting
+nrow(sb) # 1775 without that need converting
 
 # Any strange directions?
 sb$URL[!sb$Lat_NS %in% c("N","S")]
@@ -79,7 +79,7 @@ sb$Lat_Deg<-as.numeric(char2dms(sb_LatConv,"d","m","s"))
 sb$Lon_Deg<-as.numeric(char2dms(sb_LonConv,"d","m","s"))
 
 sb<-rbind(sb,sb.dec) # bind back together
-nrow(sb) # 3031
+nrow(sb) # 3084
 
 sb<-sb[,!names(sb) %in% c("Lat_Min","Lat_Sec", "Lat_NS", "Lon_Min", "Lon_Sec", "Lon_EW" )]
 
@@ -179,7 +179,7 @@ nrow(sb_multiarea_check) # After check, 7 rows, all close enough (to be overwrit
 # same but for volumes
 sb_multivol<-sb[(!is.na(sb$Sample_Diameter_mm) | !is.na(sb$Sample_Area_mm2)) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
 sb_multivol_check<-cbind(sb_multivol$Sample_Volume_mm3,((pi*(0.5*sb_multivol$Sample_Diameter_mm)^2)*sb_multivol$Sample_Depth_mm),sb_multivol$Sample_Area_mm2*sb_multivol$Sample_Depth_mm, sb_multivol)
-nrow(sb_multivol_check) # After check, 50 rows, all close enough (to be overwritten)
+nrow(sb_multivol_check) # After check, 49 rows, all close enough (to be overwritten)
 
 #write.csv(sb_multivol_check, "tmpfiles/multi_sampling_vol_check.csv", row.names = FALSE)
 
