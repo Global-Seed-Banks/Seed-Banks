@@ -2,7 +2,7 @@
 ## THE BIG DATA-CHECKING SCRIPT
 #################################
 
-## Getting the latest version
+## Getting the latest version -- temporarily allow access on Google Sheets
 system("curl -o tmpfiles/sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data") # download from google
 
 # while loop to make sure that the new version has downloaded before bringing it in
@@ -12,7 +12,7 @@ cat("wait a sec... ")
 Sys.sleep(3)
 
 sb<-read.csv("tmpfiles/sbtemp.csv",stringsAsFactors = FALSE, strip.white = TRUE)
-
+nrow(sb)
 # Emma, feel free to add something for your download from sheets...
 
 
@@ -103,6 +103,9 @@ sum(lapply(unique(sb$Title), function(x) length(unique(sb$Doi[sb$Title==x])))>1)
 # unique(sb$Title)[lapply(unique(sb$Title), function(x) length(unique(sb$Doi[sb$Title==x])))>1]
 
 
+
+############################################
+########################################
 ## Habitats - Green section ##
 
 # Habitat check
@@ -160,6 +163,8 @@ unique(cbind(sb$Habitat, sb$Target_Habitat))
 table(sb$Experiment) # okay
 
 
+############################################
+########################################
 ## Sampling - Yellow section ##
 
 # quick sanity check - diameters and depths
@@ -187,7 +192,8 @@ nrow(sb_multivol_check) # After check, 49 rows, all close enough (to be overwrit
 sb$Sample_Area_mm2[is.na(sb$Sample_Area_mm2)]<-pi*(sb$Sample_Diameter_mm[is.na(sb$Sample_Area_mm2)]/2)^2
 sb$Sample_Volume_mm3[is.na(sb$Sample_Volume_mm3)]<-sb$Sample_Area_mm2[is.na(sb$Sample_Volume_mm3)] * sb$Sample_Depth_mm[is.na(sb$Sample_Volume_mm3)] 
 
-
+############################################
+########################################
 ## Sites and Plots - Purple Section ##
 
 # Check that total plots equals sites * plots when all are given.
@@ -200,7 +206,7 @@ nrow(sb_sps[is.na(sb_sps$Number_Sites),])
 
 # Empty number of samples per site when number of site is given.. also important.
 sb_nositeonly<-sb[!is.na(sb$Number_Sites) & is.na(sb$Total_Number_Samples) & is.na(sb$Samples_Per_Site),] # cam 
-nrow(sb_nositeonly) # 9 ... all with unclear sampling
+nrow(sb_nositeonly) # 8 ... all with unclear sampling
 #write.csv(sb_nositeonly, "tmpfiles/sb_nositeonly_check.csv", row.names = FALSE)
 
 # Empty number of sites - but total sample number there, so less important but still good to look at
@@ -208,10 +214,12 @@ sb_nonosites<-sb[is.na(sb$Number_Sites),]
 table(sb_nonosites$Human) # just TE and VO now.
 #write.csv(sb_nonosites, "tmpfiles/sb_nonosites_check.csv", row.names = FALSE)
 
-# Now can actually calculate total plots
+# Now can actually calculate total plots where it was empty
 sb$Total_Number_Samples[is.na(sb$Total_Number_Samples)]<-sb$Number_Sites[is.na(sb$Total_Number_Samples)]*sb$Samples_Per_Site[is.na(sb$Total_Number_Samples)]
 
 
+############################################
+########################################
 ## Method - Beige section ##
 
 # Actual method
@@ -229,6 +237,8 @@ MethVolCheck<-sb[!is.na(sb$Method_Volume_mm3) & !is.na(sb$Sample_Volume_mm3),]
 nrow(MethVolCheck[(MethVolCheck$Sample_Volume_mm3>MethVolCheck$Sample_Volume_mm3*MethVolCheck$Total_Number_Samples),])
 
 
+############################################
+########################################
 ## Results - Blue section ##
 
 # More species than seeds?
@@ -268,6 +278,8 @@ nrow(DensTotCheck) # 32 post check
 #write.csv(DensTotCheck,"tmpfiles/Calc_Dens_check_part2.csv", row.names=FALSE)
 
 
+############################################
+########################################
 ### Infilling and back-calculation ###
 
 # if unknown number of sites -> 1
@@ -278,7 +290,7 @@ sb.denscalc1<-sb[is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na
 sb.denscalc1.rows<-which(is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds))
 sb$Seed_density_m2[sb.denscalc1.rows]<-sb.denscalc1$Total_Seeds/((sb.denscalc1$Sample_Area_mm2*sb.denscalc1$Total_Number_Samples)/1000000)
 
-# First, a simple area from volume and depth
+# Then, calculate area from volume and depth
 sb.areacalc1<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
 sb.areacalc1.rows<-which(is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3))
 sb$Sample_Area_mm2[sb.areacalc1.rows]<-sb.areacalc1$Sample_Volume_mm3/sb.areacalc1$Sample_Depth_mm
@@ -306,7 +318,6 @@ sb$Seed_density_m2[sb.denscalc2.rows]<-sb.denscalc2$Total_Seeds/((sb.denscalc2$S
 # what about with Litres?
 sb.denscalc3<-sb[is.na(sb$Seed_density_m2) & !is.na(sb$Seed_density_litre) & !is.na(sb$Sample_Area_mm2) &!is.na(sb$Total_Number_Samples),]
 sb.denscalc3.rows<-which(is.na(sb$Seed_density_m2) & !is.na(sb$Seed_density_litre) & !is.na(sb$Sample_Area_mm2) &!is.na(sb$Total_Number_Samples))
-
 sb.denscalc3.totseeds<-sb.denscalc3$Seed_density_litre*((sb.denscalc3$Sample_Volume_mm3*sb.denscalc3$Total_Number_Samples)/1000000)
 sb$Seed_density_m2[sb.denscalc3.rows]<-sb.denscalc3.totseeds/((sb.denscalc3$Total_Number_Samples*sb.denscalc3$Sample_Area_mm2)/1000000)
 
@@ -318,6 +329,19 @@ sb$Total_sampled_area_m2<-((sb$Sample_Area_mm2/1000000)*sb$Total_Number_Samples)
 
 # And now species density
 sb$Species_Density_m2<-sb$Total_Species/sb$Total_sampled_area_m2
+
+
+## Also, for info:
+
+# Yes: Density, Samples; No: Area, Seeds - nothing to be done? - 44 rows
+nrow(sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Total_Number_Samples) & is.na(sb$Total_Seeds),])
+
+# 3. Yes: Density, Seeds; No: Area, Samples - none
+nrow(sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),])
+
+# 4. Yes: Density, Seeds; No: Area, Samples - none
+nrow(sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),])
+
 
 
 
@@ -366,61 +390,6 @@ spedens.3sd<-sd(sb$Species_Density_m2, na.rm=TRUE)*3
 #write.csv(out.spe.lo,"tmpfiles/outliers_spe_up_1.csv", row.names=FALSE)
 
 
-
-
-
-
-
-
-
-# below stuff is not finished
-
-
-
-
-
-
-
-
-
-# seeds and sample size but no number of samples?
-sb.samplecalc1<-sb[!is.na(sb$Sample_Area_mm2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
-sb.samplecalc1.rows<-which(!is.na(sb$Sample_Area_mm2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds))
-
-
-sb.samplecalc1$Seed_density_m2/(sb.samplecalc1$Sample_Area_mm2/1000000)
-
-
-
-
-
-
-
-
-what about no dens but still the otheres...
-
-sb.areaguess<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Sample_Depth_mm) & !is.na(sb$Sample_Volume_mm3),]
-
-
-
-# 2. Yes: Density, Samples; No: Area, Seeds - nothing to be done?
-sb.sampcalc2<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & !is.na(sb$Total_Number_Samples) & is.na(sb$Total_Seeds),]
-
-# 3. Yes: Density, Seeds; No: Area, Samples - none
-sb.sampcalc3<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
-
-# 4. Yes: Density, Seeds; No: Area, Samples - none
-sb.sampcalc4<-sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & is.na(sb$Total_Number_Samples) & !is.na(sb$Total_Seeds),]
-
-
-_Area_mm2/1000000)
-
-
-sb.sampcalc1$Total_Seeds
-
-
-
-
-
-
-first maybe need to back-calculate things? assume 1 site where not stated?
+## ALL CHECKS COMPLETED 19 OCTOBER 2021 ##
+ 
+# Next job - add climate data and country... 
