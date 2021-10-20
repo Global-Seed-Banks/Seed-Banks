@@ -392,4 +392,22 @@ spedens.3sd<-sd(sb$Species_Density_m2, na.rm=TRUE)*3
 
 ## ALL CHECKS COMPLETED 19 OCTOBER 2021 ##
  
-# Next job - add climate data and country... 
+########################################################
+#### Add country
+
+library(rgdal)
+library(rgeos)
+world<-readOGR("GIS","CNTR_RG_20M_2020_4326", stringsAsFactors = FALSE) # import world map
+
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS(proj4string(world)))
+sb.world.df<-over(sb.shp,world)
+sb.shp$country<-sb.world.df$NAME_ENGL
+sb$country<-sb.world.df$NAME_ENGL
+#sb$country<-sb.world.df$country
+
+sb.sea<-sb.shp[is.na(sb.shp$country),]
+sb.sea.dist<-gDistance(sb.sea,world, byid=TRUE)
+sb$country[is.na(sb$country)]<-sapply(1:nrow(sb.sea),function(x) world$NAME_ENGL[which.min(sb.sea.dist[,x])])
+
+sb.countrycheck<-sb[,c(1:11,which(names(sb)=="country"))]
+write.csv(sb.countrycheck,"tmpfiles/country_check.csv", row.names=FALSE)
