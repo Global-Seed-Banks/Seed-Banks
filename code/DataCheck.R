@@ -424,3 +424,51 @@ sb$country[is.na(sb$country)]<-sapply(1:nrow(sb.sea),function(x) world$NAME_ENGL
 # All countries checked manually, changed where necessary 21 October 2021, two final changes below
 sb$country[sb$Doi=="10.1111/j.1654-109X.2005.tb00643.x"]<-"Switzerland" # Too close to border for low res world map.
 sb$country[sb$Doi=="10.1017/S0266467400010774"]<-"French Guiana" # Strange colonial thing
+
+sort(unique(sb$country))
+
+
+
+########################################################
+#### Add climate
+
+library(raster)
+
+# climate data only available 1979-2013. H
+1-sum(sb$Year<1979 | sb$Year>2013)/nrow(sb) # 72% covered by good quality 79-2013.
+1-sum(sb$Year>2016)/nrow(sb) # 89% covered by 1901-2016
+
+
+# First run.. bioclim
+
+#### FIRST DO THE EXTRACT. THEN TAKE THE NAS, DO A BUFFER AROUND THEM (PLOT IT TO MAKE SURE IT'S NOT TOO WEIRD), CLIP THE RASTER TO THAT BUFFER, THEN DO DISTANCE AND FIND THE CLOSEST ONE. CHEFS KISS
+
+
+bio<-raster("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/bioclim/integer/CHELSA_bio10_01.tif")
+bio.pts<-rasterToPoints(bio,spatial = FALSE)
+print(object.size(bio.pts), units="Mb")
+bio.pts<-SpatialPoints(bio.pts[,1:2],proj4string=CRS(proj4string(bio)))
+print(object.size(bio.pts), units="Mb")
+
+austria<-world[world$NAME_ENGL=="Austria",]
+ausclim<-crop(bio,austria)
+plot(ausclim)
+bob<-rasterToPoints(ausclim)
+SpatialPoints(bob[,1:2],proj4string=CRS(proj4string(bio)))
+
+?clip
+
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS(proj4string(bio)))
+
+sb$bio1<-(extract(bio,sb.shp)/10)-273.15
+sb.nc<-sb.shp[is.na(sb$bio1),]
+
+sb.sea.dist<-gDistance(sb.sea,world, byid=TRUE)
+
+
+bob<-xyFromCell(bio,1:ncell())
+
+plot(sb.shp)
+
+
+sb[is.na(sb$Year),]
