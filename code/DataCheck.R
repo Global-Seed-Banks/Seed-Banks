@@ -44,10 +44,10 @@ nrow(sb) # 3084 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] 
-nrow(sb.dec) #1319 with decimals
+nrow(sb.dec) #1308 with decimals
 
 sb<-sb[!rownames(sb) %in% rownames(sb.dec),]
-nrow(sb) # 1775 without that need converting
+nrow(sb) # 1776 without that need converting
 
 # Any strange directions?
 sb$URL[!sb$Lat_NS %in% c("N","S")]
@@ -356,8 +356,10 @@ nrow(sb[is.na(sb$Sample_Area_mm2) & !is.na(sb$Seed_density_m2) & is.na(sb$Total_
 area.mean<-mean(sb$Total_sampled_area_m2, na.rm=TRUE)
 area.3sd<-sd(sb$Total_sampled_area_m2, na.rm=TRUE)*3
 
-(out.area.up<-sb[sb$Total_sampled_area_m2 > (area.mean+area.3sd) & !is.na(sb$Total_sampled_area_m2),])
-(out.area.lo<-sb[sb$Total_sampled_area_m2 < (area.mean-area.3sd) & !is.na(sb$Total_sampled_area_m2),])
+out.area.up<-sb[sb$Total_sampled_area_m2 > (area.mean+area.3sd) & !is.na(sb$Total_sampled_area_m2),]
+out.area.lo<-sb[sb$Total_sampled_area_m2 < (area.mean-area.3sd) & !is.na(sb$Total_sampled_area_m2),]
+nrow(out.area.up) # 14, checked and ok
+nrow(out.area.lo) # 0
 
 #write.csv(out.area.up,"tmpfiles/outliers_area_up_2.csv", row.names=FALSE)
 #write.csv(out.area.lo,"tmpfiles/outliers_area_up_1.csv", row.names=FALSE)
@@ -370,8 +372,11 @@ area.3sd<-sd(sb$Total_sampled_area_m2, na.rm=TRUE)*3
 seeddens.mean<-mean(sb$Seed_density_m2, na.rm=TRUE)
 seeddens.3sd<-sd(sb$Seed_density_m2, na.rm=TRUE)*3
 
-(out.seed.up<-sb[sb$sb$Seed_density_m2 > (seeddens.mean+seeddens.3sd) & !is.na(sb$Seed_density_m2),])
-(out.seed.lo<-sb[sb$sb$Seed_density_m2 < (seeddens.mean-seeddens.3sd) & !is.na(sb$Seed_density_m2),])
+out.seed.up<-sb[sb$sb$Seed_density_m2 > (seeddens.mean+seeddens.3sd) & !is.na(sb$Seed_density_m2),]
+out.seed.lo<-sb[sb$sb$Seed_density_m2 < (seeddens.mean-seeddens.3sd) & !is.na(sb$Seed_density_m2),]
+nrow(out.seed.up) # 0
+nrow(out.seed.lo) # 0
+
 
 #write.csv(out.seed.up,"tmpfiles/outliers_seed_up_1.csv", row.names=FALSE)
 #write.csv(out.seed.lo,"tmpfiles/outliers_seed_up_1.csv", row.names=FALSE)
@@ -383,8 +388,12 @@ seeddens.3sd<-sd(sb$Seed_density_m2, na.rm=TRUE)*3
 spedens.mean<-mean(sb$Species_Density_m2, na.rm=TRUE)
 spedens.3sd<-sd(sb$Species_Density_m2, na.rm=TRUE)*3
 
-(out.spe.up<-sb[sb$Species_Density_m2 > (spedens.mean+spedens.3sd) & !is.na(sb$Species_Density_m2),]) # $Human
-(out.spe.lo<-sb[sb$Species_Density_m2 < (spedens.mean-spedens.3sd) & !is.na(sb$Species_Density_m2),])
+out.spe.up<-sb[sb$Species_Density_m2 > (spedens.mean+spedens.3sd) & !is.na(sb$Species_Density_m2),] # $Human
+out.spe.lo<-sb[sb$Species_Density_m2 < (spedens.mean-spedens.3sd) & !is.na(sb$Species_Density_m2),]
+
+nrow(out.spe.up) # 81 post check
+nrow(out.spe.lo) # 0
+
 
 #write.csv(out.spe.up,"tmpfiles/outliers_spe_up_5.csv", row.names=FALSE)
 #write.csv(out.spe.lo,"tmpfiles/outliers_spe_up_1.csv", row.names=FALSE)
@@ -409,5 +418,9 @@ sb.sea<-sb.shp[is.na(sb.shp$country),]
 sb.sea.dist<-gDistance(sb.sea,world, byid=TRUE)
 sb$country[is.na(sb$country)]<-sapply(1:nrow(sb.sea),function(x) world$NAME_ENGL[which.min(sb.sea.dist[,x])])
 
-sb.countrycheck<-sb[,c(1:11,which(names(sb)=="country"))]
-write.csv(sb.countrycheck,"tmpfiles/country_check.csv", row.names=FALSE)
+#sb.countrycheck<-sb[,c(1:11,which(names(sb)=="country"))]
+#write.csv(sb.countrycheck,"tmpfiles/country_check.csv", row.names=FALSE)
+
+# All countries checked manually, changed where necessary 21 October 2021, two final changes below
+sb$country[sb$Doi=="10.1111/j.1654-109X.2005.tb00643.x"]<-"Switzerland" # Too close to border for low res world map.
+sb$country[sb$Doi=="10.1017/S0266467400010774"]<-"French Guiana" # Strange colonial thing
