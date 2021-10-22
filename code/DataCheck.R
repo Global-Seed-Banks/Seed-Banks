@@ -435,7 +435,7 @@ sort(unique(sb$country))
 library(raster)
 
 # climate data only available 1979-2013. H
-1-sum(sb$Year<1979 | sb$Year>2013)/nrow(sb) # 72% covered by good quality 79-2013.
+1-sum(sb$Year<1979 | sb$Year>2019)/nrow(sb) # 96% covered by good quality 79-2019.
 1-sum(sb$Year>2016)/nrow(sb) # 89% covered by 1901-2016
 
 
@@ -443,32 +443,53 @@ library(raster)
 
 #### FIRST DO THE EXTRACT. THEN TAKE THE NAS, DO A BUFFER AROUND THEM (PLOT IT TO MAKE SURE IT'S NOT TOO WEIRD), CLIP THE RASTER TO THAT BUFFER, THEN DO DISTANCE AND FIND THE CLOSEST ONE. CHEFS KISS
 
+### DO WITH THE 79-13 FIRST. THEN TRY TO FREE UP SOME SPACE AND DOWNLOAD THE REST..
 
+library(gdalUtils)
+
+# First bring in any bloody chelsa thing
 bio<-raster("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/bioclim/integer/CHELSA_bio10_01.tif")
-bio.pts<-rasterToPoints(bio,spatial = FALSE)
-print(object.size(bio.pts), units="Mb")
-bio.pts<-SpatialPoints(bio.pts[,1:2],proj4string=CRS(proj4string(bio)))
-print(object.size(bio.pts), units="Mb")
 
-austria<-world[world$NAME_ENGL=="Austria",]
-ausclim<-crop(bio,austria)
-plot(ausclim)
-bob<-rasterToPoints(ausclim)
-SpatialPoints(bob[,1:2],proj4string=CRS(proj4string(bio)))
+# then create spatial layer of the sb data 
+sb.shp<-SpatialPoints(cbind(sb$Lon_Deg,sb$Lat_Deg),proj4string=CRS(proj4string(bio)))
 
-?clip
-
-sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS(proj4string(bio)))
-
+# extract the data from each point
 sb$bio1<-(extract(bio,sb.shp)/10)-273.15
+
+# create no climate layer (where they don't intersect)
 sb.nc<-sb.shp[is.na(sb$bio1),]
 
-sb.sea.dist<-gDistance(sb.sea,world, byid=TRUE)
+# buffer around these, then write the shapefile
+sb.nc.buff<-gBuffer(sb.nc,byid=FALSE, width=0.5)
+sb.nc.buff<-SpatialPolygonsDataFrame(sb.nc.buff, data=data.frame(ID=1), match.ID=FALSE)
+writeOGR(sb.nc.buff,"GIS","sb_nc_buff","ESRI Shapefile")
 
+# rasterize this shapefile according to the chelsa parameters- Bring it in, then re-save smaller using raster.
+gdal_rasterize("GIS/sb_nc_buff.shp","GIS/sb_nc_buff_tmpras.tif", tr=res(bio),burn=1,verbose=TRUE, a_nodata=NA, a_srs=proj4string(bio), te=extent(bio)[c(1,3,2,4)], ot="Byte")
+nc.buffras.tmp<-raster("GIS/sb_nc_buff_tmpras.tif")
+writeRaster(nc.buffras.tmp,"GIS/sb_nc_buff_ras.tif", dataType="LOG1S")
+rm(nc.buffras.tmp); file.remove("GIS/sb_nc_buff_tmpras.tif") # remove the big ones
 
-bob<-xyFromCell(bio,1:ncell())
+# bring in smaller version, convert to points, then overlay with bio to get the points that actually have data
+nc.buffras<-raster("GIS/sb_nc_buff_ras.tif", overwrite=TRUE)
+nc.buffras.pts<-rasterToPoints(nc.buffras,spatial = TRUE)
+nc.buffras.pts$bio<-extract(bio,nc.buffras.pts)
+nc.buffras.pts<-nc.buffras.pts[!is.na(nc.buffras.pts$bio),]
 
-plot(sb.shp)
+# run difference, get coordinates of closest pixel centroids
+sb.nc.dist<-gDistance(sb.nc,nc.buffras.pts, byid=TRUE)
+sapply(1:length(sb.nc),function(x) min(sb.nc.dist[,x])) # sanity check, they are all close (i.e. buffer was big enough)
+nc.nearpoints<-coordinates(nc.buffras.pts[sapply(1:length(sb.nc),function(x) which.min(sb.nc.dist[,x])),])
 
+# make new columns for use in the climate data extraction, make spatial
+sb$Lat_Deg_Clim<-sb$Lat_Deg
+sb$Lon_Deg_Clim<-sb$Lon_Deg
+sb$Lon_Deg_Clim[is.na(sb$bio1)]<-nc.nearpoints[,1]
+sb$Lat_Deg_Clim[is.na(sb$bio1)]<-nc.nearpoints[,2]
+sb.shp.clim<-SpatialPoints(cbind(sb$Lon_Deg_Clim,sb$Lat_Deg_Clim),proj4string=CRS(proj4string(bio)))
 
-sb[is.na(sb$Year),]
+# Now to get started! Bring in the rasters!
+
+sb$bio1<-(extract(bio,sb.shp.clim)/10)-273.15
+
+sum(is.na(sb$bio1))
