@@ -490,6 +490,105 @@ sb.shp.clim<-SpatialPoints(cbind(sb$Lon_Deg_Clim,sb$Lat_Deg_Clim),proj4string=CR
 
 # Now to get started! Bring in the rasters!
 
+# Because precipitation data so big, do the temperature first
+rm(bio) # remove the bioclim one that is just hanging around taking up space
+
+file.copy("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/timeseries/tmax/CHELSA_tmax_1979_01_V1.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif" )
+
+file.copy("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/timeseries/tmin/CHELSA_tmin_1979_01_V1.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_01_1979_V.2.1.tif" )
+
+file.copy("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/timeseries/tmean/CHELSA_tmean_1979_01_V1.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_01_1979_V.2.1.tif" )
+
+sblil<-sb.shp.clim[1:20] # small test version - good spread
+
+/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tmax_1979_01_V.2.1.tif
+/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif
+
+tp<-10 # assign time period in years
+mo<-sprintf("%02d",1:12) # months with leading 0
+
+sort(list.files("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/", pattern="1979"))
+
+# Average T
+ras.list.tmean<-list()
+for(ye in 1979:2019){ # all years
+  ras.list.tmean[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_",mo,"_",ye,"_V.2.1.tif"),raster)}
+
+# Max T
+ras.list.tmax<-list()
+for(ye in 1979:2019){ # all years
+  ras.list.tmax[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_",mo,"_",ye,"_V.2.1.tif"),raster)}
+
+# Min T
+ras.list.tmin<-list()
+for(ye in 1979:2019){ # all years
+  ras.list.tmin[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_",mo,"_",ye,"_V.2.1.tif"),raster)}
+
+# Time series only goes 1979-2019, so assign pre 88 and post 19 Years as the earliest/latest possible for the 10 year period
+sb$Year_Clim<-sb$Year
+sb$Year_Clim[sb$Year>2019]<-2019
+sb$Year_Clim[sb$Year<1988]<-1988
+
+
+# Do overlay - for every year, take each month's temperature for each coordinate. The CHELSA time series data is in Kelvins*10, so need to convert to Celsius also.
+plot.mo.tmean<-lapply(sb$Year_Clim,function(x) lapply(ras.list.tmean[[paste0("Y",x)]], function(y) (extract(y,sb.shp.clim)/10)-273.15))
+
+# Average annual temperature for the ten years (average of each month's average)
+plot.ye.tmean<-lapply(plot.mo.tmean, function(x) Reduce('+',x)/12)
+plot.tp.tmean<-Reduce('+',plot.ye.tmean)/tp
+
+
+if(length(plot.points)>1){  # for dfs with multiple rows (most cases I guess)
+  # Identify the each year's warmest month
+  plot.ye.warm<-lapply(plot.mo.tmean, function(x) sapply(1:length(plot.points), function(y) which.max(mapply(c,x)[y,])))
+  
+  # # the above broken down for future reference and understanding:
+  # plot.ye1.mean<-plot.mo.tmean[[1]] # take first year (lapply above applies to all years)
+  # plot.ye1.mean.mat<-mapply(c,plot.ye1.mean) # make that into a table (rows= each plot, cols = each month)
+  # sapply(1:nrow(sb), function(x) which.max(plot.ye1.mean.mat[x,])) # from that table, identify the column with the highest value for each row (plot).
+  
+  # Identify the each year's coolest month in the same way...
+  plot.ye.cold<-lapply(plot.mo.tmean, function(x) sapply(1:length(plot.points), function(y) which.min(mapply(c,x)[y,])))
+  
+  # Do overlay to get monthly max temps for each month in each year
+  plot.mo.tmax<-lapply(clim.years,function(x) lapply(ras.list.tmax[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15))
+  
+  # Get each year's max temperature from the warmest month.
+  plot.ye.tmax<-lapply(1:tp, function(x) mapply(c,plot.mo.tmax[[x]])[cbind(1:length(plot.points),plot.ye.warm[[x]])])
+  
+  # # Break it down
+  # plot.y1.tmax<-plot.mo.tmax[[1]] # take first year only
+  # plot.y1.tmax.mat<-mapply(c,plot.y1.tmax) # convert to matrix (rows=plots, cols=monthly max temp)
+  # plot.y1.tmax.mat[cbind(1:nrow(sb),plot.ye.warm[[1]])] # take the cell from each row that is the month with warmest average temp, as calculated above (plot.ye.warm)
+  
+  # Do overlay to get monthly min temps for each month in each year
+  plot.mo.tmin<-lapply(clim.years,function(x) lapply(ras.list.tmin[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15))
+  
+  # Get each year's min temperature from the coolest month.
+  plot.ye.tmin<-lapply(1:tp, function(x) mapply(c,plot.mo.tmin[[x]])[cbind(1:length(plot.points),plot.ye.cold[[x]])]) }
+
+if(length(plot.points)==1){  # single plots need different (mapply-free) approach
+  plot.ye.warm<-lapply(plot.mo.tmean, which.max) # Identify the each year's warmest month
+  plot.ye.cold<-lapply(plot.mo.tmean,which.min)# Identify the each year's coolest month
+  plot.mo.tmax<-lapply(clim.years,function(x) lapply(ras.list.tmax[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15)) # Do overlay to get monthly max temps for each month in each year
+  plot.ye.tmax<-sapply(1:tp, function(x) plot.mo.tmax[[x]][plot.ye.warm[[x]]]) # Each year's max temperature from the warmest month.
+  plot.mo.tmin<-lapply(clim.years,function(x) lapply(ras.list.tmin[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15)) # Do overlay to get monthly min temps for each month in each year
+  plot.ye.tmin<-sapply(1:tp, function(x) plot.mo.tmin[[x]][plot.ye.cold[[x]]]) # Get each year's min temperature from the coolest month. 
+}
+
+# Then take each year's temperature range 
+plot.ye.atr<-lapply(1:tp, function(x) plot.ye.tmax[[x]] - plot.ye.tmin[[x]] )
+
+# And finally get the mean over the time period
+plot.tp.atr<-Reduce('+',plot.ye.atr)/tp
+
+
+
+# Remove the cheeky january 1979 copies
+file.remove("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_01_1979_V.2.1.tif" ,"/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_01_1979_V.2.1.tif")
+
+
+
 sb$bio1<-(extract(bio,sb.shp.clim)/10)-273.15
 
 sum(is.na(sb$bio1))
