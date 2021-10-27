@@ -399,9 +399,17 @@ nrow(out.spe.lo) # 0
 #write.csv(out.spe.lo,"tmpfiles/outliers_spe_up_1.csv", row.names=FALSE)
 
 
+
+#########################################################
+
 ## ALL CHECKS COMPLETED 19 OCTOBER 2021 ##
  
 ########################################################
+
+
+### NOW SOME FINAL SORTING OF THE 
+
+
 #### Add country
 
 library(rgdal)
@@ -433,30 +441,21 @@ sort(unique(sb$country))
 #### Add climate
 
 library(raster)
+library(gdalUtils)
 
 # climate data only available 1979-2013. H
 1-sum(sb$Year<1979 | sb$Year>2019)/nrow(sb) # 96% covered by good quality 79-2019.
-1-sum(sb$Year>2016)/nrow(sb) # 89% covered by 1901-2016
 
-
-# First run.. bioclim
-
-#### FIRST DO THE EXTRACT. THEN TAKE THE NAS, DO A BUFFER AROUND THEM (PLOT IT TO MAKE SURE IT'S NOT TOO WEIRD), CLIP THE RASTER TO THAT BUFFER, THEN DO DISTANCE AND FIND THE CLOSEST ONE. CHEFS KISS
-
-### DO WITH THE 79-13 FIRST. THEN TRY TO FREE UP SOME SPACE AND DOWNLOAD THE REST..
-
-library(gdalUtils)
-
-# First bring in any bloody chelsa thing
-bio<-raster("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/bioclim/integer/CHELSA_bio10_01.tif")
-
+# First bring in any chelsa layer - they have the same extent, resolution etc.
+bio<-raster("/media/auff/AuffLacie2/CHELSA/chelsa_V1/bioclim/integer/CHELSA_bio10_01.tif")
+             
 # then create spatial layer of the sb data 
 sb.shp<-SpatialPoints(cbind(sb$Lon_Deg,sb$Lat_Deg),proj4string=CRS(proj4string(bio)))
 
 # extract the data from each point
 sb$bio1<-(extract(bio,sb.shp)/10)-273.15
 
-# create no climate layer (where they don't intersect)
+# create no climate layer (where they don't intersect, i.e. points are in the sea)
 sb.nc<-sb.shp[is.na(sb$bio1),]
 
 # buffer around these, then write the shapefile
@@ -467,16 +466,16 @@ writeOGR(sb.nc.buff,"GIS","sb_nc_buff","ESRI Shapefile")
 # rasterize this shapefile according to the chelsa parameters- Bring it in, then re-save smaller using raster.
 gdal_rasterize("GIS/sb_nc_buff.shp","GIS/sb_nc_buff_tmpras.tif", tr=res(bio),burn=1,verbose=TRUE, a_nodata=NA, a_srs=proj4string(bio), te=extent(bio)[c(1,3,2,4)], ot="Byte")
 nc.buffras.tmp<-raster("GIS/sb_nc_buff_tmpras.tif")
-writeRaster(nc.buffras.tmp,"GIS/sb_nc_buff_ras.tif", dataType="LOG1S")
+writeRaster(nc.buffras.tmp,"GIS/sb_nc_buff_ras.tif", dataType="LOG1S", overwrite=TRUE)
 rm(nc.buffras.tmp); file.remove("GIS/sb_nc_buff_tmpras.tif") # remove the big ones
 
 # bring in smaller version, convert to points, then overlay with bio to get the points that actually have data
-nc.buffras<-raster("GIS/sb_nc_buff_ras.tif", overwrite=TRUE)
+nc.buffras<-raster("GIS/sb_nc_buff_ras.tif")
 nc.buffras.pts<-rasterToPoints(nc.buffras,spatial = TRUE)
 nc.buffras.pts$bio<-extract(bio,nc.buffras.pts)
 nc.buffras.pts<-nc.buffras.pts[!is.na(nc.buffras.pts$bio),]
 
-# run difference, get coordinates of closest pixel centroids
+# run difference, get coordinates of closest pixel centroids of those that have data
 sb.nc.dist<-gDistance(sb.nc,nc.buffras.pts, byid=TRUE)
 sapply(1:length(sb.nc),function(x) min(sb.nc.dist[,x])) # sanity check, they are all close (i.e. buffer was big enough)
 nc.nearpoints<-coordinates(nc.buffras.pts[sapply(1:length(sb.nc),function(x) which.min(sb.nc.dist[,x])),])
@@ -488,107 +487,169 @@ sb$Lon_Deg_Clim[is.na(sb$bio1)]<-nc.nearpoints[,1]
 sb$Lat_Deg_Clim[is.na(sb$bio1)]<-nc.nearpoints[,2]
 sb.shp.clim<-SpatialPoints(cbind(sb$Lon_Deg_Clim,sb$Lat_Deg_Clim),proj4string=CRS(proj4string(bio)))
 
-# Now to get started! Bring in the rasters!
-
-# Because precipitation data so big, do the temperature first
 rm(bio) # remove the bioclim one that is just hanging around taking up space
 
-file.copy("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/timeseries/tmax/CHELSA_tmax_1979_01_V1.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif" )
 
-file.copy("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/timeseries/tmin/CHELSA_tmin_1979_01_V1.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_01_1979_V.2.1.tif" )
+## Now to get the real climate data sorted
 
-file.copy("/media/auff/Auff_Lacie/CHELSA/chelsa_V1/timeseries/tmean/CHELSA_tmean_1979_01_V1.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_01_1979_V.2.1.tif" )
+# First copy January 1979 data over from V1 - I figure it is better than nothing
+file.copy("/media/auff/AuffLacie2/CHELSA/chelsa_V1/timeseries/tmax/CHELSA_tmax_1979_01_V1.2.1.tif","/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif" )
 
-sblil<-sb.shp.clim[1:20] # small test version - good spread
+file.copy("/media/auff/AuffLacie2/CHELSA/chelsa_V1/timeseries/tmin/CHELSA_tmin_1979_01_V1.2.1.tif","/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_01_1979_V.2.1.tif" )
 
-/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tmax_1979_01_V.2.1.tif
-/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif
+file.copy("/media/auff/AuffLacie2/CHELSA/chelsa_V1/timeseries/tmean/CHELSA_tmean_1979_01_V1.2.1.tif","/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_01_1979_V.2.1.tif" )
 
+# Sort out parameters for the climate data we want
 tp<-10 # assign time period in years
 mo<-sprintf("%02d",1:12) # months with leading 0
 
-sort(list.files("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/", pattern="1979"))
-
+# Bring in lists of lists - all years and months of all climate data
 # Average T
 ras.list.tmean<-list()
 for(ye in 1979:2019){ # all years
-  ras.list.tmean[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_",mo,"_",ye,"_V.2.1.tif"),raster)}
+  ras.list.tmean[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_",mo,"_",ye,"_V.2.1.tif"),raster)}
 
 # Max T
 ras.list.tmax<-list()
 for(ye in 1979:2019){ # all years
-  ras.list.tmax[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_",mo,"_",ye,"_V.2.1.tif"),raster)}
+  ras.list.tmax[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_",mo,"_",ye,"_V.2.1.tif"),raster)}
 
 # Min T
 ras.list.tmin<-list()
 for(ye in 1979:2019){ # all years
-  ras.list.tmin[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_",mo,"_",ye,"_V.2.1.tif"),raster)}
+  ras.list.tmin[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_",mo,"_",ye,"_V.2.1.tif"),raster)}
 
-# Time series only goes 1979-2019, so assign pre 88 and post 19 Years as the earliest/latest possible for the 10 year period
-sb$Year_Clim<-sb$Year
-sb$Year_Clim[sb$Year>2019]<-2019
-sb$Year_Clim[sb$Year<1988]<-1988
-
-
-# Do overlay - for every year, take each month's temperature for each coordinate. The CHELSA time series data is in Kelvins*10, so need to convert to Celsius also.
-plot.mo.tmean<-lapply(sb$Year_Clim,function(x) lapply(ras.list.tmean[[paste0("Y",x)]], function(y) (extract(y,sb.shp.clim)/10)-273.15))
-
-# Average annual temperature for the ten years (average of each month's average)
-plot.ye.tmean<-lapply(plot.mo.tmean, function(x) Reduce('+',x)/12)
-plot.tp.tmean<-Reduce('+',plot.ye.tmean)/tp
+# Prec
+ras.list.prec<-list()
+for(ye in 1979:2018){ # all years
+  ras.list.prec[[paste0("Y",ye)]]<-lapply(paste0("/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/pr/CHELSA_pr_",mo,"_",ye,"_V.2.1.tif"),raster)}
 
 
-if(length(plot.points)>1){  # for dfs with multiple rows (most cases I guess)
-  # Identify the each year's warmest month
-  plot.ye.warm<-lapply(plot.mo.tmean, function(x) sapply(1:length(plot.points), function(y) which.max(mapply(c,x)[y,])))
+# Then run the loop, a year at a time, taking all plot points that were taken (published) that year
+for(i in sort(unique(sb$Year))){
+
+# Assign the years we want to extract for, depending on what year the data are from
+temp.years<- if(i<1988) 1979:(1979+(tp-1)) else if(i>2019) (2019-(tp-1)):2019 else (i-(tp-1)):unique(i)
+prec.years<- if(i<1988) 1979:(1979+(tp-1)) else if(i>2018) (2018-(tp-1)):2018 else (i-(tp-1)):unique(i)
+
+sb.ye.shp<-sb.shp.clim[sb$Year==i] # subset the shapefile according to the plots for that year
+
+  # Do overlay - for every year, take each month's temperature for each coordinate. The CHELSA time series data is in Kelvins*10, so need   to convert to Celsius also.
+  plot.mo.tmean<-lapply(temp.years,function(x) lapply(ras.list.tmean[[paste0("Y",x)]], function(y) (extract(y,sb.ye.shp)/10)-273.15))
+
+  # Average annual temperature for the ten years (average of each month's average)
+  plot.ye.tmean<-lapply(plot.mo.tmean, function(x) Reduce('+',x)/12)
+  sb$t_mean[sb$Year==i]<-plot.tp.tmean<-Reduce('+',plot.ye.tmean)/tp
+
+
+  if(length(sb.ye.shp)>1){  # Identify the each year's warmest month
+    # Identify the each year's warmest month
+  plot.ye.warm<-lapply(plot.mo.tmean, function(x) sapply(1:length(sb.ye.shp), function(y) which.max(mapply(c,x)[y,])))
   
   # # the above broken down for future reference and understanding:
   # plot.ye1.mean<-plot.mo.tmean[[1]] # take first year (lapply above applies to all years)
   # plot.ye1.mean.mat<-mapply(c,plot.ye1.mean) # make that into a table (rows= each plot, cols = each month)
-  # sapply(1:nrow(sb), function(x) which.max(plot.ye1.mean.mat[x,])) # from that table, identify the column with the highest value for each row (plot).
+  # sapply(1:nrow(sb), function(x) which.max(plot.ye1.mean.mat[x,])) # from that table, identify the column with the highest value for     each row (plot).
   
   # Identify the each year's coolest month in the same way...
-  plot.ye.cold<-lapply(plot.mo.tmean, function(x) sapply(1:length(plot.points), function(y) which.min(mapply(c,x)[y,])))
+  plot.ye.cold<-lapply(plot.mo.tmean, function(x) sapply(1:length(sb.ye.shp), function(y) which.min(mapply(c,x)[y,])))
   
   # Do overlay to get monthly max temps for each month in each year
-  plot.mo.tmax<-lapply(clim.years,function(x) lapply(ras.list.tmax[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15))
+  plot.mo.tmax<-lapply(temp.years,function(x) lapply(ras.list.tmax[[paste0("Y",x)]], function(y) (extract(y,sb.ye.shp)/10)-273.15))
   
   # Get each year's max temperature from the warmest month.
-  plot.ye.tmax<-lapply(1:tp, function(x) mapply(c,plot.mo.tmax[[x]])[cbind(1:length(plot.points),plot.ye.warm[[x]])])
+  plot.ye.tmax<-lapply(1:tp, function(x) mapply(c,plot.mo.tmax[[x]])[cbind(1:length(sb.ye.shp),plot.ye.warm[[x]])])
   
   # # Break it down
   # plot.y1.tmax<-plot.mo.tmax[[1]] # take first year only
   # plot.y1.tmax.mat<-mapply(c,plot.y1.tmax) # convert to matrix (rows=plots, cols=monthly max temp)
-  # plot.y1.tmax.mat[cbind(1:nrow(sb),plot.ye.warm[[1]])] # take the cell from each row that is the month with warmest average temp, as calculated above (plot.ye.warm)
+  # plot.y1.tmax.mat[cbind(1:nrow(sb),plot.ye.warm[[1]])] # take the cell from each row that is the month with warmest average temp, as   calculated above (plot.ye.warm)
   
   # Do overlay to get monthly min temps for each month in each year
-  plot.mo.tmin<-lapply(clim.years,function(x) lapply(ras.list.tmin[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15))
+  plot.mo.tmin<-lapply(temp.years,function(x) lapply(ras.list.tmin[[paste0("Y",x)]], function(y) (extract(y,sb.ye.shp)/10)-273.15))
   
   # Get each year's min temperature from the coolest month.
-  plot.ye.tmin<-lapply(1:tp, function(x) mapply(c,plot.mo.tmin[[x]])[cbind(1:length(plot.points),plot.ye.cold[[x]])]) }
-
-if(length(plot.points)==1){  # single plots need different (mapply-free) approach
-  plot.ye.warm<-lapply(plot.mo.tmean, which.max) # Identify the each year's warmest month
-  plot.ye.cold<-lapply(plot.mo.tmean,which.min)# Identify the each year's coolest month
-  plot.mo.tmax<-lapply(clim.years,function(x) lapply(ras.list.tmax[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15)) # Do overlay to get monthly max temps for each month in each year
-  plot.ye.tmax<-sapply(1:tp, function(x) plot.mo.tmax[[x]][plot.ye.warm[[x]]]) # Each year's max temperature from the warmest month.
-  plot.mo.tmin<-lapply(clim.years,function(x) lapply(ras.list.tmin[[paste0("Y",x)]], function(y) (extract(y,plot.points)/10)-273.15)) # Do overlay to get monthly min temps for each month in each year
-  plot.ye.tmin<-sapply(1:tp, function(x) plot.mo.tmin[[x]][plot.ye.cold[[x]]]) # Get each year's min temperature from the coolest month. 
+  plot.ye.tmin<-lapply(1:tp, function(x) mapply(c,plot.mo.tmin[[x]])[cbind(1:length(sb.ye.shp),plot.ye.cold[[x]])])
+  }
+  
+  if(length(sb.ye.shp)==1){  # single plots need different (mapply-free) approach
+    plot.ye.warm<-lapply(plot.mo.tmean, which.max) # Identify the each year's warmest month
+    plot.ye.cold<-lapply(plot.mo.tmean,which.min)# Identify the each year's coolest month
+    plot.mo.tmax<-lapply(temp.years,function(x) lapply(ras.list.tmax[[paste0("Y",x)]], function(y) (extract(y,sb.ye.shp)/10)-273.15)) # Do overlay to get monthly max temps for each month in each year
+    plot.ye.tmax<-sapply(1:tp, function(x) plot.mo.tmax[[x]][plot.ye.warm[[x]]]) # Each year's max temperature from the warmest month.
+    plot.mo.tmin<-lapply(temp.years,function(x) lapply(ras.list.tmin[[paste0("Y",x)]], function(y) (extract(y,sb.ye.shp)/10)-273.15)) # Do overlay to get monthly min temps for each month in each year
+    plot.ye.tmin<-sapply(1:tp, function(x) plot.mo.tmin[[x]][plot.ye.cold[[x]]]) # Get each year's min temperature from the coolest month. 
+  }
+  # Then take each year's temperature range 
+  plot.ye.atr<-lapply(1:tp, function(x) plot.ye.tmax[[x]] - plot.ye.tmin[[x]]) 
+  
+  # And finally get the mean over the time period
+    sb$t_range[sb$Year==i]<-plot.tp.atr<-Reduce('+',plot.ye.atr)/tp
+  
+  
+  # Do overlay to get monthly precipitation for each month in each year (kg per m2 = mm)
+  plot.mo.prec<-lapply(prec.years,function(x) lapply(ras.list.prec[[paste0("Y",x)]], function(y) extract(y,sb.ye.shp)/100))
+  
+  # Total precipitation for the time period
+  plot.ye.prec<-lapply(plot.mo.prec, function(x) Reduce('+',x))
+  
+  # Take the average per year across the time period
+  sb$p_tot[sb$Year==i]<-Reduce('+',plot.ye.prec)/tp
+  
+  cat(i,"...done! //  ")
 }
 
-# Then take each year's temperature range 
-plot.ye.atr<-lapply(1:tp, function(x) plot.ye.tmax[[x]] - plot.ye.tmin[[x]] )
-
-# And finally get the mean over the time period
-plot.tp.atr<-Reduce('+',plot.ye.atr)/tp
-
-
-
 # Remove the cheeky january 1979 copies
-file.remove("/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif","/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_01_1979_V.2.1.tif" ,"/media/auff/Auff_Lacie/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_01_1979_V.2.1.tif")
+file.remove("/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tasmax/CHELSA_tasmax_01_1979_V.2.1.tif","/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tasmin/CHELSA_tasmin_01_1979_V.2.1.tif" ,"/media/auff/AuffLacie2/CHELSA/chelsa_V2/monthly/tas/CHELSA_tas_01_1979_V.2.1.tif")
 
+# check NAs, plus some countries, climates
 
+## Add PCNM eigenvectors now, just in case.
 
-sb$bio1<-(extract(bio,sb.shp.clim)/10)-273.15
+library(vegan)
+plot.dist<-as.matrix(dist(cbind(sb$Lon_Deg,sb$Lat_Deg)))
+plot.pcnm<-pcnm(plot.dist)
+sb$pcnm1<-plot.pcnm$vectors[,1]
+sb$pcnm2<-plot.pcnm$vectors[,2]
 
-sum(is.na(sb$bio1))
+## Add habitat (degraded)
+sb$Target_Habitat[sb$Target_Habitat==""]<-NA
+sb$Habitat2_Broad<-sb$Target_Habitat
+sb$Habitat2_Broad[is.na(sb$Habitat2_Broad)]<-sb$Habitat[is.na(sb$Habitat2_Broad)]
+sb$Habitat2_Degraded<-ifelse(is.na(sb$Target_Habitat),0, 1)
+    
+# Finally?? Make an ID for each row that can be used to link the slim and full versions. Use Human, just because it's a column that has short, unique values and all rows have a value. First check and change.
+table(sb$Human)
+sb$Human[sb$Human=="JP\n"]<-"JP"
+sb$Human[sb$Human=="DR/JP"]<-"DR"
+sb$Human[sb$Human=="NSH"]<-"NH"
+
+# Then loop through
+for(i in unique(sb$Human)){ sb$rowID[sb$Human==i]<-paste0(i,sprintf("%03d",1:sum(sb$Human==i)))}
+
+# Hmm. Also need a unique code for each study (potentially as random effect)
+sb$studylong<-paste0(sb$Authors,sb$Year,sb$Title,sb$Journal)
+length(unique(sb$studylong)) # 1455 studies
+table(toupper(substr(sb$Authors,1,1))) # just the first letter is less than 1000, so just use that to avoid a messier loop.
+
+for(let in LETTERS){ # for each letter
+  sbx<-sb[toupper(substr(sb$Authors,1,1))==let,] # subset to that letter
+  for(let.un in unique(sbx$studylong)){ # then for each unique long name (author, year, title, journal)
+   sb$studyID[sb$studylong==let.un]<-paste0(let,sprintf("%03d",which(unique(sbx$studylong)==let.un))) # assign the letter and which study
+    }}
+
+length(unique(sb$studyID)) # Matches up.
+
+# Oh, and add a location for each row too.
+sb$Location[is.na(sb$Location)]<-sb$country[is.na(sb$Location)]
+ 
+write.csv(sb,"gsb_cleaned.csv", row.names=FALSE)
+
+slim.cols<-c("rowID","studyID", "Lat_Deg","Lon_Deg","country", "t_mean", "t_range", "p_tot", "Habitat","Target_Habitat","Habitat2_Broad","Habitat2_Degraded","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
+  
+#,"Authors","Year","Title","Journal","Doi", "Human"
+sb.slim<-sb[,slim.cols]
+
+names(sb.slim)<-c("rowID","studyID", "Lat_Deg","Lon_Deg","Country", "Temp_mean", "Temp_range", "Prec_tot", "Habitat_Current","Habitat_Target","Habitat_Broad","Habitat_Degraded","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
+
+write.csv(sb.slim,"gsb_slim.csv")
