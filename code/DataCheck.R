@@ -330,6 +330,8 @@ sb$Total_sampled_area_m2<-((sb$Sample_Area_mm2/1000000)*sb$Total_Number_Samples)
 # And now species density
 sb$Species_Density_m2<-sb$Total_Species/sb$Total_sampled_area_m2
 
+# Back-calculate species number from density and sampled area
+sb$Total_Seeds[is.na(sb$Total_Seeds) & !is.na(sb$Species_Density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples)]<-((sb$Sample_Area_mm2[is.na(sb$Total_Seeds) & !is.na(sb$Species_Density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples)]/1000000)*sb$Total_Number_Samples[is.na(sb$Total_Seeds) & !is.na(sb$Species_Density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples)])* (sb$Species_Density_m2[is.na(sb$Total_Seeds) & !is.na(sb$Species_Density_m2) & !is.na(sb$Sample_Area_mm2) & !is.na(sb$Total_Number_Samples)])
 
 ## Also, for info:
 
