@@ -655,3 +655,5 @@ sb.slim<-sb[,slim.cols]
 names(sb.slim)<-c("rowID","studyID", "Lat_Deg","Lon_Deg","Country", "Temp_mean", "Temp_range", "Prec_tot", "Habitat_Current","Habitat_Target","Habitat_Broad","Habitat_Degraded","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
 
 write.csv(sb.slim,"gsb_slim.csv", row.names=FALSE)
+
+sb<-read.csv("gsb_slim.csv", stringsAsFactors = FALSE)

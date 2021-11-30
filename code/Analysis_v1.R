@@ -11,7 +11,10 @@ sum(sb$Total_Seeds, na.rm=TRUE)
 length(unique(sb$Country))
 
 sb[is.na(sb$Total_Number_Samples),]
-
+sum(is.na(sb$Sample_Area_mm2))/nrow(sb)
+sum(sb$Habitat_Broad=="Aquatic")
+sum(sb$Habitat_Broad=="Wetland")
+sum(sb$Habitat_Broad=="Arable")
 
 head(sb)
 
