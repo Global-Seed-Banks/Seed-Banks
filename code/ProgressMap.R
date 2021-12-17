@@ -178,3 +178,36 @@ sb.dec[(sign(sb.dec$Lat_Deg)==1 & sb.dec$Lat_NS=="S") | (sign(sb.dec$Lon_Deg)==1
 # coverage info. Which countries not covered.
 world.cov<-world[sb.shp,]
 world$country[!world$country %in% world.cov$country]
+
+
+
+##########
+# MAP - cleaned database
+#library(maps) # For plotting map
+library(sp) # For converting to decimal degrees
+library(scales)
+library(rgdal)
+library(rgeos)
+
+world<-readOGR("GIS","CNTR_RG_20M_2020_4326", stringsAsFactors = FALSE) # import world map
+#cc<-read.csv("GIS/countrycodes.csv",stringsAsFactors = FALSE)
+#world$country<-cc$Name[match(world$CNTR_ID,cc$Code)]
+
+sb<-read.csv("gsb_slim.csv",stringsAsFactors = FALSE)
+pdf("plots/seedbankworldtour.pdf", height = 3, width = 5)
+par(mar=c(1,1,1,1))
+plot(world, lwd=0.5, col="lightgrey", border="grey")
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat_Current=="Arable",], col=alpha("gold",0.5), pch=16, cex=0.3,lwd=0.3)
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat_Current=="Forest",], col=alpha("forestgreen",0.5), pch=16, cex=0.3,lwd=0.3)
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat_Current=="Grassland",], col=alpha("darkseagreen1",0.5), pch=16, cex=0.3,lwd=0.3) 
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat_Current=="Wetland",], col=alpha("skyblue3",0.5), pch=16, cex=0.3,lwd=0.3) 
+points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat_Current=="Aquatic",],col=alpha("navyblue",0.5), pch=16, cex=0.3,lwd=0.3) 
+
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Arable",], bg="gold", pch=21, cex=0.35,lwd=0.3) # add the points!
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Forest",], bg="forestgreen", pch=21, cex=0.35,lwd=0.3)
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Grassland",], bg="darkseagreen1", pch=21, cex=0.35,lwd=0.3) 
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Wetland",], bg="blue", pch=21, cex=0.35,lwd=0.3) 
+# points(Lat_Deg~Lon_Deg, data=sb[sb$Habitat=="Aquatic",],bg="navyblue", pch=21, cex=0.35,lwd=0.3) 
+text(-120,-15,"Seed banks of the world", cex=0.5)
+legend(-150,-20,c("Arable","Forest","Grassland","Wetland", "Aquatic"),pch=16,cex=0.35,col=c("gold", "forestgreen","darkseagreen1", "skyblue3","navyblue"),bty="n", pt.lwd=0.3)
+dev.off()
