@@ -647,13 +647,72 @@ sb$Location[is.na(sb$Location)]<-sb$country[is.na(sb$Location)]
  
 write.csv(sb,"gsb_cleaned.csv", row.names=FALSE)
 
-slim.cols<-c("rowID","studyID", "Lat_Deg","Lon_Deg","country", "t_mean", "t_range", "p_tot", "Habitat","Target_Habitat","Habitat2_Broad","Habitat2_Degraded","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
+#################################
+#### JAN 2022 - Ecoregion #######
+
+library(rgdal)
+library(rgeos)
+sb<-read.csv("gsb_cleaned.csv",stringsAsFactors = FALSE)
+
+biomes<-readOGR("GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS(proj4string(biomes)))
+sb.biomes.df<-over(sb.shp,biomes)
+
+# First, originals
+sb.shp$biome_wwf<-sb.biomes.df$WWF_MHTNAM
+sb$biome_wwf<-sb.biomes.df$WWF_MHTNAM
+sb.sea<-sb.shp[is.na(sb.shp$biome_wwf),]
+sb.sea.dist<-gDistance(sb.sea,biomes, byid=TRUE)
+sb$biome_wwf[is.na(sb$biome_wwf)]<-sapply(1:nrow(sb.sea),function(x) biomes$WWF_MHTNAM[which.min(sb.sea.dist[,x])])
+
+# Second, broader (due to data)
+# First just redo without the mangrove (couldn't think of significantly better way to do it)
+biomes.nomang<-biomes[!biomes$WWF_MHTNAM=="Mangroves",]
+sb.biomes.df.nomang<-over(sb.shp,biomes.nomang)
+sb.shp$biome_wwf_broad<-sb.biomes.df.nomang$WWF_MHTNAM
+sb$biome_wwf_broad<-sb.biomes.df.nomang$WWF_MHTNAM
+sb.sea.nomang<-sb.shp[is.na(sb.shp$biome_wwf_broad),]
+sb.sea.dist.nomang<-gDistance(sb.sea.nomang,biomes.nomang, byid=TRUE)
+sb$biome_wwf_broad[is.na(sb$biome_wwf_broad)]<-sapply(1:nrow(sb.sea.nomang),function(x) biomes.nomang$WWF_MHTNAM[which.min(sb.sea.dist.nomang[,x])])
+
+# Then reassign.
+sb$biome_wwf_broad[sb$biome_wwf_broad == "Flooded Grasslands and Savannas"] <- "Tropical and Subtropical Grasslands, Savannas and Shrublands"
+sb$biome_wwf_broad[sb$biome_wwf_broad %in% c("Tropical and Subtropical Dry Broadleaf Forests", "Tropical and Subtropical Moist Broadleaf Forests", "Tropical and Subtropical Coniferous Forests")] <- "Tropical and Subtropical Forests"
+
+# Third, much broader (due to simplification and that we already have habitats)
+# First just redo without the mangrove and montane (couldn't think of significantly better way to do it)
+biomes.nomangmont<-biomes[!biomes$WWF_MHTNAM %in% c("Mangroves","Montane Grasslands and Shrublands", "Rock and Ice","Flooded Grasslands and Savannas"),]
+sb.biomes.df.nomangmont<-over(sb.shp,biomes.nomangmont)
+sb.shp$biome_wwf_zone<-sb.biomes.df.nomangmont$WWF_MHTNAM
+sb$biome_wwf_zone<-sb.biomes.df.nomangmont$WWF_MHTNAM
+sb.sea.nomangmont<-sb.shp[is.na(sb.shp$biome_wwf_zone),]
+sb.sea.dist.nomangmont<-gDistance(sb.sea.nomangmont,biomes.nomangmont, byid=TRUE)
+sb$biome_wwf_zone[is.na(sb$biome_wwf_zone)]<-sapply(1:nrow(sb.sea.nomangmont),function(x) biomes.nomangmont$WWF_MHTNAM[which.min(sb.sea.dist.nomangmont[,x])])
+
+# Then reassign.
+sb$biome_wwf_zone[sb$biome_wwf_zone %in% c("Tropical and Subtropical Dry Broadleaf Forests", "Tropical and Subtropical Moist Broadleaf Forests", "Tropical and Subtropical Coniferous Forests","Tropical and Subtropical Grasslands, Savannas and Shrublands")] <- "Tropical"
+sb$biome_wwf_zone[sb$biome_wwf_zone %in% c("Mediterranean Forests, Woodlands and Scrub",  "Deserts and Xeric Shrublands")] <- "Mediterranean and Desert"
+sb$biome_wwf_zone[sb$biome_wwf_zone %in% c("Temperate Broadleaf and Mixed Forests",  "Temperate Grasslands, Savannas and Shrublands", "Temperate Conifer Forests" )] <- "Temperate"
+sb$biome_wwf_zone[sb$biome_wwf_zone == "Boreal Forests/Taiga"] <- "Boreal"
+
+
+write.csv(sb,"gsb_cleaned.csv", row.names=FALSE)
+
+
+
+slim.cols<-c("rowID","studyID", "Lat_Deg","Lon_Deg","country", "t_mean", "t_range", "p_tot", "Habitat","Target_Habitat","Habitat2_Broad","Habitat2_Degraded", "biome_wwf", "biome_wwf_broad", "biome_wwf_zone","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
   
 #,"Authors","Year","Title","Journal","Doi", "Human"
 sb.slim<-sb[,slim.cols]
 
-names(sb.slim)<-c("rowID","studyID", "Lat_Deg","Lon_Deg","Country", "Temp_mean", "Temp_range", "Prec_tot", "Habitat_Current","Habitat_Target","Habitat_Broad","Habitat_Degraded","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
+names(sb.slim)<-c("rowID","studyID", "Lat_Deg","Lon_Deg","Country", "Temp_mean", "Temp_range", "Prec_tot", "Habitat_Current","Habitat_Target","Habitat_Broad","Habitat_Degraded", "Biome_WWF", "Biome_WWF_Broad", "Biome_WWF_Zone", "Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
 
 write.csv(sb.slim,"gsb_slim.csv", row.names=FALSE)
-
 sb<-read.csv("gsb_slim.csv", stringsAsFactors = FALSE)
+
+
+
+
+
+
+
