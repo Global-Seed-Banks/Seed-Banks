@@ -697,15 +697,16 @@ sb$biome_wwf_zone[sb$biome_wwf_zone == "Boreal Forests/Taiga"] <- "Boreal"
 
 
 write.csv(sb,"gsb_cleaned.csv", row.names=FALSE)
+sb<-read.csv("gsb_cleaned.csv",stringsAsFactors = FALSE)
 
 
 
-slim.cols<-c("rowID","studyID", "Lat_Deg","Lon_Deg","country", "t_mean", "t_range", "p_tot", "Habitat","Target_Habitat","Habitat2_Broad","Habitat2_Degraded", "biome_wwf", "biome_wwf_broad", "biome_wwf_zone","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
+slim.cols<-c("rowID","studyID", "Year", "Lat_Deg","Lon_Deg","country", "t_mean", "t_range", "p_tot", "Habitat","Target_Habitat","Habitat2_Broad","Habitat2_Degraded", "biome_wwf", "biome_wwf_broad", "biome_wwf_zone","Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
   
 #,"Authors","Year","Title","Journal","Doi", "Human"
 sb.slim<-sb[,slim.cols]
 
-names(sb.slim)<-c("rowID","studyID", "Lat_Deg","Lon_Deg","Country", "Temp_mean", "Temp_range", "Prec_tot", "Habitat_Current","Habitat_Target","Habitat_Broad","Habitat_Degraded", "Biome_WWF", "Biome_WWF_Broad", "Biome_WWF_Zone", "Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
+names(sb.slim)<-c("rowID","studyID", "Year", "Lat_Deg","Lon_Deg","Country", "Temp_mean", "Temp_range", "Prec_tot", "Habitat_Current","Habitat_Target","Habitat_Broad","Habitat_Degraded", "Biome_WWF", "Biome_WWF_Broad", "Biome_WWF_Zone", "Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species","pcnm1","pcnm2")
 
 write.csv(sb.slim,"gsb_slim.csv", row.names=FALSE)
 sb<-read.csv("gsb_slim.csv", stringsAsFactors = FALSE)
