@@ -31,3 +31,30 @@ head(sb)
 plot(Total_Species~log(Sample_Area_mm2), data=sb)
 plot(Total_Seeds~Sample_Area_mm2, data=sb)
 
+names(sb)
+table(sb$Biome_WWF)
+table(sb$Biome_WWF_Broad)
+table(sb$Biome_WWF_Zone)
+
+
+
+###################################
+## First play sampling/scale effects
+
+
+
+gsb.mod <- brm/glm(density ~ log(number.of.samples * Sample_Volume_mm3) * Biome_WWF_Zone + ( log(number.of.samples * volume) * biome | paper/location ),
+                   family = poisson(), chains = 4, cores = 4 ) 
+
+
+sb<-read.csv("gsb_slim.csv", stringsAsFactors = FALSE)
+sb$pap.loc<-paste0(sb$studyID, sb$Lat_Deg, sb$Lon_Deg)
+sb$pap.loc<-paste0(sb$studyID, sb$Lat_Deg, sb$Lon_Deg)
+  
+rich.mod <- glm(Total_Species ~ (Total_Number_Samples * Sample_Volume_mm3) * Biome_WWF_Zone + ((Total_Number_Samples * Sample_Volume_mm3) * Biome_WWF_Zone | pap.loc ),family = poisson, data=sb) 
+
+
+sb$Sample_Volume_mm3
+sb$Total_Number_Samples
+
+
