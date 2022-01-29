@@ -232,3 +232,21 @@ fig_rich <- ggplot() +
 fig_rich
 
 
+
+# what priors did the model assume under default settings?
+
+prior_summary(rich.mod)
+# no comment for now, will return to this later
+
+summary(rich.mod)
+# Effective Sample Sizes (ESS) are very low
+# because we have so many groups....and we need to increase sampling iterations
+
+# think i'll try total number of samps next
+# I'll keep groups complexity for now....
+# In obs nest can I fit a line to quantiles of the data instead of min and max?
+# would visualise better
+
+
+
+
