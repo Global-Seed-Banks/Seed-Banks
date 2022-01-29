@@ -40,7 +40,7 @@ sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(To
                              `max-Total_Sample_Area_mm2` = max(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
                              `min-Total_Sample_Area_mm2` = min(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
                              `min-Sample_Volume_mm3` = min(as.numeric(Sample_Volume_mm3), na.rm = TRUE),
-                              `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
+                             `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
                              `min-Total_Sample_Volume_mm3` = min(as.numeric(Total_Sample_Volume_mm3), na.rm = TRUE),
                              `max-Total_Sample_Volume_mm3`= max(as.numeric(Total_Sample_Volume_mm3),na.rm = TRUE),
                              `min-Total_Species` = min(as.numeric(Total_Species), na.rm = TRUE),
@@ -51,7 +51,7 @@ sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(To
                              `max-Total_Seeds` = max(as.numeric(Total_Seeds),na.rm = TRUE),
                                                        ) %>%
   pivot_longer(`min-Total_Number_Samples` : `max-Total_Seeds`) %>%
-  separate(name, into= c("minmax", "name"), sep="-") %>% spread(minmax, value)
+  separate(name, into = c("minmax", "name"), sep="-") %>% spread(minmax, value)
 
 sb_deets
 # uh-oh we have richness , total seeds and density- equals = 0, and that 0 is real, a problem for poisson and log
@@ -73,8 +73,15 @@ sb00
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_prep,  "sb_prep.csv")
 
+# remove NA values from our predictor and response to get same number of rows to match model 
+# use this to match up data later too
+sb_prep_r <- sb_prep %>% filter(!is.na(Total_Species2),
+                                !is.na(log_Total_Sample_Volume_mm3))
+nrow(sb_prep_r)
+
 
 # first explore data
+# 3 possible metrics for continuous 'sample effort'
 colnames(sb)
 
 ggplot() + 
@@ -89,7 +96,7 @@ ggplot() +
 
 ggplot() + 
   facet_wrap(~Biome_WWF_Zone, scales = "free") +
-  geom_point(data = sb_prep_r ,
+  geom_point(data = sb_prep_r , #%>% filter(Biome_WWF_Zone == "Boreal"),
              aes(x = Total_Number_Samples, y = Total_Species,
                  colour = Habitat_Broad),
              size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
@@ -98,29 +105,27 @@ ggplot() +
   theme_classic( ) 
 
 ggplot() + 
-  facet_wrap(~Biome_WWF_Zone) +
-  geom_point(data = sb_prep_r ,
-             aes(x = Sample_Area_mm2, y = Total_Species,
+  facet_wrap(~Biome_WWF_Zone, scales = "free") +
+  geom_point(data = sb_prep_r , #%>% filter(Biome_WWF_Zone == "Boreal"),
+             aes(x = Total_Sample_Area_mm2, y = Total_Species,
                  colour = Habitat_Broad),
              size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
-  coord_cartesian(xlim = c(min(sb_prep_r$Sample_Area_mm2), quantile(sb_prep_r$Sample_Area_mm2, 0.90)))+
+  coord_cartesian(xlim = c(min(sb_prep_r$Sample_Area_mm2), quantile(sb_prep_r$Sample_Area_mm2, 0.95)))+
   theme_classic( ) 
 
 
 # try a first model
-rich.mod <- brm(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
-                family = poisson(), data = sb_prep, cores = 4, chains = 4)
+# rich.mod <- brm(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+#                 family = poisson(), data = sb_prep, cores = 4, chains = 4)
 
 # takes about 3 hours, will set up cluster folder to run some more mods with lessons learned from this one
 setwd(paste0(path2wd, 'Model_Fits/'))
 # save model object
-save(rich.mod, file = 'rich.mod.Rdata')
-
-load(paste0(path2wd, "Model_Fits/rich.mod.Rdata"))
+# save(rich.mod, file = 'rich.mod.Rdata')
+load( 'rich.mod.Rdata')
 
 # does not converge buts gives us hints for fixing and next steps
 summary(rich.mod)
-
 
 color_scheme_set("darkgray")
 pp_rich <- pp_check(rich.mod)+ xlab( "Species richness") + ylab("Density") +
@@ -132,21 +137,18 @@ pp_rich
 # a bit wonky, we can see where predictions dont fit data
 
 
-sb_prep$Habitat_Broad<-as.factor(as.character(sb_prep$Habitat_Broad))
-sb_prep$studyID<-as.factor(as.character(sb_prep$studyID))
+sb_prep$Habitat_Broad <- as.factor(as.character(sb_prep$Habitat_Broad))
+sb_prep$studyID <- as.factor(as.character(sb_prep$studyID))
 
 # check model residuals
 ma <- residuals(rich.mod)
 ma <- as.data.frame(ma)
-sb_prep_r <- sb_prep %>% filter(!is.na(Total_Species2),
-                               !is.na(log_Total_Sample_Volume_mm3))
-nrow(sb_prep_r)
 ar.plot <- cbind(sb_prep_r, ma$Estimate)
 
 par(mfrow=c(1,2))
 with(ar.plot, plot(Habitat_Broad, ma$Estimate))
 with(ar.plot, plot(studyID, ma$Estimate))
-# suprisingly not bad
+# surprisingly not bad
 
 # for plotting fixed effects
 rich_fitted <- cbind(rich.mod$data,
@@ -161,7 +163,6 @@ rich_fitted <- cbind(rich.mod$data,
 
 head(rich_fitted)
 
-
 # fixed effect coefficients
 rich_fixef <- fixef(rich.mod)
 head(rich_fixef)
@@ -169,7 +170,6 @@ head(rich_fixef)
 # Random effect coefficients
 rich_coef <- coef(rich.mod)
 rich_coef 
-
 
 # predict estimates for each habitat within each biome across a sequence of log_total_volumes and total_volumes
 # we could also just extract the coefs, but since we are plotting a linear curve in log space this is more accurate
@@ -186,10 +186,9 @@ obs_nest.rich <- sb_prep_r %>%
 
 View(obs_nest.rich)
 
-
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
-save(rich_fitted, rich_fixef, obs_nest.rich, file = 'rich.mod_dat.Rdata')
+#save(rich_fitted, rich_fixef, obs_nest.rich, file = 'rich.mod_dat.Rdata')
 load('rich.mod_dat.Rdata')
 
 colnames(sb_prep_r)
