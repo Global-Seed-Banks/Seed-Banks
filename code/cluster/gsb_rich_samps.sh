@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -J gsb_rich_samps
-#SBATCH --time=8:00:00
+#SBATCH --time=16:00:00
 #SBATCH --mem-per-cpu=8G
 #SBATCH --cpus-per-task=4
 
