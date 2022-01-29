@@ -8,35 +8,39 @@ user <- Sys.info()["user"]
 
 path2wd <- switch(user,
                   "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
-                  # " " = " " # ali puts his computer username and file path here
+                  # " " = " " # Ali puts his computer username and file path here
 )
 
 
 setwd(path2wd)
 
-
 sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
-
 
 head(sb)
 colnames(sb)
 
+# do the calc's we need
+sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
+                  Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
+                  log_Total_Number_Samples = log(Total_Number_Samples),
+                  log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
+                  log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2) ) %>%
+ unite("samp.loc", Lat_Deg, Lon_Deg, sep = "_" , remove = F) 
 
-sb$Total_Sample_Volume_mm3 <- (sb$Total_Number_Samples * sb$Sample_Volume_mm3)
-sb$log_Total_Sample_Volume_mm3 <- log(sb$Total_Sample_Volume_mm3)
-sb$samp.loc<-paste0(sb$Lat_Deg, sb$Lon_Deg)
 
-summary(sb)
+head(sb_calc)
 
-sb$Biome_WWF_Zone<- as.factor(as.character(sb$Biome_WWF_Zone))
-levels(sb$Biome_WWF_Zone)
+sb_calc$Biome_WWF_Zone<- as.factor(as.character(sb_calc$Biome_WWF_Zone))
+levels(sb_calc$Biome_WWF_Zone)
 
-sb_deets <- sb %>% summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
+sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
                              `max-Total_Number_Samples` = max(as.numeric(Total_Number_Samples),na.rm = TRUE),
                              `min-Sample_Area_mm2` = min(as.numeric(Sample_Area_mm2),na.rm = TRUE),
                              `max-Sample_Area_mm2` = max(as.numeric(Sample_Area_mm2), na.rm = TRUE),
+                             `max-Total_Sample_Area_mm2` = max(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
+                             `min-Total_Sample_Area_mm2` = min(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
                              `min-Sample_Volume_mm3` = min(as.numeric(Sample_Volume_mm3), na.rm = TRUE),
-                             `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
+                              `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
                              `min-Total_Sample_Volume_mm3` = min(as.numeric(Total_Sample_Volume_mm3), na.rm = TRUE),
                              `max-Total_Sample_Volume_mm3`= max(as.numeric(Total_Sample_Volume_mm3),na.rm = TRUE),
                              `min-Total_Species` = min(as.numeric(Total_Species), na.rm = TRUE),
@@ -50,12 +54,12 @@ sb_deets <- sb %>% summarise(`min-Total_Number_Samples` = min(as.numeric(Total_N
   separate(name, into= c("minmax", "name"), sep="-") %>% spread(minmax, value)
 
 sb_deets
-# uh-oh we have richness equals = 0, and that 0 is real, a problem for poisson and log
-# we continue with student distribution for now,
-# or temporarily convert 0's to 1's and figure out whats best later
+# uh-oh we have richness , total seeds and density- equals = 0, and that 0 is real, a problem for poisson and log
+#  temporarily convert 0's to 1's and figure out whats best later
+# could use other distributions instead...
 
 # for now, change 0's to 1's- to discuss later
-sb_prep <- sb %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1, 
+sb_prep <- sb_calc %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1, 
                                                  TRUE ~ as.numeric(as.character(Total_Species))),
                           Seed_density_m22 = case_when(Seed_density_m2 == 0 ~ 1, 
                                                      TRUE ~ as.numeric(as.character(Seed_density_m2))),
@@ -64,7 +68,7 @@ sb_prep <- sb %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1,
                           )
 
 sb00 <- sb0 %>% filter(Total_Species == 0)
-View(sb00)
+sb00
 
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_prep,  "sb_prep.csv")
@@ -122,8 +126,10 @@ color_scheme_set("darkgray")
 pp_rich <- pp_check(rich.mod)+ xlab( "Species richness") + ylab("Density") +
   labs(title= "")+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
-
+# posterior predictive check
+# grey lines are predicted values, black is observed
 pp_rich
+# a bit wonky, we can see where predictions dont fit data
 
 
 sb_prep$Habitat_Broad<-as.factor(as.character(sb_prep$Habitat_Broad))
@@ -140,7 +146,7 @@ ar.plot <- cbind(sb_prep_r, ma$Estimate)
 par(mfrow=c(1,2))
 with(ar.plot, plot(Habitat_Broad, ma$Estimate))
 with(ar.plot, plot(studyID, ma$Estimate))
-
+# suprisingly not bad
 
 # for plotting fixed effects
 rich_fitted <- cbind(rich.mod$data,
