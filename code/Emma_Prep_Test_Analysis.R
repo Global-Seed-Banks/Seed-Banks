@@ -197,7 +197,11 @@ View(obs_nest.rich)
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
 #save(rich_fitted, rich_fixef, obs_nest.rich, file = 'rich.mod_dat.Rdata')
-load('rich.mod_dat.Rdata')
+save(rich_fitted, rich_fixef, obs_nest.rich, file = 'rich.mod_dat_2.Rdata', version = 2)
+#load('rich.mod_dat.Rdata')
+
+# for ali to test
+load('rich.mod_dat_2.Rdata')
 
 colnames(sb_prep_r)
 
