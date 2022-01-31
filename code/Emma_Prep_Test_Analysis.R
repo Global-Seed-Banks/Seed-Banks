@@ -24,11 +24,15 @@ sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Samp
                   Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
                   log_Total_Number_Samples = log(Total_Number_Samples),
                   log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
-                  log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2) ) %>%
+                  log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
+                 # Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples),
+                  # Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3),
+                  # Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2)
+                  ) %>%
  unite("samp.loc", Lat_Deg, Lon_Deg, sep = "_" , remove = F) 
 
 
-head(sb_calc)
+View(sb_calc)
 
 sb_calc$Biome_WWF_Zone<- as.factor(as.character(sb_calc$Biome_WWF_Zone))
 levels(sb_calc$Biome_WWF_Zone)
@@ -136,6 +140,10 @@ pp_rich <- pp_check(rich.mod)+ xlab( "Species richness") + ylab("Density") +
 pp_rich
 # a bit wonky, we can see where predictions dont fit data
 
+# caterpillars/chains
+plot(rich.mod) 
+# ewww messy
+
 
 sb_prep$Habitat_Broad <- as.factor(as.character(sb_prep$Habitat_Broad))
 sb_prep$studyID <- as.factor(as.character(sb_prep$studyID))
@@ -242,10 +250,17 @@ summary(rich.mod)
 # Effective Sample Sizes (ESS) are very low
 # because we have so many groups....and we need to increase sampling iterations
 
-# think i'll try total number of samps next
-# I'll keep groups complexity for now....
-# In obs nest can I fit a line to quantiles of the data instead of min and max?
-# would visualise better
+
+get_prior(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+                           family = poisson(), data = sb_prep, cores = 4, chains = 4)
+
+
+get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+          family = hurdle_lognormal(), data = sb_prep, cores = 4, chains = 4)
+
+
+get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+          family = student(), data = sb_prep, cores = 4, chains = 4)
 
 
 
