@@ -25,7 +25,7 @@ sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Samp
                   log_Total_Number_Samples = log(Total_Number_Samples),
                   log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
                   log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
-                 # Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples),
+                  # Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples),
                   # Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3),
                   # Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2)
                   ) %>%
