@@ -71,8 +71,9 @@ sb_prep <- sb_calc %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1
                                                        TRUE ~ as.numeric(as.character(Total_Seeds))),
                           )
 
-sb00 <- sb0 %>% filter(Total_Species == 0)
+sb00 <- sb_calc %>% filter(Total_Species == 0)
 sb00
+nrow(sb00)
 
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_prep,  "sb_prep.csv")
@@ -145,8 +146,8 @@ plot(rich.mod)
 # ewww messy
 
 
-sb_prep$Habitat_Broad <- as.factor(as.character(sb_prep$Habitat_Broad))
-sb_prep$studyID <- as.factor(as.character(sb_prep$studyID))
+sb_prep_r$Habitat_Broad <- as.factor(as.character(sb_prep_r$Habitat_Broad))
+sb_prep_r$studyID <- as.factor(as.character(sb_prep_r$studyID))
 
 # check model residuals
 ma <- residuals(rich.mod)
@@ -198,7 +199,7 @@ setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
 #save(rich_fitted, rich_fixef, obs_nest.rich, file = 'rich.mod_dat.Rdata')
 save(rich_fitted, rich_fixef, obs_nest.rich, file = 'rich.mod_dat_2.Rdata', version = 2)
-#load('rich.mod_dat.Rdata')
+load('rich.mod_dat.Rdata')
 
 # for ali to test
 load('rich.mod_dat_2.Rdata')
