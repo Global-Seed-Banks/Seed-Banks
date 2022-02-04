@@ -25,9 +25,9 @@ sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Samp
                   log_Total_Number_Samples = log(Total_Number_Samples),
                   log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
                   log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
-                  # Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples),
-                  # Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3),
-                  # Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2)
+                   Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
+                   Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3, na.rm = TRUE),
+                   Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE)
                   ) %>%
  unite("samp.loc", Lat_Deg, Lon_Deg, sep = "_" , remove = F) 
 
@@ -70,6 +70,11 @@ sb_prep <- sb_calc %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1
                           Total_Seeds2 = case_when(Total_Seeds == 0 ~ 1, 
                                                        TRUE ~ as.numeric(as.character(Total_Seeds))),
                           )
+View(sb_prep)
+
+is.numeric(sb_prep$Total_Species2)
+min(sb_prep$Total_Species2, na.rm = TRUE)
+max(sb_prep$Total_Species2, na.rm = TRUE)
 
 sb00 <- sb_calc %>% filter(Total_Species == 0)
 sb00
@@ -81,9 +86,10 @@ write.csv(sb_prep,  "sb_prep.csv")
 # remove NA values from our predictor and response to get same number of rows to match model 
 # use this to match up data later too
 sb_prep_r <- sb_prep %>% filter(!is.na(Total_Species2),
-                                !is.na(log_Total_Sample_Volume_mm3))
+                                !is.na(Total_Sample_Area_mm2))
 nrow(sb_prep_r)
 
+View(sb_prep_r)
 
 # first explore data
 # 3 possible metrics for continuous 'sample effort'
@@ -125,16 +131,18 @@ ggplot() +
 
 # takes about 3 hours, will set up cluster folder to run some more mods with lessons learned from this one
 setwd(paste0(path2wd, 'Model_Fits/'))
+setwd('~/Desktop/')
+load( 'gsb_rich_samps-12167517.Rdata')
 # save model object
 # save(rich.mod, file = 'rich.mod.Rdata')
 load( 'rich.mod.Rdata')
 
 # does not converge buts gives us hints for fixing and next steps
-summary(rich.mod)
+summary(rich.area.mod)
 
 color_scheme_set("darkgray")
 pp_rich <- pp_check(rich.mod)+ xlab( "Species richness") + ylab("Density") +
-  labs(title= "")+
+  labs(title= "") +
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 # posterior predictive check
 # grey lines are predicted values, black is observed
@@ -160,11 +168,11 @@ with(ar.plot, plot(studyID, ma$Estimate))
 # surprisingly not bad
 
 # for plotting fixed effects
-rich_fitted <- cbind(rich.mod$data,
-                             fitted(rich.mod, re_formula = NA
+rich_fitted <- cbind(rich.area.mod$data,
+                             fitted(rich.area.mod, re_formula = NA
                              )) %>% 
-  as_tibble() %>% inner_join(sb_prep_r %>% distinct(Total_Species, Total_Species2, log_Total_Sample_Volume_mm3,
-                                                  Total_Sample_Volume_mm3,
+  as_tibble() %>% inner_join(sb_prep_r %>% distinct(Total_Species, Total_Species2, log_Total_Sample_Area_mm2,
+                                                    Total_Sample_Area_mm2,
                                                   Biome_WWF_Zone, Habitat_Broad, studyID, samp.loc),
                              #by= c("")
   )
@@ -173,11 +181,11 @@ rich_fitted <- cbind(rich.mod$data,
 head(rich_fitted)
 
 # fixed effect coefficients
-rich_fixef <- fixef(rich.mod)
+rich_fixef <- fixef(rich.area.mod)
 head(rich_fixef)
 
 # Random effect coefficients
-rich_coef <- coef(rich.mod)
+rich_coef <- coef(rich.area.mod)
 rich_coef 
 
 # predict estimates for each habitat within each biome across a sequence of log_total_volumes and total_volumes
@@ -187,10 +195,10 @@ obs_nest.rich <- sb_prep_r %>%
   mutate(Biome_WWF_Zone_group = Biome_WWF_Zone,
          Habitat_Broad_group = Habitat_Broad) %>%
   group_by(Biome_WWF_Zone_group, Biome_WWF_Zone, Habitat_Broad_group, Habitat_Broad) %>% 
-  summarise(log_Total_Sample_Volume_mm3 = seq(min(log_Total_Sample_Volume_mm3), max(log_Total_Sample_Volume_mm3), length.out = 20 ),
-            Total_Sample_Volume_mm3 = seq(min(Total_Sample_Volume_mm3), max(Total_Sample_Volume_mm3), length.out = 20)) %>%
-  nest(data = c( Biome_WWF_Zone, Habitat_Broad, log_Total_Sample_Volume_mm3, Total_Sample_Volume_mm3)) %>%
-  mutate(predicted = map(data, ~predict(rich.mod, newdata= .x, re_formula = ~(log_Total_Sample_Volume_mm3 * Biome_WWF_Zone | Habitat_Broad) ))) 
+  summarise(log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2), max(log_Total_Sample_Area_mm2), length.out = 20 ),
+           Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2), max(Total_Sample_Area_mm2), length.out = 20)) %>%
+  nest(data = c( Biome_WWF_Zone, Habitat_Broad, log_Total_Sample_Area_mm2, Total_Sample_Area_mm2)) %>%
+  mutate(predicted = map(data, ~predict(rich.area.mod, newdata= .x, re_formula = ~(log_Total_Sample_Volume_mm3 * Biome_WWF_Zone | Habitat_Broad) ))) 
 
 
 View(obs_nest.rich)
@@ -217,33 +225,32 @@ fig_rich <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = rich_fitted ,
-  aes(x = Total_Sample_Volume_mm3, y = Total_Species,
+  aes(x = Total_Sample_Area_mm2, y = Total_Species,
       colour = Habitat_Broad),
   size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
  # random slopes
   geom_line(data = obs_nest.rich  %>% unnest(cols = c(data, predicted)) ,
-            aes(x = Total_Sample_Volume_mm3, y= predicted[,1] ,
+            aes(x = Total_Sample_Area_mm2, y= predicted[,1] ,
                                         group = Habitat_Broad,
                                         colour = Habitat_Broad),
             size = 1.2) +
   # fixed effect
   geom_line(data = rich_fitted,
-            aes(x = Total_Sample_Volume_mm3, y = Estimate),
+            aes(x = Total_Sample_Area_mm2, y = Estimate),
             size = 1.5) +
   # uncertainy in fixed effect
   geom_ribbon(data = rich_fitted,
-              aes(x = Total_Sample_Volume_mm3, ymin = Q2.5, ymax = Q97.5),
+              aes(x = Total_Sample_Area_mm2, ymin = Q2.5, ymax = Q97.5),
               alpha = 0.3) +
-  coord_cartesian(xlim = c(min(sb_prep_r$Total_Sample_Volume_mm3), quantile(sb_prep_r$Total_Sample_Volume_mm3, 0.97))) +
+  #coord_cartesian(xlim = c(min(sb_prep_r$Total_Sample_Area_mm2), quantile(sb_prep_r$Total_Sample_Area_mm2, 0.97))) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
   labs(subtitle= ''
   ) +
-  ylab("Total Species")  + xlab("Total_Sample_Volume_mm3")
+  ylab("Total Species")  + xlab("Total_Sample_Area_mm2")
 
 fig_rich
-
 
 
 # what priors did the model assume under default settings?

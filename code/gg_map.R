@@ -17,7 +17,21 @@ library(ggmap)
 library(rworldmap)
 
 # Read our google sheet!
-sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
+#sb<-read_sheet("https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/edit#gid=0", col_types = "ccccccccnnncnnncccccccccccccccccnnnnnncc")
+
+user <- Sys.info()["user"]
+
+path2wd <- switch(user,
+                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  # " " = " " # Ali puts his computer username and file path here
+)
+
+
+setwd(path2wd)
+
+sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
+
+
 
 colnames(sb)
 nrow(sb[!is.na(sb$Total_Species),]) # count rows with species data, just for info
@@ -76,7 +90,7 @@ colnames(sb)
 
 # This code copied from 'Data to Vis'  here:
 # https://www.data-to-viz.com/graph/bubblemap.html
-
+head(sb)
 # theme
 theme_set(theme_bw())
 # map
@@ -94,7 +108,7 @@ gsbm <- sb %>%
   ggplot() +
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
-                 color=`Habitat`
+                 color=`Habitat_Broad`
                  #color=`Total_Species`
                  ), size=0.85,alpha=0.7) +
   #scale_color_viridis(discrete=TRUE,name="Habitat") +
@@ -118,6 +132,7 @@ gsbm <- sb %>%
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   # xlim(-190,190) +
   # ylim(-60,80) +
+  labs(color= "Habitats")+
   scale_x_continuous(expand = c(0.006, 0.006)) 
 
 gsbm
