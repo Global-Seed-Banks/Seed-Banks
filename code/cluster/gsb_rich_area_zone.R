@@ -13,7 +13,7 @@ sb <- sb %>% filter(!Habitat_Broad == "Arable")
 #                 family = poisson(), data = sb, cores = 4, chains = 4,
 #                 )
 
-rich.area <- brm(log_Total_Species2 ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | studyID/rowID ),
+rich.area <- brm(log_Total_Species2 ~ log_Total_Sample_Area_mm2 + (log_Total_Sample_Area_mm2  | Biome_WWF_Zone/studyID/rowID ),
                  family = student(), data = sb, cores = 4, chains = 4,
 )
 
