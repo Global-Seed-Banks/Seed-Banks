@@ -31,7 +31,7 @@ sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Samp
                   ) 
 
 
-View(sb_calc)
+head(sb_calc)
 
 sb_calc$Biome_WWF_Zone<- as.factor(as.character(sb_calc$Biome_WWF_Zone))
 levels(sb_calc$Biome_WWF_Zone)
@@ -68,9 +68,12 @@ sb_prep <- sb_calc %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1
                                                      TRUE ~ as.numeric(as.character(Seed_density_m2))),
                           Total_Seeds2 = case_when(Total_Seeds == 0 ~ 1, 
                                                        TRUE ~ as.numeric(as.character(Total_Seeds))),
-                          )
-View(sb_prep)
+                          ) %>%
+  mutate(log_Total_Species2 = log(Total_Species2),
+         log_Seed_density_m22 = log(Seed_density_m22),
+         log_Seed_density_m22 = log(Seed_density_m22) )
 
+head(sb_prep)
 nrow(sb_prep)
 
 is.numeric(sb_prep$Total_Species2)
@@ -374,7 +377,7 @@ fig_rich.area <- ggplot() +
 
 fig_rich.area
 
-# data produced in 'Emma_Posterior_samples.R'
+# data produced in 'Emma_Posterior_Samples.R'
 setwd(paste0(path2wd, 'Data/'))
 load('global.posteriors.Rdata')
 load('habitat.posteriors.Rdata')
