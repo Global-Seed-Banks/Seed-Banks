@@ -254,35 +254,6 @@ fig_rich.samps <- ggplot() +
 
 fig_rich.samps
 
-# conditional effects
-samps_c <- conditional_effects(rich.samps, effects = 'Biome_WWF_Zone', re_formula = NA, method = 'fitted')  # conditional effects
-
-head(samps_c)
-
-
-fig_rich.samps_c <- ggplot() + 
-  geom_hline(yintercept = 0, lty = 2) +
-  geom_point(data = rich.samps_fitted,
-             aes(x = Biome_WWF_Zone, y = Total_Species, colour = 	"#C0C0C0"), 
-             size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
-  geom_point(data = samps_c$Biome_WWF_Zone,
-             aes(x = Biome_WWF_Zone, y = estimate__, colour = Biome_WWF_Zone), size = 3) +
-  geom_errorbar(data = samps_c$Biome_WWF_Zone,
-                aes(x = Biome_WWF_Zone, ymin = lower__, ymax = upper__, colour = Biome_WWF_Zone),
-                size = 1, width = 0) +
-  labs(x = '',
-       y='') +
-  scale_color_viridis(discrete = T, option="D")  +
-  ylim(-10,200)+
-  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                               plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="none") +
-  labs( subtitle= ''
-  ) + ylab("Total Species") 
-
-
-fig_rich.samps_c
 
 # AREA ################################################################
 
@@ -403,41 +374,44 @@ fig_rich.area <- ggplot() +
 
 fig_rich.area
 
+# data produced in 'Emma_Posterior_samples.R'
+setwd(paste0(path2wd, 'Data/'))
+load('global.posteriors.Rdata')
+load('habitat.posteriors.Rdata')
 
-
-# conditional effects- not sure how to look at interacting 
-#this isnt what i want
-rich.area
-
-
-area_c <- conditional_effects(rich.area, effects = 'log_Total_Sample_Area_mm2:Biome_WWF_Zone', re_formula = NA, method = 'fitted')  # conditional effects
-
-head(area_c)
-
-fig_rich.area_c <- ggplot() + 
-  geom_hline(yintercept = 0, lty = 2) +
-  geom_point(data = rich.area_fitted,
-             aes(x = Biome_WWF_Zone, y = Total_Species, colour = 	"#C0C0C0"), 
-             size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
-  geom_point(data = area_c$Biome_WWF_Zone,
-             aes(x = Biome_WWF_Zone, y = estimate__, colour = Biome_WWF_Zone), size = 3) +
-  geom_errorbar(data = area_c$Biome_WWF_Zone,
-                aes(x = Biome_WWF_Zone, ymin = lower__, ymax = upper__, colour = Biome_WWF_Zone),
-                size = 1, width = 0) +
+fig_rich.area_global_zones <- ggplot() + 
+  geom_point(data = global.rich.area.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.rich.area.p, aes(x = response,ymin = eff_lower,
+                                               ymax = eff_upper, color=response),
+                width = 0, size = 0.7) +
   labs(x = '',
-       y='') +
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
-  ylim(-10,200)+
-  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                               plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="none") +
-  labs( subtitle= ''
-  ) + ylab("Total Species") 
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_rich.area_global_zones
 
 
-fig_rich.area_c
+fig_rich.area_habitat <- ggplot() + 
+  facet_wrap(~response) +
+  geom_point(data = hab.rich.area.p, aes(x = Habitat_Broad, y = eff,color=Habitat_Broad),size = 2) +
+  geom_errorbar(data = hab.rich.area.p, aes(x = Habitat_Broad,ymin = eff_lower,
+                                            ymax = eff_upper, color=Habitat_Broad),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
 
+fig_rich.area_habitat
 
 
 

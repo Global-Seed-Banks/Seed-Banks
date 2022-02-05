@@ -137,6 +137,10 @@ global.rich.area.p <- bind_rows(rich.area.bor.p, rich.area.med.p,
                            rich.area.tund.p)
 head(global.rich.area.p)
 
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(global.rich.area.p, file = 'global.posteriors.Rdata')
+
 
 fig_rich.area_global_zones <- ggplot() + 
   geom_point(data = global.rich.area.p, aes(x = response, y = eff,color=response),size = 2) +
@@ -194,7 +198,9 @@ hab.rich.area.p <- bind_rows(rich.area.bor.hab.p, rich.area.med.hab.p,
                                 rich.area.tund.hab.p)
 head(hab.rich.area.p)
 
-
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(hab.rich.area.p, file = 'habitat.posteriors.Rdata')
 
 
 fig_rich.area_habitat <- ggplot() + 
