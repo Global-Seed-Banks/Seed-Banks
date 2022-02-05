@@ -139,7 +139,7 @@ ggplot() +
 # takes about 3 hours, will set up cluster folder to run some more mods with lessons learned from this one
 setwd(paste0(path2wd, 'Model_Fits/'))
 setwd('~/Desktop/')
-load( 'gsb_rich_samps-12179403.Rdata')
+load( 'gsb_rich_samps-poisson.Rdata')
 # save model object
 # save(rich.mod, file = 'rich.mod.Rdata')
 #load( 'rich.mod.Rdata')
@@ -258,10 +258,52 @@ fig_rich.samps <- ggplot() +
 fig_rich.samps
 
 
+# data produced in 'Emma_Posterior_Samples.R'
+setwd(paste0(path2wd, 'Data/'))
+load('global.rich.samps.posteriors.Rdata')
+load('habitat.rich.samps.posteriors.Rdata')
+
+fig_rich.samps_global_zones <- ggplot() + 
+  geom_point(data = global.rich.samps.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.rich.samps.p, aes(x = response,ymin = eff_lower,
+                                               ymax = eff_upper, color=response),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  #scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_rich.samps_global_zones
+
+
+fig_rich.samps_habitat <- ggplot() + 
+  facet_wrap(~response) +
+  geom_point(data = hab.rich.samps.p, aes(x = Habitat_Broad, y = eff,color=Habitat_Broad),size = 2) +
+  geom_errorbar(data = hab.rich.samps.p, aes(x = Habitat_Broad,ymin = eff_lower,
+                                            ymax = eff_upper, color=Habitat_Broad),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  #scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_rich.samps_habitat
+
+
+
+
 # AREA ################################################################
 
 setwd('~/Desktop/')
-load( 'gsb_rich_area-12179402.Rdata')
+load( 'gsb_rich_area-poisson.Rdata')
 # save model object
 # save(rich.mod, file = 'rich.mod.Rdata')
 #load( 'rich.mod.Rdata')
@@ -379,8 +421,8 @@ fig_rich.area
 
 # data produced in 'Emma_Posterior_Samples.R'
 setwd(paste0(path2wd, 'Data/'))
-load('global.posteriors.Rdata')
-load('habitat.posteriors.Rdata')
+load('global.rich.area.posteriors.Rdata')
+load('habitat.rich.area.posteriors.Rdata')
 
 fig_rich.area_global_zones <- ggplot() + 
   geom_point(data = global.rich.area.p, aes(x = response, y = eff,color=response),size = 2) +
@@ -390,7 +432,7 @@ fig_rich.area_global_zones <- ggplot() +
   labs(x = '',
        y='Slope') +
   geom_hline(yintercept = 0, lty = 2) +
-  scale_y_continuous(breaks=c(0,-8)) +
+  #scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -408,7 +450,7 @@ fig_rich.area_habitat <- ggplot() +
   labs(x = '',
        y='Slope') +
   geom_hline(yintercept = 0, lty = 2) +
-  scale_y_continuous(breaks=c(0,-8)) +
+  #scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -420,25 +462,25 @@ fig_rich.area_habitat
 
 # what priors did the model assume under default settings?
 
-prior_summary(rich.mod)
-# no comment for now, will return to this later
-
-summary(rich.mod)
-# Effective Sample Sizes (ESS) are very low
-# because we have so many groups....and we need to increase sampling iterations
-
-
-get_prior(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
-                           family = poisson(), data = sb_prep, cores = 4, chains = 4)
-
-
-get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
-          family = hurdle_lognormal(), data = sb_prep, cores = 4, chains = 4)
-
-
-get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
-          family = student(), data = sb_prep, cores = 4, chains = 4)
-
-
-
-
+# prior_summary(rich.mod)
+# # no comment for now, will return to this later
+# 
+# summary(rich.mod)
+# # Effective Sample Sizes (ESS) are very low
+# # because we have so many groups....and we need to increase sampling iterations
+# 
+# 
+# get_prior(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+#                            family = poisson(), data = sb_prep, cores = 4, chains = 4)
+# 
+# 
+# get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+#           family = hurdle_lognormal(), data = sb_prep, cores = 4, chains = 4)
+# 
+# 
+# get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+#           family = student(), data = sb_prep, cores = 4, chains = 4)
+# 
+# 
+# 
+# 
