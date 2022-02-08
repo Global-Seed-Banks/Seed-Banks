@@ -110,6 +110,10 @@ fig_rich.area_global_zones
 # for every zone
 head(rich.area_zone_posterior)
 
+#!!!!!!!!!!!!! Note to self--
+
+# do i add the intercept to the log area effect? is this the right response???
+
 rich.area.zone.p <-  rich.area_zone_posterior %>% group_by(Biome_WWF_Zone) %>%
   mutate( response = "Zones", eff = mean(area.trt.zone),
           eff_lower = quantile(area.trt.zone, probs=0.025),
