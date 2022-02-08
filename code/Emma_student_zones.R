@@ -163,8 +163,8 @@ save(rich.area_fitted, rich.area_fixef, obs_nest.rich.area, file = 'rich.area.st
 load('rich.area.mod_dat.Rdata')
 
 # plot richness area relationship
-colnames(sb_prep_r)
-
+colnames(sb_prep)
+summary(sb_prep)
 
 fig_rich.area <- ggplot() + 
   #facet_wrap(~Biome_WWF_Zone, scales="free") +
@@ -189,7 +189,8 @@ fig_rich.area <- ggplot() +
   geom_ribbon(data = rich.area_fitted,
               aes(x = Total_Sample_Area_mm2, ymin = exp(Q2.5), ymax = exp(Q97.5)),
               alpha = 0.3) +
-  #coord_cartesian(xlim = c(min(sb_prep_r$Total_Sample_Area_mm2), quantile(sb_prep_r$Total_Sample_Area_mm2, 0.97))) +
+  #xlim(1500,1247025)+
+  #coord_cartesian(xlim = c(min(sb_prep$Total_Sample_Area_mm2, na.rm = TRUE), quantile(sb_prep$Total_Sample_Area_mm2, na.rm = TRUE, 0.99))) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
@@ -201,66 +202,31 @@ fig_rich.area
 
 # data produced in 'Emma_Posterior_Samples.R'
 setwd(paste0(path2wd, 'Data/'))
-load('global.rich.area.posteriors.Rdata')
-load('habitat.rich.area.posteriors.Rdata')
+load('global.rich.area.student.zone.posteriors.Rdata')
+load('habitat.rich.area.student.zones.posteriors.Rdata')
 
-fig_rich.area_global_zones <- ggplot() + 
-  geom_point(data = global.rich.area.p, aes(x = response, y = eff,color=response),size = 2) +
-  geom_errorbar(data = global.rich.area.p, aes(x = response,ymin = eff_lower,
-                                               ymax = eff_upper, color=response),
+head(rich.area.global.p)
+head(rich.area.zone.p)
+
+zone.posteriors <- rich.area.zone.p %>% bind_rows(rich.area.global.p) 
+
+head(zone.posteriors)
+
+# something like this
+
+fig_rich.area_zone <- ggplot() + 
+  facet_wrap(~response, scales= "free") +
+  geom_point(data = zone.posteriors, aes(x = Biome_WWF_Zone, y = eff, color=Biome_WWF_Zone),size = 2) +
+  geom_errorbar(data = zone.posteriors, aes(x = Biome_WWF_Zone,ymin = eff_lower,
+                                             ymax = eff_upper, color=Biome_WWF_Zone),
                 width = 0, size = 0.7) +
   labs(x = '',
        y='Slope') +
   geom_hline(yintercept = 0, lty = 2) +
-  #scale_y_continuous(breaks=c(0,-8)) +
+  scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
-                               strip.background = element_blank(),legend.position="none")
+                               strip.background = element_blank(),legend.position="bottom")
 
-fig_rich.area_global_zones
-
-
-fig_rich.area_habitat <- ggplot() + 
-  facet_wrap(~response) +
-  geom_point(data = hab.rich.area.p, aes(x = Habitat_Broad, y = eff,color=Habitat_Broad),size = 2) +
-  geom_errorbar(data = hab.rich.area.p, aes(x = Habitat_Broad,ymin = eff_lower,
-                                            ymax = eff_upper, color=Habitat_Broad),
-                width = 0, size = 0.7) +
-  labs(x = '',
-       y='Slope') +
-  geom_hline(yintercept = 0, lty = 2) +
-  #scale_y_continuous(breaks=c(0,-8)) +
-  scale_color_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
-                               strip.background = element_blank(),legend.position="none")
-
-fig_rich.area_habitat
-
-
-
-# what priors did the model assume under default settings?
-
-# prior_summary(rich.mod)
-# # no comment for now, will return to this later
-# 
-# summary(rich.mod)
-# # Effective Sample Sizes (ESS) are very low
-# # because we have so many groups....and we need to increase sampling iterations
-# 
-# 
-# get_prior(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
-#                            family = poisson(), data = sb_prep, cores = 4, chains = 4)
-# 
-# 
-# get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
-#           family = hurdle_lognormal(), data = sb_prep, cores = 4, chains = 4)
-# 
-# 
-# get_prior(Total_Species ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
-#           family = student(), data = sb_prep, cores = 4, chains = 4)
-# 
-# 
-# 
-# 
+fig_rich.area_zone
