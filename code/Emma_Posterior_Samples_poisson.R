@@ -16,8 +16,7 @@ setwd(path2wd)
 
 
 setwd(paste0(path2wd, 'Data/'))
-sb <- read.csv(paste0(path2wd, 'gsb_prep.csv'))
-
+sb <- read.csv('sb_prep.csv')
 
 setwd('~/Desktop/')
 load( 'gsb_rich_area-poisson.Rdata')

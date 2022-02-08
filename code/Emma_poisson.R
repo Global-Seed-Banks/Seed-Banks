@@ -138,7 +138,6 @@ ggplot() +
 
 # takes about 3 hours, will set up cluster folder to run some more mods with lessons learned from this one
 setwd(paste0(path2wd, 'Model_Fits/'))
-setwd('~/Desktop/')
 load( 'gsb_rich_samps-poisson.Rdata')
 # save model object
 # save(rich.mod, file = 'rich.mod.Rdata')
@@ -302,11 +301,8 @@ fig_rich.samps_habitat
 
 # AREA ################################################################
 
-setwd('~/Desktop/')
+setwd(paste0(path2wd, 'Model_Fits/'))
 load( 'gsb_rich_area-poisson.Rdata')
-# save model object
-# save(rich.mod, file = 'rich.mod.Rdata')
-#load( 'rich.mod.Rdata')
 
 # does not converge buts gives us hints for fixing and next steps
 summary(rich.area)
@@ -343,7 +339,7 @@ with(ar.plot, plot(rowID, ma$Estimate))
 rich.area_fitted <- cbind(rich.area$data,
                            fitted(rich.area, re_formula = NA
                            )) %>% 
-  as_tibble() %>% left_join(sb_prep_r %>% distinct(Total_Species, Total_Species2, 
+  as_tibble() %>% left_join(sb_prep %>% distinct(Total_Species, Total_Species2, 
                                                     Total_Sample_Area_mm2,
                                                     Biome_WWF_Zone, Habitat_Broad, studyID, rowID),
                              #by= c("")
