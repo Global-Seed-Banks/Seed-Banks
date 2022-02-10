@@ -27,7 +27,8 @@ sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Samp
                           log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
                           Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
                           Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3, na.rm = TRUE),
-                          Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE)
+                          Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
+                          Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000)
 ) 
 
 
@@ -42,6 +43,8 @@ sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(To
                                   `max-Sample_Area_mm2` = max(as.numeric(Sample_Area_mm2), na.rm = TRUE),
                                   `max-Total_Sample_Area_mm2` = max(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
                                   `min-Total_Sample_Area_mm2` = min(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
+                                  `max-Total_Sample_Area_m2` = max(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
+                                  `min-Total_Sample_Area_m2` = min(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
                                   `min-Sample_Volume_mm3` = min(as.numeric(Sample_Volume_mm3), na.rm = TRUE),
                                   `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
                                   `min-Total_Sample_Volume_mm3` = min(as.numeric(Total_Sample_Volume_mm3), na.rm = TRUE),
@@ -149,8 +152,11 @@ obs_nest.rich.area <- sb_prep %>%
   group_by(Biome_WWF_Zone_group, Biome_WWF_Zone, 
            #Habitat_Broad_group, Habitat_Broad
            ) %>% 
-  summarise(log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), max(log_Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20 ),
-            Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20)) %>%
+  summarise(#log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), max(log_Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20 ),
+            #Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20),
+            log_Total_Sample_Area_mm2 = seq(quantile(log_Total_Sample_Area_mm2, na.rm = TRUE, probs=0.025), quantile(log_Total_Sample_Area_mm2, na.rm = TRUE, probs=0.975), length.out = 100 ),
+            Total_Sample_Area_mm2 = seq(quantile(Total_Sample_Area_mm2, na.rm = TRUE,  probs=0.025), quantile(Total_Sample_Area_mm2, na.rm = TRUE, probs=0.975), length.out = 100),
+            ) %>%
   nest(data = c( Biome_WWF_Zone, log_Total_Sample_Area_mm2, Total_Sample_Area_mm2)) %>%
   mutate(predicted = map(data, ~predict(rich.area, newdata= .x, re_formula = ~(log_Total_Sample_Area_mm2 | Biome_WWF_Zone ) ))) 
 
@@ -166,39 +172,49 @@ load('rich.area.mod_dat.Rdata')
 colnames(sb_prep)
 summary(sb_prep)
 
+head(rich.area_fitted)
+
 fig_rich.area <- ggplot() + 
-  #facet_wrap(~Biome_WWF_Zone, scales="free") +
+  facet_wrap(~Biome_WWF_Zone, scales="free_x") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = rich.area_fitted ,
-             aes(x = Total_Sample_Area_mm2, y = Total_Species,
+   geom_point(data = rich.area_fitted %>%  filter(Total_Sample_Area_mm2 > quantile(Total_Sample_Area_mm2, probs=0.025),
+                                                  Total_Sample_Area_mm2 < quantile(Total_Sample_Area_mm2, probs=0.975)),
+             aes(x = (Total_Sample_Area_mm2/1000000), y = Total_Species,
                  colour = Biome_WWF_Zone),
-             size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
+             size = 1.2, shape=1, alpha= 0.4 #position = position_jitter(width = 2, height=2.5)
+             ) +
   # random slopes
-  geom_line(data = obs_nest.rich.area  %>% unnest(cols = c(data, predicted)) ,
-            aes(x = Total_Sample_Area_mm2, y= exp(predicted[,1]),
+  geom_line(data = obs_nest.rich.area  %>% #filter(Biome_WWF_Zone_group == "Boreal") %>% 
+               unnest(cols = c(data, predicted)) ,
+            aes(x = (Total_Sample_Area_mm2/1000000), y= exp(predicted[,1]),
                 group = Biome_WWF_Zone,
                 colour = Biome_WWF_Zone),
             size = 1.2) +
-  # fixed effect
-  geom_line(data = rich.area_fitted,
-            aes(x = Total_Sample_Area_mm2, y = exp(Estimate)),
-            size = 1.5) +
-  # uncertainy in fixed effect
-  geom_ribbon(data = rich.area_fitted,
-              aes(x = Total_Sample_Area_mm2, ymin = exp(Q2.5), ymax = exp(Q97.5)),
-              alpha = 0.3) +
-  #xlim(1500,1247025)+
-  #coord_cartesian(xlim = c(min(sb_prep$Total_Sample_Area_mm2, na.rm = TRUE), quantile(sb_prep$Total_Sample_Area_mm2, na.rm = TRUE, 0.99))) +
+  #fixed effect
+  # geom_line(data = rich.area_fitted,
+  #           aes(x = (Total_Sample_Area_mm2/1000000), y = exp(Estimate)),
+  #           size = 1.5) +
+  # # uncertainy in fixed effect
+  # geom_ribbon(data = rich.area_fitted,
+  #             aes(x = (Total_Sample_Area_mm2/1000000), ymin = exp(Q2.5), ymax = exp(Q97.5)),
+  #             alpha = 0.3) +
   scale_color_viridis(discrete = T, option="D")  +
+  #xlim(0,75)+
+  ylim(0,150)+
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(subtitle= ''
-  ) +
-  ylab("Total Species")  + xlab("Total_Sample_Area_mm2")
+labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
+     color = "WWF Biogeographic Zone")
 
 fig_rich.area
+
+
+
+
+
+
 
 # data produced in 'Emma_Posterior_Samples.R'
 setwd(paste0(path2wd, 'Data/'))
@@ -216,8 +232,8 @@ head(zone.posteriors)
 
 fig_rich.area_zone <- ggplot() + 
   facet_wrap(~response, scales= "free") +
-  geom_point(data = zone.posteriors, aes(x = Biome_WWF_Zone, y = eff, color=Biome_WWF_Zone),size = 2) +
-  geom_errorbar(data = zone.posteriors, aes(x = Biome_WWF_Zone,ymin = eff_lower,
+  geom_point(data = zone.posteriors, aes(x = Biome_WWF_Zone, y = eff, color=Biome_WWF_Zone), size = 2) +
+  geom_errorbar(data = zone.posteriors, aes(x = Biome_WWF_Zone, ymin = eff_lower,
                                              ymax = eff_upper, color=Biome_WWF_Zone),
                 width = 0, size = 0.7) +
   labs(x = '',
