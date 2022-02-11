@@ -98,39 +98,6 @@ sb_prep_samps <- sb_prep %>% filter(!is.na(Total_Species2),
                                    !is.na(Total_Number_Samples))
 nrow(sb_prep_samps)
 
-# first explore data
-# 3 possible metrics for continuous 'sample effort'
-colnames(sb)
-
-ggplot() + 
-  facet_wrap(~Biome_WWF_Zone, scales= "free") +
-  geom_point(data = sb_prep_r ,#%>% filter(Biome_WWF_Zone == "Boreal"),
-             aes(x = Total_Sample_Volume_mm3, y = Total_Species,
-                 colour = Habitat_Broad),
-             size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
-  coord_cartesian(xlim = c(min(sb_prep_r$Total_Sample_Volume_mm3), quantile(sb_prep_r$Total_Sample_Volume_mm3, 0.90))) +
-  theme_classic( ) 
-
-
-ggplot() + 
-  facet_wrap(~Biome_WWF_Zone, scales = "free") +
-  geom_point(data = sb_prep_r , #%>% filter(Biome_WWF_Zone == "Boreal"),
-             aes(x = Total_Number_Samples, y = Total_Species,
-                 colour = Habitat_Broad),
-             size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
-  #xlim(0,1000)
-  coord_cartesian(xlim = c(min(sb_prep_r$Total_Number_Samples), quantile(sb_prep_r$Total_Number_Samples, 0.90)))+
-  theme_classic( ) 
-
-ggplot() + 
-  facet_wrap(~Biome_WWF_Zone, scales = "free") +
-  geom_point(data = sb_prep_r , #%>% filter(Biome_WWF_Zone == "Boreal"),
-             aes(x = Total_Sample_Area_mm2, y = Total_Species,
-                 colour = Habitat_Broad),
-             size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
-  coord_cartesian(xlim = c(min(sb_prep_r$Sample_Area_mm2), quantile(sb_prep_r$Sample_Area_mm2, 0.95)))+
-  theme_classic( ) 
-
 
 # try a first model
 # rich.mod <- brm(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 

@@ -175,7 +175,7 @@ summary(sb_prep)
 head(rich.area_fitted)
 
 fig_rich.area <- ggplot() + 
-  facet_wrap(~Biome_WWF_Zone, scales="free_x") +
+  #facet_wrap(~Biome_WWF_Zone, scales="free_x") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -193,20 +193,20 @@ fig_rich.area <- ggplot() +
                 colour = Biome_WWF_Zone),
             size = 1.2) +
   #fixed effect
-  # geom_line(data = rich.area_fitted,
-  #           aes(x = (Total_Sample_Area_mm2/1000000), y = exp(Estimate)),
-  #           size = 1.5) +
-  # # uncertainy in fixed effect
-  # geom_ribbon(data = rich.area_fitted,
-  #             aes(x = (Total_Sample_Area_mm2/1000000), ymin = exp(Q2.5), ymax = exp(Q97.5)),
-  #             alpha = 0.3) +
+  geom_line(data = rich.area_fitted,
+            aes(x = (Total_Sample_Area_mm2/1000000), y = exp(Estimate)),
+            size = 1.5) +
+  # uncertainy in fixed effect
+  geom_ribbon(data = rich.area_fitted,
+              aes(x = (Total_Sample_Area_mm2/1000000), ymin = exp(Q2.5), ymax = exp(Q97.5)),
+              alpha = 0.3) +
   scale_color_viridis(discrete = T, option="D")  +
-  #xlim(0,75)+
+  xlim(0,55)+
   ylim(0,150)+
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
 labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-     color = "WWF Biogeographic Zone")
+     color = "WWF Biogeographic Zone") + guides(col = guide_legend(ncol = 2))
 
 fig_rich.area
 

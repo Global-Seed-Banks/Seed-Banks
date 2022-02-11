@@ -359,8 +359,8 @@ obs_nest.rich.area <- sb_prep %>%
   mutate(Biome_WWF_Zone_group = Biome_WWF_Zone,
          Habitat_Broad_group = Habitat_Broad) %>%
   group_by(Biome_WWF_Zone_group, Biome_WWF_Zone, Habitat_Broad_group, Habitat_Broad) %>% 
-  summarise(log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), max(log_Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20 ),
-            Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20)) %>%
+  summarise(log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), max(log_Total_Sample_Area_mm2, na.rm = TRUE), length.out = 100 ),
+            Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE), length.out = 100)) %>%
   nest(data = c( Biome_WWF_Zone, Habitat_Broad, log_Total_Sample_Area_mm2, Total_Sample_Area_mm2)) %>%
   mutate(predicted = map(data, ~predict(rich.area, newdata= .x, re_formula = ~(log_Total_Sample_Area_mm2 * Biome_WWF_Zone | Habitat_Broad) ))) 
 

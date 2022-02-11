@@ -108,8 +108,8 @@ gsbm <- sb %>%
   ggplot() +
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
-                 color=`Habitat_Broad`
-                 #color=`Total_Species`
+                 #color=`Habitat_Broad`
+                 color=`Biome_WWF_Zone`
                  ), size=0.85,alpha=0.7) +
   #scale_color_viridis(discrete=TRUE,name="Habitat") +
  scale_color_manual( values= c("#39568CFF", "#FDE725FF", "#228B22","#95D840FF","#440154FF"))+
@@ -132,7 +132,7 @@ gsbm <- sb %>%
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   # xlim(-190,190) +
   # ylim(-60,80) +
-  labs(color= "Habitats")+
+  labs(color= "Biome_WWF_Zone")+
   scale_x_continuous(expand = c(0.006, 0.006)) 
 
 gsbm
