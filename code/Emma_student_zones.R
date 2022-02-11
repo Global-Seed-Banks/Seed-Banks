@@ -166,7 +166,7 @@ View(obs_nest.rich.area)
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
 save(rich.area_fitted, rich.area_fixef, obs_nest.rich.area, file = 'rich.area.student.zone.mod_dat.Rdata')
-load('rich.area.mod_dat.Rdata')
+load('rich.area.student.zone.mod_dat.Rdata')
 
 # plot richness area relationship
 colnames(sb_prep)

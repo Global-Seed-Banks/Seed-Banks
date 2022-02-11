@@ -1,4 +1,8 @@
 
+
+
+rm(list=ls()) 
+
 library(tidyverse)
 library(brms)
 library(bayesplot)
@@ -355,14 +359,20 @@ rich.area_coef
 # predict estimates for each habitat within each biome across a sequence of log_total_volumes and total_volumes
 # we could also just extract the coefs, but since we are plotting a linear curve in log space this is more accurate
 # and better practice
+colnames(sb_prep)
+rich.area
+
 obs_nest.rich.area <- sb_prep %>% 
   mutate(Biome_WWF_Zone_group = Biome_WWF_Zone,
          Habitat_Broad_group = Habitat_Broad) %>%
   group_by(Biome_WWF_Zone_group, Biome_WWF_Zone, Habitat_Broad_group, Habitat_Broad) %>% 
-  summarise(log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), max(log_Total_Sample_Area_mm2, na.rm = TRUE), length.out = 100 ),
-            Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE), length.out = 100)) %>%
+    summarise(#log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), max(log_Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20 ),
+      #Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE), length.out = 20),
+      log_Total_Sample_Area_mm2 = seq(quantile(log_Total_Sample_Area_mm2, na.rm = TRUE, probs=0.025), quantile(log_Total_Sample_Area_mm2, na.rm = TRUE, probs=0.975), length.out = 100 ),
+      Total_Sample_Area_mm2 = seq(quantile(Total_Sample_Area_mm2, na.rm = TRUE,  probs=0.025), quantile(Total_Sample_Area_mm2, na.rm = TRUE, probs=0.975), length.out = 100),
+    ) %>%
   nest(data = c( Biome_WWF_Zone, Habitat_Broad, log_Total_Sample_Area_mm2, Total_Sample_Area_mm2)) %>%
-  mutate(predicted = map(data, ~predict(rich.area, newdata= .x, re_formula = ~(log_Total_Sample_Area_mm2 * Biome_WWF_Zone | Habitat_Broad) ))) 
+  mutate(predicted = purrr::map(data, ~predict(rich.area, newdata= .x, re_formula = ~(log_Total_Sample_Area_mm2 * Biome_WWF_Zone | Habitat_Broad) ))) 
 
 
 View(obs_nest.rich.area)
@@ -370,10 +380,13 @@ View(obs_nest.rich.area)
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
 save(rich.area_fitted, rich.area_fixef, obs_nest.rich.area, file = 'rich.area.student.mod_dat.Rdata')
-load('rich.area.mod_dat.Rdata')
+load('rich.area.student.mod_dat.Rdata')
 
 # plot richness area relationship
-colnames(sb_prep_r)
+colnames(sb_prep)
+
+sb_prep$Biome_WWF_Zone <- as.factor(sb_prep$Biome_WWF_Zone)
+levels(sb_prep$Biome_WWF_Zone)
 
 
 fig_rich.area <- ggplot() + 
@@ -381,23 +394,26 @@ fig_rich.area <- ggplot() +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = rich.area_fitted ,
-             aes(x = Total_Sample_Area_mm2, y = Total_Species,
+  geom_point(data = rich.area_fitted %>%  group_by(Biome_WWF_Zone) %>%
+               filter(Total_Sample_Area_mm2 > quantile(Total_Sample_Area_mm2, probs=0.025),
+                                          Total_Sample_Area_mm2 < quantile(Total_Sample_Area_mm2, probs=0.975))
+             ,
+             aes(x = (Total_Sample_Area_mm2/1000000), y = Total_Species,
                  colour = Habitat_Broad),
-             size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
+             size = 1.2, shape=1) +
   # random slopes
   geom_line(data = obs_nest.rich.area  %>% unnest(cols = c(data, predicted)) ,
-            aes(x = Total_Sample_Area_mm2, y= exp(predicted[,1]),
+            aes(x = (Total_Sample_Area_mm2/1000000), y= exp(predicted[,1]),
                 group = Habitat_Broad,
                 colour = Habitat_Broad),
             size = 1.2) +
   # fixed effect
   geom_line(data = rich.area_fitted,
-            aes(x = Total_Sample_Area_mm2, y = exp(Estimate)),
+            aes(x = (Total_Sample_Area_mm2/1000000), y = exp(Estimate)),
             size = 1.5) +
   # uncertainy in fixed effect
   geom_ribbon(data = rich.area_fitted,
-              aes(x = Total_Sample_Area_mm2, ymin = exp(Q2.5), ymax = exp(Q97.5)),
+              aes(x = (Total_Sample_Area_mm2/1000000), ymin = exp(Q2.5), ymax = exp(Q97.5)),
               alpha = 0.3) +
   #coord_cartesian(xlim = c(min(sb_prep_r$Total_Sample_Area_mm2), quantile(sb_prep_r$Total_Sample_Area_mm2, 0.97))) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -405,14 +421,16 @@ fig_rich.area <- ggplot() +
                                   legend.position="bottom") +
   labs(subtitle= ''
   ) +
-  ylab("Total Species")  + xlab("Total_Sample_Area_mm2")
+ labs(y= "Total Species", x = expression(paste('Total Sample Area ' , m^2)),
+      color= "Habitat") +
+  guides(col = guide_legend(ncol = 2))
 
 fig_rich.area
 
 # data produced in 'Emma_Posterior_Samples.R'
 setwd(paste0(path2wd, 'Data/'))
-load('global.rich.area.posteriors.Rdata')
-load('habitat.rich.area.posteriors.Rdata')
+load('global.rich.area.student.posteriors.Rdata')
+load('habitat.rich.area.student.posteriors.Rdata')
 
 fig_rich.area_global_zones <- ggplot() + 
   geom_point(data = global.rich.area.p, aes(x = response, y = eff,color=response),size = 2) +
@@ -432,7 +450,7 @@ fig_rich.area_global_zones
 
 
 fig_rich.area_habitat <- ggplot() + 
-  facet_wrap(~response) +
+  facet_wrap(~response, scales= "free_y") +
   geom_point(data = hab.rich.area.p, aes(x = Habitat_Broad, y = eff,color=Habitat_Broad),size = 2) +
   geom_errorbar(data = hab.rich.area.p, aes(x = Habitat_Broad,ymin = eff_lower,
                                             ymax = eff_upper, color=Habitat_Broad),
