@@ -9,13 +9,13 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 
 sb <- sb %>% filter(!Habitat_Broad == "Arable")
 
-# rich.area <- brm(Total_Species2 ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad/studyID/rowID ),
-#                 family = poisson(), data = sb, cores = 4, chains = 4,
-#                 )
+rich.area <- brm(Total_Species2 ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad/studyID/rowID ),
+                family = poisson(), data = sb, cores = 4, chains = 4,
+                )
 
-rich.area <- brm(log_Total_Species2 ~ log_Total_Sample_Area_mm2 + (log_Total_Sample_Area_mm2  | Biome_WWF_Zone/studyID/rowID ),
-                 family = student(), data = sb, cores = 4, chains = 4,
-)
+# rich.area <- brm(log_Total_Species ~ log_Total_Sample_Area_mm2 + (log_Total_Sample_Area_mm2  | Biome_WWF_Zone/Habitat_Broad/studyID/rowID ),
+#                  family = poisson(), data = sb, cores = 4, chains = 4,
+# )
 
 
 save(rich.area,

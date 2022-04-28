@@ -14,84 +14,6 @@ path2wd <- switch(user,
 
 setwd(path2wd)
 
-sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
-
-head(sb)
-colnames(sb)
-
-# do the calc's we need
-sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
-                  Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
-                  log_Total_Number_Samples = log(Total_Number_Samples),
-                  log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
-                  log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
-                   Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
-                   Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3, na.rm = TRUE),
-                   Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE)
-                  ) 
-
-
-head(sb_calc)
-
-sb_calc$Biome_WWF_Zone<- as.factor(as.character(sb_calc$Biome_WWF_Zone))
-levels(sb_calc$Biome_WWF_Zone)
-
-sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
-                             `max-Total_Number_Samples` = max(as.numeric(Total_Number_Samples),na.rm = TRUE),
-                             `min-Sample_Area_mm2` = min(as.numeric(Sample_Area_mm2),na.rm = TRUE),
-                             `max-Sample_Area_mm2` = max(as.numeric(Sample_Area_mm2), na.rm = TRUE),
-                             `max-Total_Sample_Area_mm2` = max(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
-                             `min-Total_Sample_Area_mm2` = min(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
-                             `min-Sample_Volume_mm3` = min(as.numeric(Sample_Volume_mm3), na.rm = TRUE),
-                             `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
-                             `min-Total_Sample_Volume_mm3` = min(as.numeric(Total_Sample_Volume_mm3), na.rm = TRUE),
-                             `max-Total_Sample_Volume_mm3`= max(as.numeric(Total_Sample_Volume_mm3),na.rm = TRUE),
-                             `min-Total_Species` = min(as.numeric(Total_Species), na.rm = TRUE),
-                             `max-Total_Species` = max(as.numeric(Total_Species),na.rm = TRUE),
-                             `min-Seed_density_m2` = min(as.numeric(Seed_density_m2), na.rm = TRUE),
-                             `max-Seed_density_m2` = max(as.numeric(Seed_density_m2),na.rm = TRUE),
-                             `min-Total_Seeds` = min(as.numeric(Total_Seeds), na.rm = TRUE),
-                             `max-Total_Seeds` = max(as.numeric(Total_Seeds),na.rm = TRUE),
-                                                       ) %>%
-  pivot_longer(`min-Total_Number_Samples` : `max-Total_Seeds`) %>%
-  separate(name, into = c("minmax", "name"), sep="-") %>% spread(minmax, value)
-
-sb_deets
-# uh-oh we have richness , total seeds and density- equals = 0, and that 0 is real, a problem for poisson and log
-#  temporarily convert 0's to 1's and figure out whats best later
-# could use other distributions instead...
-
-# for now, change 0's to 1's- to discuss later
-sb_prep <- sb_calc %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1, 
-                                                 TRUE ~ as.numeric(as.character(Total_Species))),
-                          Seed_density_m22 = case_when(Seed_density_m2 == 0 ~ 1, 
-                                                     TRUE ~ as.numeric(as.character(Seed_density_m2))),
-                          Total_Seeds2 = case_when(Total_Seeds == 0 ~ 1, 
-                                                       TRUE ~ as.numeric(as.character(Total_Seeds))),
-                          ) %>%
-  mutate(log_Total_Species2 = log(Total_Species2),
-         log_Seed_density_m22 = log(Seed_density_m22),
-         log_Seed_density_m22 = log(Seed_density_m22) )
-
-head(sb_prep)
-nrow(sb_prep)
-
-is.numeric(sb_prep$Total_Species2)
-min(sb_prep$Total_Species2, na.rm = TRUE)
-max(sb_prep$Total_Species2, na.rm = TRUE)
-
-sb00 <- sb_calc %>% filter(Total_Species == 0)
-sb00
-nrow(sb00)
-
-setwd(paste0(path2wd, 'Data/'))
-write.csv(sb_prep,  "sb_prep.csv")
-
-
-
-# you can start here
-
-
 sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
 # remove NA values from our predictor and response to get same number of rows to match model 
@@ -111,11 +33,11 @@ head(sb_prep_samps)
 #                 family = poisson(), data = sb_prep, cores = 4, chains = 4)
 
 # takes about 3 hours, will set up cluster folder to run some more mods with lessons learned from this one
-setwd(paste0(path2wd, 'Model_Fits/'))
-load( 'gsb.mod-poisson.Rdata')
+# setwd(paste0(path2wd, 'Model_Fits/'))
+# load( 'gsb.mod-poisson.Rdata')
 # save model object
-save(rich.mod, file = 'rich.mod-poisson.Rdata')
-#load( 'rich.mod-poisson.Rdata')
+#save(rich.mod, file = 'gsb_rich_area-poisson.Rdata')
+load( 'gsb_rich_area-poisson.Rdata')
 
 # does not converge buts gives us hints for fixing and next steps
 summary(rich.mod)
@@ -243,12 +165,14 @@ fig_rich.area
 
 # data produced in 'Emma_Posterior_Samples.R'
 setwd(paste0(path2wd, 'Data/'))
-load('global.rich.samps.posteriors.Rdata')
-load('habitat.rich.samps.posteriors.Rdata')
+load('global.rich.area.poisson.zone.posteriors.Rdata')
 
-fig_rich.samps_global_zones <- ggplot() + 
-  geom_point(data = global.rich.samps.p, aes(x = response, y = eff,color=response),size = 2) +
-  geom_errorbar(data = global.rich.samps.p, aes(x = response,ymin = eff_lower,
+head(rich.mod.global.p)
+head(rich.mod.zone.p)
+
+fig_rich.area_global <- ggplot() + 
+  geom_point(data = rich.mod.global.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = rich.mod.global.p, aes(x = response,ymin = eff_lower,
                                                ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
@@ -260,14 +184,15 @@ fig_rich.samps_global_zones <- ggplot() +
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
-fig_rich.samps_global_zones
+fig_rich.area_global
 
+head(rich.mod.zone.p)
 
-fig_rich.samps_habitat <- ggplot() + 
-  facet_wrap(~response) +
-  geom_point(data = hab.rich.samps.p, aes(x = Habitat_Broad, y = eff,color=Habitat_Broad),size = 2) +
-  geom_errorbar(data = hab.rich.samps.p, aes(x = Habitat_Broad,ymin = eff_lower,
-                                            ymax = eff_upper, color=Habitat_Broad),
+fig_rich.area_zones <- ggplot() + 
+  #facet_wrap(~response) +
+  geom_point(data = rich.mod.zone.p, aes(x = Biome_WWF_Zone, y = eff,color=Biome_WWF_Zone),size = 2) +
+  geom_errorbar(data = rich.mod.zone.p, aes(x = Biome_WWF_Zone,ymin = eff_lower,
+                                            ymax = eff_upper, color=Biome_WWF_Zone),
                 width = 0, size = 0.7) +
   labs(x = '',
        y='Slope') +
@@ -278,8 +203,11 @@ fig_rich.samps_habitat <- ggplot() +
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
-fig_rich.samps_habitat
+fig_rich.area_zones
 
+library(patchwork)
+
+(fig_rich.area_global|fig_rich.area_zones)
 
 
 
