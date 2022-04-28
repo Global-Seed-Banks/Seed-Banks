@@ -31,7 +31,7 @@ zone_levels <- rich.mod$data %>%
   nest_legacy(level)
 
 
-# extract 1000 study-level posterior samples for each habitat and wwf zone
+# extract 1000 biome-level posterior samples for each  wwf zone
 zone_rich.mod_posterior <- zone_levels %>%
   mutate( area.I.zone = purrr::map(data, ~posterior_samples(rich.mod,
                                                             pars = paste('r_Biome_WWF_Zone[', as.character(.x$level), ',Intercept]', sep=''),
