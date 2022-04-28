@@ -87,43 +87,50 @@ nrow(sb00)
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_prep,  "sb_prep.csv")
 
+
+
+# you can start here
+
+
+sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
+
 # remove NA values from our predictor and response to get same number of rows to match model 
 # use this to match up data for residual effects
 sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species2),
                                 !is.na(Total_Sample_Area_mm2))
 nrow(sb_prep_area)
-
+head(sb_prep_area)
 
 sb_prep_samps <- sb_prep %>% filter(!is.na(Total_Species2),
                                    !is.na(Total_Number_Samples))
 nrow(sb_prep_samps)
-
+head(sb_prep_samps)
 
 # try a first model
-# rich.mod <- brm(Total_Species2 ~ log_Total_Sample_Volume_mm3 * Biome_WWF_Zone + (log_Total_Sample_Volume_mm3 * Biome_WWF_Zone  | Habitat_Broad/studyID/samp.loc ), 
+# rich.mod <- brm(Total_Species ~ log_Total_Sample_Area_mm2 + (log_Total_Sample_Area_mm2 | Biome_WWF_Zone/Habitat_Broad/studyID/rowID ),
 #                 family = poisson(), data = sb_prep, cores = 4, chains = 4)
 
 # takes about 3 hours, will set up cluster folder to run some more mods with lessons learned from this one
 setwd(paste0(path2wd, 'Model_Fits/'))
-load( 'gsb_rich_samps-poisson.Rdata')
+load( 'gsb.mod-poisson.Rdata')
 # save model object
-# save(rich.mod, file = 'rich.mod.Rdata')
-#load( 'rich.mod.Rdata')
+save(rich.mod, file = 'rich.mod-poisson.Rdata')
+#load( 'rich.mod-poisson.Rdata')
 
 # does not converge buts gives us hints for fixing and next steps
-summary(rich.samps)
+summary(rich.mod)
 
 color_scheme_set("darkgray")
-pp_rich.samps <- pp_check(rich.samps)+ xlab( "Species richness") + ylab("Density") +
+pp_rich.area <- pp_check(rich.mod)+ xlab( "Species richness") + ylab("Density") +
   labs(title= "") +
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 # posterior predictive check
 # grey lines are predicted values, black is observed
-pp_rich.samps
+pp_rich.area
 # a bit wonky, we can see where predictions dont fit data
 
 # caterpillars/chains
-plot(rich.samps) 
+plot(rich.mod) 
 # ewww messy
 
 
@@ -131,87 +138,97 @@ sb_prep_r$Habitat_Broad <- as.factor(as.character(sb_prep_r$Habitat_Broad))
 sb_prep_r$studyID <- as.factor(as.character(sb_prep_r$studyID))
 
 # check model residuals
-ma <- residuals(rich.samps)
+ma <- residuals(rich.mod)
 ma <- as.data.frame(ma)
-ar.plot <- cbind(sb_prep_samps, ma$Estimate)
+ar.plot <- cbind(sb_prep_area, ma$Estimate)
 
-par(mfrow=c(1,2))
+head(ma)
+head(ar.plot)
+ar.plot$Biome_WWF_Zone <- as.factor(ar.plot$Biome_WWF_Zone )
+ar.plot$Habitat_Broad <- as.factor(ar.plot$Habitat_Broad )
+ar.plot$studyID <- as.factor(ar.plot$studyID )
+ar.plot$rowID <- as.factor(ar.plot$rowID )
+
+par(mfrow=c(2,2))
+with(ar.plot, plot(Biome_WWF_Zone, ma$Estimate))
 with(ar.plot, plot(Habitat_Broad, ma$Estimate))
 with(ar.plot, plot(studyID, ma$Estimate))
+with(ar.plot, plot(rowID, ma$Estimate))
 # surprisingly not bad
 
 
-View(sb_prep_samps)
+head(sb_prep_area)
 # for plotting fixed effects
-rich.samps_fitted <- cbind(rich.samps$data,
-                             fitted(rich.samps, re_formula = NA
+rich.area_fitted <- cbind(rich.mod$data,
+                             fitted(rich.mod, re_formula = NA
                              )) %>% 
-  as_tibble() %>% inner_join(sb_prep %>% select(Total_Species, Total_Species2, 
-                                                    Total_Number_Samples,
+  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, Total_Species2, 
+                                                    Total_Number_Samples, Total_Sample_Area_mm2,
+                                                    log_Total_Sample_Area_mm2,
                                                   Biome_WWF_Zone, Habitat_Broad, studyID, rowID),
                            #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
   )
 
 
-head(rich.samps_fitted)
-nrow(rich.samps_fitted)
+head(rich.area_fitted)
+nrow(rich.area_fitted)
 
 
 
 # fixed effect coefficients
-rich.samps_fixef <- fixef(rich.samps)
-head(rich.samps_fixef)
+rich.area_fixef <- fixef(rich.mod)
+head(rich.area_fixef)
 
 # Random effect coefficients
-rich.samps_coef <- coef(rich.samps)
+rich.samps_coef <- coef(rich.mod)
 rich.samps_coef 
 
 # predict estimates for each habitat within each biome across a sequence of log_total_volumes and total_volumes
 # we could also just extract the coefs, but since we are plotting a linear curve in log space this is more accurate
 # and better practice
-obs_nest.rich.samps <- sb_prep %>% 
+obs_nest.rich.area <- sb_prep_area %>% 
   mutate(Biome_WWF_Zone_group = Biome_WWF_Zone,
          Habitat_Broad_group = Habitat_Broad) %>%
   group_by(Biome_WWF_Zone_group, Biome_WWF_Zone, Habitat_Broad_group, Habitat_Broad) %>% 
-  summarise(log_Total_Number_Samples = seq(min(log_Total_Number_Samples, na.rm = TRUE), max(log_Total_Number_Samples, na.rm = TRUE),  length.out = 20 ),
-            Total_Number_Samples = seq(min(Total_Number_Samples, na.rm = TRUE), max(Total_Number_Samples, na.rm = TRUE),  length.out = 20)) %>%
-  nest(data = c( Biome_WWF_Zone, Habitat_Broad, log_Total_Number_Samples, Total_Number_Samples)) %>%
-  mutate(predicted = map(data, ~predict(rich.samps, newdata= .x, re_formula = ~(log_Total_Number_Samples * Biome_WWF_Zone | Habitat_Broad) ))) 
+  summarise(log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), max(log_Total_Sample_Area_mm2, na.rm = TRUE),  length.out = 1000 ),
+            Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE),  length.out = 1000)) %>%
+  nest(data = c( Biome_WWF_Zone, Habitat_Broad, log_Total_Sample_Area_mm2, Total_Sample_Area_mm2)) %>%
+  mutate(predicted = map(data, ~predict(rich.mod, newdata= .x, re_formula = ~(log_Total_Sample_Area_mm2  | Biome_WWF_Zone/Habitat_Broad) ))) 
 
 
-View(obs_nest.rich.samps)
+View(obs_nest.rich.area)
 
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
-save(rich.samps_fitted, rich.samps_fixef, obs_nest.rich.samps, file = 'rich.samps.mod_dat.Rdata')
-load('rich.samps.mod_dat.Rdata')
+save(rich.area_fitted, rich.area_fixef, obs_nest.rich.area, file = 'rich.area.poisson.mod_dat.Rdata')
+load('rich.area.poisson.mod_dat.Rdata')
 
  # plot richness number of sample relationship
 colnames(sb_prep_r)
 
 
-fig_rich.samps <- ggplot() + 
+fig_rich.area <- ggplot() + 
    facet_wrap(~Biome_WWF_Zone, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = rich.samps_fitted ,
-  aes(x = Total_Number_Samples, y = Total_Species,
-      colour = Habitat_Broad),
+  geom_point(data = rich.area_fitted ,
+  aes(x = Total_Sample_Area_mm2, y = Total_Species,
+      colour = Biome_WWF_Zone),
   size = 1.2, shape=1, position = position_jitter(width = 2, height=2.5)) +
  # random slopes
-  geom_line(data = obs_nest.rich.samps  %>% unnest(cols = c(data, predicted)) ,
-            aes(x = Total_Number_Samples, y= predicted[,1] ,
-                                        group = Habitat_Broad,
-                                        colour = Habitat_Broad),
+  geom_line(data = obs_nest.rich.area  %>% unnest(cols = c(data, predicted)) ,
+            aes(x = Total_Sample_Area_mm2, y= predicted[,1] ,
+                                        group = Biome_WWF_Zone,
+                                        colour = Biome_WWF_Zone),
             size = 1.2) +
   # fixed effect
-  geom_line(data = rich.samps_fitted,
-            aes(x = Total_Number_Samples, y = Estimate),
+  geom_line(data = rich.area_fitted,
+            aes(x = Total_Sample_Area_mm2, y = Estimate),
             size = 1.5) +
   # uncertainy in fixed effect
-  geom_ribbon(data = rich.samps_fitted,
-              aes(x = Total_Number_Samples, ymin = Q2.5, ymax = Q97.5),
+  geom_ribbon(data = rich.area_fitted,
+              aes(x = Total_Sample_Area_mm2, ymin = Q2.5, ymax = Q97.5),
               alpha = 0.3) +
   #coord_cartesian(xlim = c(min(sb_prep_r$Total_Sample_Area_mm2), quantile(sb_prep_r$Total_Sample_Area_mm2, 0.97))) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -219,9 +236,9 @@ fig_rich.samps <- ggplot() +
                                   legend.position="bottom") +
   labs(subtitle= ''
   ) +
-  ylab("Total Species")  + xlab("Total_Number_Samples")
+  ylab("Total Species")  + xlab("Total_Sample_Area_mm2")
 
-fig_rich.samps
+fig_rich.area
 
 
 # data produced in 'Emma_Posterior_Samples.R'
