@@ -8,6 +8,7 @@ library(viridis)
 library(sjPlot)
 library(performance)
 library(ggplot2)
+library(lme4)
 
 user <- Sys.info()["user"]
 
@@ -33,7 +34,7 @@ sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species2),
 head(sb_prep_area)
 nrow(sb_prep_area)
 
-# the model
+# 2-way interaction model ------------------------------------------------------
 rich.area <- glm(Total_Species ~ Biome_WWF_Zone*log(Total_Sample_Area_mm2),
                  family = poisson(), data = sb_prep)
 
@@ -51,3 +52,23 @@ plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_W
 plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) 
 
 # voilá! ;-)
+
+
+# a more complex model ---------------------------------------------------------
+# accounts for the studyID covariate 
+
+rich.area.2 <- glmer(Total_Species ~ Biome_WWF_Zone*log(Total_Sample_Area_mm2) +
+                                  (1|studyID), 
+                 family = poisson(), data = sb_prep)
+
+# overall summary
+summary(rich.area.2)
+
+# in log-log
+plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) +
+  scale_x_log10() + scale_y_log10() 
+
+# on linear scale
+plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) 
+
+
