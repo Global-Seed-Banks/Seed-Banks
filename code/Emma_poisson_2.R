@@ -1,8 +1,4 @@
 
-
-rm(list = ls())
-
-
 #packages
 library(tidyverse)
 library(brms)
@@ -31,21 +27,25 @@ sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species2),
   mutate( Biome_WWF_Zone = as.factor(Biome_WWF_Zone),
           Habitat_Broad = as.factor(Habitat_Broad),
           studyID = as.factor(studyID),
-          rowID = as.factor(rowID))
+          rowID = as.factor(rowID),
+          Method = as.factor(Method))
 
 
 head(sb_prep_area)
 nrow(sb_prep_area)
 
+
+levels(sb_prep_area$Method)
+
 # area model
-# rich.area <- brm(Total_Species ~ log_Total_Sample_Area_mm2 + (log_Total_Sample_Area_mm2 | Biome_WWF_Zone/Habitat_Broad/studyID/rowID ),
-#                 family = poisson(), data = sb_prep, cores = 4, chains = 4)
+rich.area <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone | Habitat_Broad/Method ),
+                family = poisson(), data = sb_prep, cores = 4, chains = 4)
 
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # save model object
-#save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
-load( 'gsb_rich_area-poisson.Rdata')
+save(rich.area, file = 'gsb_rich_area-poisson_2.Rdata')
+load( 'gsb_rich_area-poisson_2.Rdata')
 
 # model summary
  summary(rich.area)
