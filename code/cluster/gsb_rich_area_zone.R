@@ -19,7 +19,7 @@ sb_dat <- sb %>% filter(!is.na(Total_Species2),
           Method = as.factor(Method))
 # %>% filter(!Habitat_Broad == "Arable")
 
-rich.p_zones <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad/studyID/rowID ),
+rich.p_zones <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad ),
                 family = poisson(), data = sb_dat, cores = 4, chains = 4,
                 )
 
