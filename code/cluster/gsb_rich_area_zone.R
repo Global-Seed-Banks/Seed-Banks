@@ -28,7 +28,7 @@ rich.p_zones_2 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone
 )
 
 
-save(rich.p_zones,
+save(rich.p_zones_2,
      file=Sys.getenv('OFILE'))
 
 
