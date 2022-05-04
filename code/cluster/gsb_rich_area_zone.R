@@ -23,7 +23,7 @@ sb_dat <- sb %>% filter(!is.na(Total_Species2),
 #                 family = poisson(), data = sb_dat, cores = 4, chains = 4,
 #                 )
 
-rich.p_zones_2 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad/studyID ),
+rich.p_zones_2 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad/studyID/rowID ),
                     family = poisson(), data = sb_dat, cores = 4, chains = 4,
 )
 
