@@ -45,7 +45,7 @@ nrow(sb_prep_area)
 setwd(paste0(path2wd, 'Model_Fits/'))
 # save model object
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
-load( 'gsb_rich_area_zone.Rdata')
+load( 'gsb_rich_area_zone.Rdata_2')
 
 # rich.p_zones
 
@@ -156,7 +156,7 @@ fig_rich.area <- ggplot() +
   # fixed effect
   geom_line(data = rich.area_fitted,
             aes(#x = (Total_Sample_Area_mm2/1000000), 
-                x = Total_Sample_Area_mm2,,
+                x = Total_Sample_Area_mm2,
                 y = Estimate),
             size = 1.5) +
   # uncertainy in fixed effect
@@ -170,7 +170,7 @@ fig_rich.area <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
+  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , mm^2)),
        color = "Habitat Type") #+ #guides(col = guide_legend(ncol = 2))# +
   #scale_x_log10() + scale_y_log10() 
 
