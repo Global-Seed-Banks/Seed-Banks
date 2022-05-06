@@ -45,24 +45,38 @@ nrow(sb_prep_area)
 setwd(paste0(path2wd, 'Model_Fits/'))
 # save model object
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
-load( 'gsb_rich_area_zone.Rdata_2')
-
+load( 'gsb_rich_area_zone.Rdata')
+load( 'gsb_rich_area_zone_2.Rdata')
+load( 'gsb_rich_area_zone_3.Rdata')
 # rich.p_zones
 
 # model summary
 summary(rich.p_zones)
+summary(rich.p_zones_2)
+summary(rich.p_zones_3)
 
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_rich.area <- pp_check(rich.p_zones)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") +
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
-pp_rich.area
+
+pp_rich.area_2 <- pp_check(rich.p_zones_2)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") +
+  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
+
+pp_rich.area_3 <- pp_check(rich.p_zones_3)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
+  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
+
+
+(pp_rich.area | pp_rich.area_2 | pp_rich.area_3)
 
 
 # caterpillars/chains
 plot(rich.p_zones)
-
+plot(rich.p_zones_2)
+plot(rich.p_zones_3)
 
 # check model residuals
 ma <- residuals(rich.p_zones)
@@ -85,8 +99,8 @@ with(ar.plot, plot(Habitat_Broad, ma$Estimate))
 head(sb_prep_area)
 #  
 # # for plotting fixed effects
-rich.area_fitted <- cbind(rich.p_zones$data,
-                             fitted(rich.p_zones, re_formula = NA
+rich.area_fitted <- cbind(rich.p_zones_2$data,
+                             fitted(rich.p_zones_2, re_formula = NA
                              )) %>%
   as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, Total_Species2,
                                                     Total_Number_Samples, Total_Sample_Area_mm2,
@@ -102,11 +116,11 @@ nrow(rich.area_fitted)
 
 
 # fixed effect coefficients
-rich.area_fixef <- fixef(rich.p_zones)
+rich.area_fixef <- fixef(rich.p_zones_2)
 head(rich.area_fixef)
 
 # Random effect coefficients
-rich.samps_coef <- coef(rich.p_zones)
+rich.samps_coef <- coef(rich.p_zones_2)
 rich.samps_coef
 
 # predict estimates for each habitat within each biome across a sequence of log_total_volumes and total_volumes
@@ -119,16 +133,18 @@ obs_nest.rich.area <- sb_prep_area %>%
   summarise(log_Total_Sample_Area_mm2 = seq(min(log_Total_Sample_Area_mm2, na.rm = TRUE), quantile(log_Total_Sample_Area_mm2, na.rm = TRUE),  length.out = 1000 ),
             Total_Sample_Area_mm2 = seq(min(Total_Sample_Area_mm2, na.rm = TRUE), max(Total_Sample_Area_mm2, na.rm = TRUE),  length.out = 1000)) %>%
   nest(data = c( Biome_WWF_Zone, Habitat_Broad, log_Total_Sample_Area_mm2, Total_Sample_Area_mm2)) %>%
-  mutate(predicted = map(data, ~predict(rich.p_zones, newdata= .x, re_formula = ~(log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad) )))
+  mutate(predicted = map(data, ~predict(rich.p_zones_2, newdata= .x, re_formula = ~(log_Total_Sample_Area_mm2 * Biome_WWF_Zone  | Habitat_Broad) )))
 
 
 View(obs_nest.rich.area)
 
-# setwd(paste0(path2wd, 'Data/'))
+ setwd(paste0(path2wd, 'Data/'))
 # # # save data objects to avoid doing this every time
-#  save(rich.area_fitted, rich.area_fixef, obs_nest.rich.area, file = 'rich.area.poisson.mod_dat.Rdata')
+save(rich.area_fitted, rich.area_fixef, obs_nest.rich.area, file = 'rich.area.poisson.mod_dat_2.Rdata')
+
  setwd(paste0(path2wd, 'Data/'))
  load('rich.area.poisson.mod_dat.Rdata')
+ load('rich.area.poisson.mod_dat_2.Rdata')
 
 # plot richness area relationship
 colnames(sb_prep_area)
