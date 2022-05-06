@@ -20,15 +20,14 @@ sb <- read.csv('sb_prep.csv')
 
 
 setwd(paste0(path2wd, 'Model_Fits/'))
-load( 'gsb_rich_area_zone.Rdata')
+load( 'gsb_rich_area_zone_2.Rdata')
 
-
-summary(rich.area)
+summary(rich.p_zones_2)
 
 rich.area$data
 
 # Habitat level posterior samples
-zone_levels <- rich.area$data %>% 
+zone_levels <- rich.p_zones_2$data %>% 
   as_tibble() %>% 
   distinct(Biome_WWF_Zone) %>% 
   mutate(level =  Biome_WWF_Zone) %>%
@@ -37,11 +36,11 @@ zone_levels <- rich.area$data %>%
 
 # extract 1000 study-level posterior samples for each habitat and wwf zone
 zone_rich.area_posterior <- zone_levels %>%
-  mutate( area.I.zone = purrr::map(data, ~posterior_samples(rich.area,
+  mutate( area.I.zone = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                           pars = paste('r_Biome_WWF_Zone[', as.character(.x$level), ',Intercept]', sep=''),
                                                           fixed = TRUE,
                                                           subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-    area.zone = purrr::map(data, ~posterior_samples(rich.area,
+    area.zone = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                          pars = paste('r_Biome_WWF_Zone[', as.character(.x$level), ',log_Total_Sample_Area_mm2]', sep=''),
                                                          fixed = TRUE,
                                                          subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
@@ -60,7 +59,7 @@ rich.area_zone_posterior <- zone_rich.area_posterior  %>%
 head(rich.area_zone_posterior)
 
 # global effects
-rich.area.fixed.p <- posterior_samples(rich.area, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
+rich.area.fixed.p <- posterior_samples(rich.p_zones_2, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
 
 head(rich.area.fixed.p)
 
@@ -86,7 +85,7 @@ rich.area.global.p
 
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
-save(global.rich.area.p, file = 'global.rich.area.student.zone.posteriors.Rdata')
+save(rich.area.global.p, file = 'global.rich.area.poisson.posteriors.Rdata')
 
 
 fig_rich.area_global_zones <- ggplot() + 

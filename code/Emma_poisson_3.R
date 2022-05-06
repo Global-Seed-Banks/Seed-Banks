@@ -45,9 +45,8 @@ nrow(sb_prep_area)
 setwd(paste0(path2wd, 'Model_Fits/'))
 # save model object
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
-load( 'gsb_rich_area_zone.Rdata')
 load( 'gsb_rich_area_zone_2.Rdata')
-load( 'gsb_rich_area_zone_3.Rdata')
+
 # rich.p_zones
 
 # model summary
@@ -143,7 +142,7 @@ View(obs_nest.rich.area)
 save(rich.area_fitted, rich.area_fixef, obs_nest.rich.area, file = 'rich.area.poisson.mod_dat_2.Rdata')
 
  setwd(paste0(path2wd, 'Data/'))
- load('rich.area.poisson.mod_dat.Rdata')
+ #load('rich.area.poisson.mod_dat.Rdata')
  load('rich.area.poisson.mod_dat_2.Rdata')
 
 # plot richness area relationship
@@ -158,27 +157,29 @@ fig_rich.area <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_prep_area ,
-             aes(#x = (Total_Sample_Area_mm2/1000000),
-                 x = Total_Sample_Area_mm2,
+             aes(x = (Total_Sample_Area_mm2/1000000),
+                # x = Total_Sample_Area_mm2,
                  y = Total_Species,
                  colour = Habitat_Broad),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # random slopes
-  # geom_line(data = obs_nest.rich.area  %>% unnest(cols = c(data, predicted)) ,
-  #           aes(x = (Total_Sample_Area_mm2/1000000), y= predicted[,1] ,
-  #               group = Habitat_Broad,
-  #               colour = Habitat_Broad),
-  #           size = 1.2) +
+  geom_line(data = obs_nest.rich.area  %>% unnest(cols = c(data, predicted)) ,
+            aes(x = (Total_Sample_Area_mm2/1000000),
+              #x = Total_Sample_Area_mm2, 
+              y= predicted[,1] ,
+                group = Habitat_Broad,
+                colour = Habitat_Broad),
+            size = 1.2) +
   # fixed effect
   geom_line(data = rich.area_fitted,
-            aes(#x = (Total_Sample_Area_mm2/1000000), 
-                x = Total_Sample_Area_mm2,
+            aes(x = (Total_Sample_Area_mm2/1000000), 
+               # x = Total_Sample_Area_mm2,
                 y = Estimate),
             size = 1.5) +
   # uncertainy in fixed effect
   geom_ribbon(data = rich.area_fitted,
-              aes( #x =  (Total_Sample_Area_mm2/1000000), 
-                  x =  Total_Sample_Area_mm2, 
+              aes( x =  (Total_Sample_Area_mm2/1000000), 
+                  #x =  Total_Sample_Area_mm2, 
                   ymin = Q2.5, ymax = Q97.5),
               alpha = 0.3) +
   #coord_cartesian(xlim = c(min(sb_prep_area$Total_Sample_Area_mm2), quantile(sb_prep_area$Total_Sample_Area_mm2, 0.97))) +
@@ -186,134 +187,210 @@ fig_rich.area <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , mm^2)),
+  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
        color = "Habitat Type") #+ #guides(col = guide_legend(ncol = 2))# +
   #scale_x_log10() + scale_y_log10() 
 
 fig_rich.area
 
+# (Total_Sample_Area_mm2/1000000) =m2
 
 # sample posterior etc
 
 setwd(paste0(path2wd, 'Model_Fits/'))
-load( 'gsb_rich_area-poisson.Rdata')
+load( 'gsb_rich_area_zone_2.Rdata')
 
-# 
-# # biome posterior samples
-# zone_levels <- rich.area$data %>%
-#   as_tibble() %>%
-#   distinct(Biome_WWF_Zone) %>%
-#   mutate(level =  Biome_WWF_Zone) %>%
-#   nest_legacy(level)
-# 
-# 
-# # extract 1000 biome-level posterior samples for each  wwf zone
-# zone_rich.area_posterior <- zone_levels %>%
-#   mutate( area.I.zone = purrr::map(data, ~posterior_samples(rich.area,
-#                                                             pars = paste('r_Biome_WWF_Zone[', as.character(.x$level), ',Intercept]', sep=''),
-#                                                             fixed = TRUE,
-#                                                             subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-#           area.zone = purrr::map(data, ~posterior_samples(rich.area,
-#                                                           pars = paste('r_Biome_WWF_Zone[', as.character(.x$level), ',log_Total_Sample_Area_mm2]', sep=''),
-#                                                           fixed = TRUE,
-#                                                           subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-# 
-#   )
-# 
-# head(zone_rich.area_posterior)
-# 
-# # habitat effects
-# rich.area_zone_posterior <- zone_rich.area_posterior  %>%
-#   dplyr::select(-data) %>%
-#   unnest_legacy(area.I.zone, area.zone) %>%
-#   mutate( area.trt.zone = (area.I.zone + area.zone))
-# 
-# # habitat level effects
-# head(rich.area_zone_posterior)
-# 
-# rich.area.zone.p <-  rich.area_zone_posterior %>%
-#   group_by(Biome_WWF_Zone) %>%
-#   mutate( response = "Zones",
-#           eff = mean(area.trt.zone),
-#           eff_lower = quantile(area.trt.zone, probs=0.025),
-#           eff_upper = quantile(area.trt.zone, probs=0.975)) %>%
-#   dplyr::select(c(Biome_WWF_Zone,eff,eff_upper,eff_lower,response)) %>% distinct()
-# 
-# rich.area.zone.p
-# 
-# # global effects
-# rich.area.fixed.p <- posterior_samples(rich.area, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
-# 
-# head(rich.area.fixed.p)
-# 
-# 
-# # select columns of interests and give meaningful names
-# rich.area_global_posterior <-  rich.area.fixed.p %>% dplyr::select(`b_Intercept`,
-#                                                                  `b_log_Total_Sample_Area_mm2`) %>%
-#   mutate(rich.area.I.global =`b_Intercept`,
-#          rich.area.global =`b_log_Total_Sample_Area_mm2`,
-#          rich.area.trt.global = (rich.area.I.global + rich.area.global))  %>%
-#   dplyr::select(-c(`b_Intercept`,
-#                    `b_log_Total_Sample_Area_mm2`))
-# 
-# head(rich.area_global_posterior)
-# 
-# rich.area.global.p <-  rich.area_global_posterior %>%
-#   mutate( response = "Global", Biome_WWF_Zone = "Global",
-#           eff = mean(rich.area.trt.global),
-#           eff_lower = quantile(rich.area.trt.global, probs=0.025),
-#           eff_upper = quantile(rich.area.trt.global, probs=0.975)) %>%
-#   dplyr::select(c(Biome_WWF_Zone,eff,eff_upper,eff_lower,response)) %>% distinct()
-# 
-# rich.area.global.p
-# 
-# setwd(paste0(path2wd, 'Data/'))
-# # save data objects to avoid time of compiling every time
-# save(rich.area.global.p,rich.area.zone.p, file = 'global.rich.area.poisson.zone.posteriors.Rdata')
 
+# Habitat level posterior samples
+hab_levels <- rich.p_zones_2$data %>% 
+  as_tibble() %>% 
+  distinct(Habitat_Broad) %>% 
+  mutate(level =  Habitat_Broad) %>%
+  nest_legacy(level)
+
+# extract 1000 study-level posterior samples for each habitat and wwf zone
+hab_rich.area_posterior <- hab_levels %>%
+  mutate( area.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
+                                                         pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2]', sep=''),
+                                                         fixed = TRUE,
+                                                         subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
+          area.med.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
+                                                             pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert]', sep=''),
+                                                             fixed = TRUE,
+                                                             subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
+          area.temp.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
+                                                              pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate]', sep=''),
+                                                              fixed = TRUE,
+                                                              subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
+          area.trop.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
+                                                              pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical]', sep=''),
+                                                              fixed = TRUE,
+                                                              subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
+          area.tund.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
+                                                              pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra]', sep=''),
+                                                              fixed = TRUE,
+                                                              subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
+  )
+
+head(hab_rich.area_posterior)
+
+# habitat effects
+rich.area_hab_posterior <- hab_rich.area_posterior  %>% 
+  dplyr::select(-data) %>% 
+  unnest_legacy(area.hab, area.med.hab, area.temp.hab, area.trop.hab, area.tund.hab) %>%
+  mutate( rich.area.bor.hab = area.hab,
+          rich.area.med.hab = (area.hab + area.med.hab),
+          rich.area.temp.hab = (area.hab + area.temp.hab),
+          rich.area.trop.hab = (area.hab + area.trop.hab),
+          rich.area.tund.hab = (area.hab + area.tund.hab))
+
+# habitat level effects
+head(rich.area_hab_posterior)
+
+# global effects
+rich.area.fixed.p <- posterior_samples(rich.p_zones_2, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
+
+head(rich.area.fixed.p)
+
+# select columns of interests and give meaningful names
+rich.area_global_posterior <-  rich.area.fixed.p %>% dplyr::select(`b_log_Total_Sample_Area_mm2`,
+                                                                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`,
+                                                                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`,
+                                                                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`,
+                                                                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`) %>%
+  mutate(rich.area.bor.global =`b_log_Total_Sample_Area_mm2`,
+         rich.med.global =`b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`,
+         rich.temp.global = `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`,
+         rich.trop.global = `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`,
+         rich.tund.global = `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`,
+         rich.area.med.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`),
+         rich.area.temp.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`),
+         rich.area.trop.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`),
+         rich.area.tund.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`),
+  ) %>%
+  dplyr::select(-c(`b_log_Total_Sample_Area_mm2`,
+                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`,
+                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`,
+                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`,
+                   `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`))
+
+head(rich.area_global_posterior)
+
+rich.area.bor.p <-  rich.area_global_posterior %>% 
+  mutate( response = "Boreal", eff = mean(rich.area.bor.global),
+          eff_lower = quantile(rich.area.bor.global, probs=0.025),
+          eff_upper = quantile(rich.area.bor.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Med
+rich.area.med.p <-  rich.area_global_posterior %>% 
+  mutate( response = "MediterraneanandDesert", eff = mean(rich.area.med.global),
+          eff_lower = quantile(rich.area.med.global, probs=0.025),
+          eff_upper = quantile(rich.area.med.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Temp
+rich.area.temp.p <-  rich.area_global_posterior %>% 
+  mutate( response = "Temperate", eff = mean(rich.area.temp.global),
+          eff_lower = quantile(rich.area.temp.global, probs=0.025),
+          eff_upper = quantile(rich.area.temp.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Trop
+rich.area.trop.p <-  rich.area_global_posterior %>% 
+  mutate( response = "Tropical", eff = mean(rich.area.trop.global),
+          eff_lower = quantile(rich.area.trop.global, probs=0.025),
+          eff_upper = quantile(rich.area.trop.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Tund
+rich.area.tund.p <-  rich.area_global_posterior %>% 
+  mutate( response = "Tundra", eff = mean(rich.area.tund.global),
+          eff_lower = quantile(rich.area.tund.global, probs=0.025),
+          eff_upper = quantile(rich.area.tund.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+global.rich.area.p <- bind_rows(rich.area.bor.p, rich.area.med.p,
+                                rich.area.temp.p, rich.area.trop.p,
+                                rich.area.tund.p)
+head(global.rich.area.p)
 
 setwd(paste0(path2wd, 'Data/'))
-load('global.rich.area.poisson.zone.posteriors.Rdata')
+# save data objects to avoid time of compiling every time
+save(global.rich.area.p, file = 'global.rich.area.poisson.posteriors.Rdata')
 
-head(rich.area.global.p)
-head(rich.area.zone.p)
 
-fig_rich.area_global <- ggplot() + 
-  geom_point(data = rich.area.global.p, aes(x = response, y = eff,color=response),size = 2) +
-  geom_errorbar(data = rich.area.global.p, aes(x = response,ymin = eff_lower,
+fig_rich.area_global_zones <- ggplot() + 
+  geom_point(data = global.rich.area.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.rich.area.p, aes(x = response,ymin = eff_lower,
                                                ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
        y='Slope') +
   geom_hline(yintercept = 0, lty = 2) +
-  #scale_y_continuous(breaks=c(0,-8)) +
+  # scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
-fig_rich.area_global
+fig_rich.area_global_zones
 
-head(rich.area.zone.p)
 
-fig_rich.area_zones <- ggplot() + 
-  #facet_wrap(~response) +
-  geom_point(data = rich.area.zone.p, aes(x = Biome_WWF_Zone, y = eff,color=Biome_WWF_Zone),size = 2) +
-  geom_errorbar(data = rich.area.zone.p, aes(x = Biome_WWF_Zone,ymin = eff_lower,
-                                             ymax = eff_upper, color=Biome_WWF_Zone),
+
+# Habitat level
+head(rich.area_hab_posterior)
+
+rich.area.bor.hab.p <-  rich.area_hab_posterior %>% group_by(Habitat_Broad) %>%
+  mutate( response = "Boreal", eff = mean(rich.area.bor.hab),
+          eff_lower = quantile(rich.area.bor.hab, probs=0.025),
+          eff_upper = quantile(rich.area.bor.hab, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Med
+rich.area.med.hab.p <-  rich.area_hab_posterior %>% group_by(Habitat_Broad) %>%
+  mutate( response = "MediterraneanandDesert", eff = mean(rich.area.med.hab),
+          eff_lower = quantile(rich.area.med.hab, probs=0.025),
+          eff_upper = quantile(rich.area.med.hab, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Temp
+rich.area.temp.hab.p <-  rich.area_hab_posterior %>% group_by(Habitat_Broad) %>%
+  mutate( response = "Temperate", eff = mean(rich.area.temp.hab),
+          eff_lower = quantile(rich.area.temp.hab, probs=0.025),
+          eff_upper = quantile(rich.area.temp.hab, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Trop
+rich.area.trop.hab.p <-  rich.area_hab_posterior %>% group_by(Habitat_Broad) %>%
+  mutate( response = "Tropical", eff = mean(rich.area.trop.hab),
+          eff_lower = quantile(rich.area.trop.hab, probs=0.025),
+          eff_upper = quantile(rich.area.trop.hab, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Tund
+rich.area.tund.hab.p <-  rich.area_hab_posterior %>% group_by(Habitat_Broad) %>%
+  mutate( response = "Tundra", eff = mean(rich.area.tund.hab),
+          eff_lower = quantile(rich.area.tund.hab, probs=0.025),
+          eff_upper = quantile(rich.area.tund.hab, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+hab.rich.area.p <- bind_rows(rich.area.bor.hab.p, rich.area.med.hab.p,
+                             rich.area.temp.hab.p, rich.area.trop.hab.p,
+                             rich.area.tund.hab.p)
+head(hab.rich.area.p)
+
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(hab.rich.area.p, file = 'habitat.rich.area.poisson.posteriors.Rdata')
+
+
+fig_rich.area_habitat <- ggplot() + 
+  facet_wrap(~response) +
+  geom_point(data = hab.rich.area.p, aes(x = Habitat_Broad, y = eff,color=Habitat_Broad),size = 2) +
+  geom_errorbar(data = hab.rich.area.p, aes(x = Habitat_Broad,ymin = eff_lower,
+                                            ymax = eff_upper, color=Habitat_Broad),
                 width = 0, size = 0.7) +
   labs(x = '',
        y='Slope') +
   geom_hline(yintercept = 0, lty = 2) +
-  #scale_y_continuous(breaks=c(0,-8)) +
+  # scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
-fig_rich.area_zones
-
-
-
-(fig_rich.area_global|fig_rich.area_zones)
+fig_rich.area_habitat
 
