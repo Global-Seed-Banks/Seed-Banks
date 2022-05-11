@@ -20,13 +20,13 @@ sb <- read.csv('sb_prep.csv')
 
 
 setwd(paste0(path2wd, 'Model_Fits/'))
-load( 'gsb_rich_area-student.Rdata')
+load( 'gsb_rich_area_zone_2.Rdata')
 
 
-summary(rich.area)
+summary(rich.p_zones_2)
 
 # Habitat level posterior samples
-hab_levels <- rich.area$data %>% 
+hab_levels <- rich.p_zones_2$data %>% 
   as_tibble() %>% 
   distinct(Habitat_Broad) %>% 
   mutate(level =  Habitat_Broad) %>%
@@ -34,23 +34,23 @@ hab_levels <- rich.area$data %>%
 
 # extract 1000 study-level posterior samples for each habitat and wwf zone
 hab_rich.area_posterior <- hab_levels %>%
-  mutate( area.hab = purrr::map(data, ~posterior_samples(rich.area,
+  mutate( area.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                          pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2]', sep=''),
                                                          fixed = TRUE,
                                                          subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.med.hab = purrr::map(data, ~posterior_samples(rich.area,
+          area.med.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                              pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert]', sep=''),
                                                              fixed = TRUE,
                                                              subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.temp.hab = purrr::map(data, ~posterior_samples(rich.area,
+          area.temp.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                               pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate]', sep=''),
                                                               fixed = TRUE,
                                                               subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.trop.hab = purrr::map(data, ~posterior_samples(rich.area,
+          area.trop.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                               pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical]', sep=''),
                                                               fixed = TRUE,
                                                               subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.tund.hab = purrr::map(data, ~posterior_samples(rich.area,
+          area.tund.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                               pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra]', sep=''),
                                                               fixed = TRUE,
                                                               subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
@@ -72,7 +72,7 @@ rich.area_hab_posterior <- hab_rich.area_posterior  %>%
 head(rich.area_hab_posterior)
 
 # global effects
-rich.area.fixed.p <- posterior_samples(rich.area, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
+rich.area.fixed.p <- posterior_samples(rich.p_zones_2, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
 
 head(rich.area.fixed.p)
 
@@ -137,7 +137,7 @@ head(global.rich.area.p)
 
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
-save(global.rich.area.p, file = 'global.rich.area.student.posteriors.Rdata')
+save(global.rich.area.p, file = 'global.rich.area.poisson.posteriors.Rdata')
 
 
 fig_rich.area_global_zones <- ggplot() + 
@@ -148,7 +148,7 @@ fig_rich.area_global_zones <- ggplot() +
   labs(x = '',
        y='Slope') +
   geom_hline(yintercept = 0, lty = 2) +
-  scale_y_continuous(breaks=c(0,-8)) +
+ # scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -198,7 +198,7 @@ head(hab.rich.area.p)
 
 setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
-save(hab.rich.area.p, file = 'habitat.rich.area.student.posteriors.Rdata')
+save(hab.rich.area.p, file = 'habitat.rich.area.poisson.posteriors.Rdata')
 
 
 fig_rich.area_habitat <- ggplot() + 
@@ -210,7 +210,7 @@ fig_rich.area_habitat <- ggplot() +
   labs(x = '',
        y='Slope') +
   geom_hline(yintercept = 0, lty = 2) +
-  scale_y_continuous(breaks=c(0,-8)) +
+ # scale_y_continuous(breaks=c(0,-8)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -221,12 +221,12 @@ fig_rich.area_habitat
 
 # SAMPLES ###############################
 setwd(paste0(path2wd, 'Model_Fits/'))
-load( 'gsb_rich_samps-poisson.Rdata')
+load( 'gsb_rich_area_zone_2.Rdata')
 
 summary(rich.samps)
 
 # Habitat level posterior samples
-hab_levels <- rich.samps$data %>% 
+hab_levels <- rich.p_zones_2$data %>% 
   as_tibble() %>% 
   distinct(Habitat_Broad) %>% 
   mutate(level =  Habitat_Broad) %>%
@@ -234,23 +234,23 @@ hab_levels <- rich.samps$data %>%
 
 # extract 1000 study-level posterior samples for each habitat and wwf zone
 hab_rich.samps_posterior <- hab_levels %>%
-  mutate( area.hab = purrr::map(data, ~posterior_samples(rich.samps,
+  mutate( area.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                          pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Number_Samples]', sep=''),
                                                          fixed = TRUE,
                                                          subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.med.hab = purrr::map(data, ~posterior_samples(rich.samps,
+          area.med.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                              pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Number_Samples:Biome_WWF_ZoneMediterraneanandDesert]', sep=''),
                                                              fixed = TRUE,
                                                              subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.temp.hab = purrr::map(data, ~posterior_samples(rich.samps,
+          area.temp.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                               pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Number_Samples:Biome_WWF_ZoneTemperate]', sep=''),
                                                               fixed = TRUE,
                                                               subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.trop.hab = purrr::map(data, ~posterior_samples(rich.samps,
+          area.trop.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                               pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Number_Samples:Biome_WWF_ZoneTropical]', sep=''),
                                                               fixed = TRUE,
                                                               subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
-          area.tund.hab = purrr::map(data, ~posterior_samples(rich.samps,
+          area.tund.hab = purrr::map(data, ~posterior_samples(rich.p_zones_2,
                                                               pars = paste('r_Habitat_Broad[', as.character(.x$level), ',log_Total_Number_Samples:Biome_WWF_ZoneTundra]', sep=''),
                                                               fixed = TRUE,
                                                               subset = floor(runif(n = 1000, 1, max = 2000))) %>%  unlist() %>%  as.numeric()),
@@ -272,7 +272,7 @@ rich.samps_hab_posterior <- hab_rich.samps_posterior  %>%
 head(rich.samps_hab_posterior)
 
 # global effects
-rich.samps.fixed.p <- posterior_samples(rich.samps, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
+rich.samps.fixed.p <- posterior_samples(rich.p_zones_2, "^b" , subset = floor(runif(n = 1000, 1, max = 2000)))
 
 head(rich.samps.fixed.p)
 

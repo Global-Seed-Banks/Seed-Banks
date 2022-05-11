@@ -51,14 +51,14 @@ plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_W
 # on linear scale
 plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) 
 
-# voilá! ;-)
+# voil?! ;-)
 
 
 # a more complex model ---------------------------------------------------------
 # accounts for the studyID covariate 
 
-rich.area.2 <- glmer(Total_Species ~ Biome_WWF_Zone*log(Total_Sample_Area_mm2) +
-                                  (1|studyID), 
+rich.area.2 <- glmer(Total_Species ~ Biome_WWF_Zone * log(Total_Sample_Area_mm2) +
+                                  (Biome_WWF_Zone *  | Habitat_Broad/Method), 
                  family = poisson(), data = sb_prep)
 
 # overall summary

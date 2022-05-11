@@ -45,6 +45,8 @@ nrow(sb_prep_area)
 setwd(paste0(path2wd, 'Model_Fits/'))
 # save model object
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
+load( 'gsb_rich_area_habs.Rdata')
+load( 'gsb_rich_area_zone.Rdata')
 load( 'gsb_rich_area_zone_2.Rdata')
 
 # rich.p_zones
@@ -52,30 +54,32 @@ load( 'gsb_rich_area_zone_2.Rdata')
 # model summary
 summary(rich.p_zones)
 summary(rich.p_zones_2)
-summary(rich.p_zones_3)
+summary(rich.p_habs)
 
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_rich.area <- pp_check(rich.p_zones)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") +
-  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
-
-pp_rich.area_2 <- pp_check(rich.p_zones_2)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") +
-  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
-
-pp_rich.area_3 <- pp_check(rich.p_zones_3)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
+pp_rich.habs <- pp_check(rich.p_habs)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
+  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-(pp_rich.area | pp_rich.area_2 | pp_rich.area_3)
+
+pp_rich.area_2 <- pp_check(rich.p_zones_2)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") +  xlim(0,300)+ ylim(0,0.040)+
+  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
+
+pp_rich.area_2
+
+(pp_rich.area | pp_rich.habs )
 
 
 # caterpillars/chains
 plot(rich.p_zones)
-plot(rich.p_zones_2)
-plot(rich.p_zones_3)
+plot(pp_rich.habs)
+
 
 # check model residuals
 ma <- residuals(rich.p_zones)
