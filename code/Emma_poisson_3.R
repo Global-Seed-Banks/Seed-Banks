@@ -73,7 +73,7 @@ pp_rich.area_2 <- pp_check(rich.p_zones_2)+ xlab( "Total Species") + ylab("Densi
 
 pp_rich.area_2
 
-(pp_rich.area | pp_rich.habs )
+(pp_rich.area |  pp_rich.area_2 | pp_rich.habs )
 
 
 # caterpillars/chains
