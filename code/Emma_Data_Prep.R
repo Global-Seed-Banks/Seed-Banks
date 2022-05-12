@@ -28,10 +28,13 @@ sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Samp
                           log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
                           Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000),
                           Total_Sample_Volume_m3 = (Total_Sample_Volume_mm3/1000000000),
+                          log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
                           Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
                           Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3, na.rm = TRUE),
                           Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
-                          Centred_Total_Sample_Area_m2 = Total_Sample_Area_m2 - mean(Total_Sample_Area_m2, na.rm = TRUE)
+                          Centred_Total_Sample_Area_m2 = Total_Sample_Area_m2 - mean(Total_Sample_Area_m2, na.rm = TRUE),
+                          Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
+                          Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE)
 ) 
 
 
@@ -89,6 +92,9 @@ sb_deets
 # sb00 <- sb_calc %>% filter(Total_Species == 0)
 # sb00
 # nrow(sb00)
+
+
+View(sb_calc)
 
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_calc,  "sb_prep.csv")

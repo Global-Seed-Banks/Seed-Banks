@@ -23,8 +23,7 @@ sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 nrow(sb_prep)
 
 # remove NA values 
-sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species2),
-                                !is.na(Total_Sample_Area_mm2)) %>%
+sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species)) %>%
   # treat all random effects as factors
   mutate( Biome_WWF_Zone = as.factor(Biome_WWF_Zone),
           Habitat_Broad = as.factor(Habitat_Broad),
@@ -33,9 +32,10 @@ sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species2),
 
 head(sb_prep_area)
 nrow(sb_prep_area)
+colnames(sb_prep_area)
 
 # 2-way interaction model ------------------------------------------------------
-rich.area <- glm(Total_Species ~ Biome_WWF_Zone*log(Total_Sample_Area_mm2),
+rich.area <- glm(Total_Species ~ Biome_WWF_Zone*log(Total_Sample_Area_m2),
                  family = poisson(), data = sb_prep)
 
 # overall summary
@@ -45,11 +45,11 @@ summary(rich.area)
 r2_mcfadden(rich.area)
 
 # in log-log
-plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) +
+plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_m2", "Biome_WWF_Zone")) +
            scale_x_log10() + scale_y_log10() 
 
 # on linear scale
-plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) 
+plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_m2", "Biome_WWF_Zone")) 
 
 # voil?! ;-)
 
@@ -58,34 +58,59 @@ plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_W
 # accounts for the studyID covariate 
 head(sb_prep)
 
-rich.area.2 <- glmer(Total_Species ~ Biome_WWF_Zone * log(Total_Sample_Area_mm2) +
-                                  (  1 | studyID ), 
+
+
+rich.area.2 <- glmer(Total_Species ~ Biome_WWF_Zone *  log(Total_Sample_Area_m2) +
+                                  (   1 | Method/studyID ), 
                  family = poisson(), data = sb_prep)
 
 # overall summary
 summary(rich.area.2)
 
 # in log-log
-plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) +
+plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_m2", "Biome_WWF_Zone")) +
   scale_x_log10() + scale_y_log10() 
 
 # on linear scale
-plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) 
+plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_m2", "Biome_WWF_Zone")) 
 
 
 head(sb_prep)
 
 
-rich.area.3 <- glmer(Total_Species ~ Habitat_Broad  * log(Total_Sample_Area_mm2) +
-                       ( 1| Method/studyID ), 
+rich.area.3 <- glmer(Total_Species ~ Habitat_Broad  * log(Total_Sample_Area_m2) +
+                       ( 1 | studyID ), 
                      family = poisson(), data = sb_prep)
 
 # overall summary
 summary(rich.area.3)
 
 # in log-log
-plot_model(rich.area.3, type = "pred", terms = c("Total_Sample_Area_mm2", "Habitat_Broad")) +
+plot_model(rich.area.3, type = "pred", terms = c("Total_Sample_Area_m2", "Habitat_Broad")) +
   scale_x_log10() + scale_y_log10() 
 
 # on linear scale
-plot_model(rich.area.3, type = "pred", terms = c("Total_Sample_Area_mm2", "Habitat_Broad")) 
+plot_model(rich.area.3, type = "pred", terms = c("Total_Sample_Area_m2", "Habitat_Broad")) 
+
+ # degraded
+
+colnames(sb_prep)
+
+sb_prep$Habitat_Degraded <- as.factor(sb_prep$Habitat_Degraded)
+
+rich.area.4 <- glmer(Total_Species ~  Habitat_Broad  + Habitat_Degraded +  Biome_WWF_Zone * log(Total_Sample_Area_m2) +
+                       ( 1 | Method/studyID/rowID ), 
+                     family = poisson(), data = sb_prep)
+
+# overall summary
+summary(rich.area.4)
+
+# in log-log
+plot_model(rich.area.4, type = "pred", terms = c("Total_Sample_Area_m2", "Biome_WWF_Zone")) +
+  scale_x_log10() + scale_y_log10() 
+
+# on linear scale
+plot_model(rich.area.4, type = "pred", terms = c("Total_Sample_Area_m2", "Biome_WWF_Zone")) 
+
+
+
