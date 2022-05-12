@@ -54,7 +54,7 @@ load( 'gsb_rich_area_zone_2.Rdata')
 # model summary
 summary(rich.p_zones)
 summary(rich.p_zones_2)
-summary(rich.p_habs)
+jksummary(rich.p_habs)
 
 # posterior predictive check
 color_scheme_set("darkgray")

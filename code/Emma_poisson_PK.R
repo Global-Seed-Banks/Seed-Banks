@@ -56,9 +56,10 @@ plot_model(rich.area, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_W
 
 # a more complex model ---------------------------------------------------------
 # accounts for the studyID covariate 
+head(sb_prep)
 
 rich.area.2 <- glmer(Total_Species ~ Biome_WWF_Zone * log(Total_Sample_Area_mm2) +
-                                  (Biome_WWF_Zone *  | Habitat_Broad/Method), 
+                                  (  1 | studyID ), 
                  family = poisson(), data = sb_prep)
 
 # overall summary
@@ -72,3 +73,19 @@ plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome
 plot_model(rich.area.2, type = "pred", terms = c("Total_Sample_Area_mm2", "Biome_WWF_Zone")) 
 
 
+head(sb_prep)
+
+
+rich.area.3 <- glmer(Total_Species ~ Habitat_Broad  * log(Total_Sample_Area_mm2) +
+                       ( 1| Method/studyID ), 
+                     family = poisson(), data = sb_prep)
+
+# overall summary
+summary(rich.area.3)
+
+# in log-log
+plot_model(rich.area.3, type = "pred", terms = c("Total_Sample_Area_mm2", "Habitat_Broad")) +
+  scale_x_log10() + scale_y_log10() 
+
+# on linear scale
+plot_model(rich.area.3, type = "pred", terms = c("Total_Sample_Area_mm2", "Habitat_Broad")) 
