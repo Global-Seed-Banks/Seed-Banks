@@ -24,7 +24,7 @@ sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 nrow(sb_prep)
 
 # remove NA values 
-sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species2),
+sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
   mutate( Biome_WWF_Zone = as.factor(Biome_WWF_Zone),
@@ -56,14 +56,14 @@ setwd(paste0(path2wd, 'Model_Fits/'))
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
 load( 'gsb_rich_area_habs.Rdata')
 load( 'gsb_rich_area_zone.Rdata')
-#load( 'gsb_rich_area_i.Rdata')
+load( 'gsb_rich_area_i.Rdata')
 
 # rich.p_zones
 # rich.p_habs
 
 # model summary
 summary(rich.p_zones)
-#summary(rich.p_i) # doesnt converge yet- working on a new one
+summary(rich.p_i) # doesnt converge yet- working on a new one
 summary(rich.p_habs)
 
 # posterior predictive check
@@ -77,40 +77,55 @@ pp_rich.habs <- pp_check(rich.p_habs)+ xlab( "Total Species") + ylab("Density") 
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
 
-# pp_rich.area_i <- pp_check(rich.p_i)+ xlab( "Total Species") + ylab("Density") +
-#   labs(title= "") +  xlim(0,300)+ ylim(0,0.040)+
-#   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
+pp_rich.area_i <- pp_check(rich.p_i)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") +  xlim(0,300)+ ylim(0,0.040)+
+  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-
-
-(pp_rich.area |   pp_rich.habs )
+(pp_rich.area | pp_rich.habs | pp_rich.area_i )
 
 
 # caterpillars/chains
 plot(rich.p_zones)
-plot(pp_rich.habs)
+plot(rich.p_habs)
+
+
 
 
 # # check model residuals
-# ma <- residuals(rich.p_zones)
-# ma <- as.data.frame(ma)
-# ar.plot <- cbind(sb_prep_area, ma$Estimate)
-# 
-# #make sure they are factors
-# ar.plot$Biome_WWF_Zone <- as.factor(ar.plot$Biome_WWF_Zone )
-# #ar.plot$Habitat_Broad <- as.factor(ar.plot$Habitat_Broad )
-# #ar.plot$studyID <- as.factor(ar.plot$studyID )
-# #ar.plot$rowID <- as.factor(ar.plot$rowID )
-# #plot residuals
-# par(mfrow=c(1,2))
-# with(ar.plot, plot(Biome_WWF_Zone, ma$Estimate))
-# with(ar.plot, plot(Habitat_Broad, ma$Estimate))
-# #with(ar.plot, plot(studyID, ma$Estimate))
-# #with(ar.plot, plot(rowID, ma$Estimate))
-# 
-# 
-# head(sb_prep_area)
-#  
+# zones
+mr.zones <- residuals(rich.p_zones)
+mr.zones <- as.data.frame(mr.zones)
+nrow(mr.zones)
+nrow(sb_prep_area)
+zones.plot <- cbind(sb_prep_area, mr.zones$Estimate)
+
+#mr.zoneske sure they are factors
+zones.plot$Biome_WWF_Zone <- as.factor(zones.plot$Biome_WWF_Zone )
+zones.plot$studyID <- as.factor(zones.plot$studyID )
+zones.plot$rowID <- as.factor(zones.plot$rowID )
+#plot residuals
+par(mfrow=c(1,3))
+with(zones.plot, plot(Biome_WWF_Zone, mr.zones$Estimate))
+with(zones.plot, plot(studyID, mr.zones$Estimate))
+with(zones.plot, plot(rowID, mr.zones$Estimate))
+# and habs
+mr.habs <- residuals(rich.p_habs)
+mr.habs <- as.data.frame(mr.habs)
+nrow(mr.habs)
+nrow(sb_prep_area)
+habs.plot <- cbind(sb_prep_area, mr.habs$Estimate)
+habs.plot$Habitat_Broad <- as.factor(habs.plot$Habitat_Broad )
+habs.plot$studyID <- as.factor(habs.plot$studyID )
+habs.plot$rowID <- as.factor(habs.plot$rowID )
+#plot residuals
+par(mfrow=c(1,3))
+with(habs.plot, plot(Habitat_Broad, mr.habs$Estimate))
+with(habs.plot, plot(studyID, mr.habs$Estimate))
+with(habs.plot, plot(rowID, mr.habs$Estimate))
+
+head(sb_prep_area)
+
+# WWF ZONES model
 # # for plotting fixed effects
 rich.area.zone_fitted <- cbind(rich.p_zones$data,
                              fitted(rich.p_zones, re_formula = NA
@@ -177,7 +192,8 @@ fig_rich.area.zone <- ggplot() +
                                   legend.position="none") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
        color = "WWF Zone") #+
-  #scale_x_log10() + scale_y_log10() 
+ # xlim(0,800)+ ylim(0,200)+
+ # scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.zone
 
@@ -250,8 +266,9 @@ fig_rich.area.habs <- ggplot() +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="none") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "habitats") #+ #guides(col = guide_legend(ncol = 2))# +
-#scale_x_log10() + scale_y_log10() 
+       color = "habitats") #+
+# xlim(0,800)+ ylim(0,200)+
+ #scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.habs
 
