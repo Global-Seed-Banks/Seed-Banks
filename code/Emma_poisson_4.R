@@ -212,11 +212,9 @@ rich.area.habs_coef
 
 
 setwd(paste0(path2wd, 'Data/'))
-# # # save data objects to avoid doing this every time
 save(rich.area.habs_fitted, rich.area.habs_fixef, file = 'rich.area.habs.poisson.mod_dat.Rdata')
 
 setwd(paste0(path2wd, 'Data/'))
-#load('rich.area.poisson.mod_dat.Rdata')
 load('rich.area.habs.poisson.mod_dat.Rdata')
 
 # plot richness area relationship
