@@ -164,7 +164,7 @@ save(rich.area.zone_fitted, rich.area.zone_fixef, file = 'rich.area.zone.poisson
 
 
 fig_rich.area.zone <- ggplot() + 
-  facet_wrap(~Biome_WWF_Zone, scales="free") +
+  #facet_wrap(~Biome_WWF_Zone, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -189,11 +189,11 @@ fig_rich.area.zone <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="none") +
+                                  legend.position="bottom") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "WWF Zone") #+
- # xlim(0,800)+ ylim(0,200)+
- # scale_x_log10() + scale_y_log10() 
+       color = "WWF Zone", fill = "WWF Zone") + guides(col = guide_legend(ncol = 2))+
+  #xlim(0,800)+ ylim(0,200)+
+  scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.zone
 
@@ -237,7 +237,7 @@ load('rich.area.habs.poisson.mod_dat.Rdata')
 colnames(sb_prep_area)
 
 fig_rich.area.habs <- ggplot() + 
-  facet_wrap(~Habitat_Broad, scales="free") +
+ # facet_wrap(~Habitat_Broad, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -264,13 +264,18 @@ fig_rich.area.habs <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="none") +
+                                  legend.position="bottom") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "habitats") #+
+       color = "Habitats", fill = "Habitats") +  guides(col = guide_legend(ncol = 2))+
 # xlim(0,800)+ ylim(0,200)+
- #scale_x_log10() + scale_y_log10() 
+ scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.habs
+
+
+(fig_rich.area.zone | fig_rich.area.habs)
+
+
 
 # (Total_Sample_Area_mm2/1000000) =m2
 
