@@ -8,8 +8,7 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 
 
 rich.p_i <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad * Biome_WWF_Zone + ( 1 | studyID ),
-                family = poisson(), data = sb, cores = 4, chains = 4, iter = 2000, warmup =1000,
-                control = list(adapt_delta = 0.9))
+                family = poisson(), data = sb, cores = 4, chains = 4, iter = 2000, warmup =1000)
 
 
 
