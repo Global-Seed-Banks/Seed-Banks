@@ -9,7 +9,7 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 
 #sb <- sb 
 
-sb_dat <- sb %>% filter(!is.na(Total_Species2),
+sb_dat <- sb %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
   mutate( Biome_WWF_Zone = as.factor(Biome_WWF_Zone),
