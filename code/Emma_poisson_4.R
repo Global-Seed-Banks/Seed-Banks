@@ -59,10 +59,11 @@ setwd(paste0(path2wd, 'Model_Fits/'))
 load( 'gsb_rich_area_habs.Rdata')
 load( 'gsb_rich_area_zone.Rdata')
 # allowing intercepts and slopes they dont
-load( 'gsb_rich_area_habs_2.Rdata')
+load( 'gsb_rich_area_hab_2.Rdata')
 load( 'gsb_rich_area_zone_3.Rdata')
 #trying fopr some kind of interaction instead of two seperate mods
 load( 'gsb_rich_area_i.Rdata')
+load( 'gsb_rich_area_i_2.Rdata')
 
 # rich.p_zones
 # rich.p_habs
@@ -72,6 +73,7 @@ summary(rich.p_zones)
 summary(rich.p_zones_2) # doesnt converge
 summary(rich.p_zones_3) # doesnt converge
 summary(rich.p_i) # doesnt converge yet- working on a new one
+summary(rich.p_i_2) # doesnt converge yet- working on a new one
 summary(rich.p_habs)
 summary(rich.p_habs_2) # doesnt converge
 
@@ -85,6 +87,8 @@ pp_rich.area_3 <- pp_check(rich.p_zones_3)+ xlab( "Total Species") + ylab("Densi
   labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
+pp_rich.area_3
+
 pp_rich.habs <- pp_check(rich.p_habs)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
@@ -93,19 +97,18 @@ pp_rich.habs_2 <- pp_check(rich.p_habs_2)+ xlab( "Total Species") + ylab("Densit
   labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-pp_rich.area_i <- pp_check(rich.p_i)+ xlab( "Total Species") + ylab("Density") +
+pp_rich.habs_2
+
+pp_rich.area_i <- pp_check(rich.p_i_2)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") +  xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-(pp_rich.area | pp_rich.area_3 | pp_rich.habs | pp_rich.habs_2 )
+(pp_rich.area | pp_rich.area_3 | pp_rich.habs | pp_rich.habs_2 | pp_rich.area_i)
 
 
 # caterpillars/chains
 plot(rich.p_zones)
 plot(rich.p_habs)
-
-
-
 
 # # check model residuals
 # zones
@@ -207,9 +210,9 @@ fig_rich.area.zone <- ggplot() +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "WWF Zone", fill = "WWF Zone") + guides(col = guide_legend(ncol = 2))+
+       color = "WWF Zone", fill = "WWF Zone", title= "WWF Zones") + guides(col = guide_legend(ncol = 2))#+
   #xlim(0,800)+ ylim(0,200)+
-  scale_x_log10() + scale_y_log10() 
+ # scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.zone
 
@@ -282,9 +285,9 @@ fig_rich.area.habs <- ggplot() +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Habitats", fill = "Habitats") +  guides(col = guide_legend(ncol = 2))+
+       color = "Habitats", fill = "Habitats", title = "Habitats") +  guides(col = guide_legend(ncol = 2)) #+
 # xlim(0,800)+ ylim(0,200)+
- scale_x_log10() + scale_y_log10() 
+ #scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.habs
 
