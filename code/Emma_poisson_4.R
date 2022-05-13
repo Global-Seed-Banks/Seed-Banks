@@ -54,8 +54,14 @@ nrow(sb_prep_area)
 setwd(paste0(path2wd, 'Model_Fits/'))
 # save model object
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
+
+# allowing intercepts to vary- mods converge
 load( 'gsb_rich_area_habs.Rdata')
 load( 'gsb_rich_area_zone.Rdata')
+# allowing intercepts and slopes they dont
+load( 'gsb_rich_area_habs_2.Rdata')
+load( 'gsb_rich_area_zone_3.Rdata')
+#trying fopr some kind of interaction instead of two seperate mods
 load( 'gsb_rich_area_i.Rdata')
 
 # rich.p_zones
@@ -63,8 +69,11 @@ load( 'gsb_rich_area_i.Rdata')
 
 # model summary
 summary(rich.p_zones)
+summary(rich.p_zones_2) # doesnt converge
+summary(rich.p_zones_3) # doesnt converge
 summary(rich.p_i) # doesnt converge yet- working on a new one
 summary(rich.p_habs)
+summary(rich.p_habs_2) # doesnt converge
 
 # posterior predictive check
 color_scheme_set("darkgray")
@@ -72,16 +81,23 @@ pp_rich.area <- pp_check(rich.p_zones)+ xlab( "Total Species") + ylab("Density")
   labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
+pp_rich.area_3 <- pp_check(rich.p_zones_3)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
+  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
+
 pp_rich.habs <- pp_check(rich.p_habs)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
+pp_rich.habs_2 <- pp_check(rich.p_habs_2)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
+  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
 pp_rich.area_i <- pp_check(rich.p_i)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") +  xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-(pp_rich.area | pp_rich.habs | pp_rich.area_i )
+(pp_rich.area | pp_rich.area_3 | pp_rich.habs | pp_rich.habs_2 )
 
 
 # caterpillars/chains
