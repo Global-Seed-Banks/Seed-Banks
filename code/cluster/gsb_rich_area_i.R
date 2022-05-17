@@ -25,11 +25,13 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
 #                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
 
 
-rich.p_i_3 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Biome_WWF_Zone  * Habitat_Broad + ( Biome_WWF_Zone  * Habitat_Broad  | Habitat_Degraded ) ,
-                family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
+# rich.p_i_3 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Biome_WWF_Zone  * Habitat_Broad + ( Biome_WWF_Zone  * Habitat_Broad  | Habitat_Degraded ) ,
+#                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
 
+rich.p_i_4 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Biome_WWF_Zone  * Habitat_Broad + ( 1  | Habitat_Degraded ) ,
+                  family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
 
-save(rich.p_i_3,
+save(rich.p_i_4,
      file=Sys.getenv('OFILE'))
 
 
