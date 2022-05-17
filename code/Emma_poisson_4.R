@@ -60,7 +60,9 @@ load( 'gsb_rich_area_habs.Rdata')
 load( 'gsb_rich_area_zone.Rdata')
 # allowing intercepts and slopes they dont
 load( 'gsb_rich_area_hab_2.Rdata')
+load( 'gsb_rich_area_hab_3.Rdata')
 load( 'gsb_rich_area_zone_3.Rdata')
+load( 'gsb_rich_area_zone_4.Rdata')
 #trying fopr some kind of interaction instead of two seperate mods
 load( 'gsb_rich_area_i.Rdata')
 load( 'gsb_rich_area_i_2.Rdata')
@@ -72,10 +74,12 @@ load( 'gsb_rich_area_i_2.Rdata')
 summary(rich.p_zones)
 summary(rich.p_zones_2) # doesnt converge
 summary(rich.p_zones_3) # doesnt converge
+summary(rich.p_zones_4) # doesnt converge
 summary(rich.p_i) # doesnt converge yet- working on a new one
 summary(rich.p_i_2) # doesnt converge yet- working on a new one
 summary(rich.p_habs)
 summary(rich.p_habs_2) # doesnt converge
+summary(rich.p_habs_3) 
 
 # posterior predictive check
 color_scheme_set("darkgray")
