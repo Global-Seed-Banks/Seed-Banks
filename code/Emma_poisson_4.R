@@ -27,7 +27,8 @@ nrow(sb_prep)
 sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
-  mutate( Biome_WWF_Zone = as.factor(Biome_WWF_Zone),
+  mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
+    Biome_WWF_Zone = as.factor(Biome_WWF_Zone),
           Habitat_Broad = as.factor(Habitat_Broad),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
@@ -56,63 +57,45 @@ setwd(paste0(path2wd, 'Model_Fits/'))
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
 
 # allowing intercepts to vary- mods converge
-load( 'gsb_rich_area_habs.Rdata')
+load( 'gsb_rich_area_hab.Rdata')
 load( 'gsb_rich_area_zone.Rdata')
-# allowing intercepts and slopes they dont
-load( 'gsb_rich_area_hab_2.Rdata')
-load( 'gsb_rich_area_hab_3.Rdata')
-load( 'gsb_rich_area_zone_3.Rdata')
-load( 'gsb_rich_area_zone_4.Rdata')
-#trying fopr some kind of interaction instead of two seperate mods
 load( 'gsb_rich_area_i.Rdata')
-load( 'gsb_rich_area_i_2.Rdata')
+
 
 # rich.p_zones
 # rich.p_habs
 
 # model summary
 summary(rich.p_zones)
-summary(rich.p_zones_2) # doesnt converge
-summary(rich.p_zones_3) # doesnt converge
-summary(rich.p_zones_4) # doesnt converge
-summary(rich.p_i) # doesnt converge yet- working on a new one
-summary(rich.p_i_2) # doesnt converge yet- working on a new one
+
+summary(rich.p_i) 
+
 summary(rich.p_habs)
-summary(rich.p_habs_2) # doesnt converge
-summary(rich.p_habs_3) 
+
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich.area <- pp_check(rich.p_zones)+ xlab( "Total Species") + ylab("Density") +
+pp_rich.zone <- pp_check(rich.p_zones)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-pp_rich.area_3 <- pp_check(rich.p_zones_3)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
-  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
-
-pp_rich.area_3
 
 pp_rich.habs <- pp_check(rich.p_habs)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-pp_rich.habs_2 <- pp_check(rich.p_habs_2)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
-  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-pp_rich.habs_2
-
-pp_rich.area_i <- pp_check(rich.p_i_2)+ xlab( "Total Species") + ylab("Density") +
+pp_rich.area_i <- pp_check(rich.p_i)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") +  xlim(0,300)+ ylim(0,0.040)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
-(pp_rich.area | pp_rich.area_3 | pp_rich.habs | pp_rich.habs_2 | pp_rich.area_i)
+(pp_rich.zone | pp_rich.habs |  pp_rich.area_i)
 
 
 # caterpillars/chains
 plot(rich.p_zones)
 plot(rich.p_habs)
+plot(rich.p_i)
 
 # # check model residuals
 # zones
@@ -214,9 +197,9 @@ fig_rich.area.zone <- ggplot() +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "WWF Zone", fill = "WWF Zone", title= "WWF Zones") + guides(col = guide_legend(ncol = 2))#+
+       color = "WWF Zone", fill = "WWF Zone", title= "WWF Zones") + guides(col = guide_legend(ncol = 2))+
   #xlim(0,800)+ ylim(0,200)+
- # scale_x_log10() + scale_y_log10() 
+  scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.zone
 
@@ -289,11 +272,84 @@ fig_rich.area.habs <- ggplot() +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Habitats", fill = "Habitats", title = "Habitats") +  guides(col = guide_legend(ncol = 2)) #+
+       color = "Habitats", fill = "Habitats", title = "Habitats") +  guides(col = guide_legend(ncol = 2)) +
 # xlim(0,800)+ ylim(0,200)+
- #scale_x_log10() + scale_y_log10() 
+ scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.habs
+
+
+summary(rich.p_i)
+
+rich.area.i_fitted <- cbind(rich.p_i$data,
+                               fitted(rich.p_i, re_formula = NA
+                               )) %>%
+  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
+                                                     Total_Number_Samples, Total_Sample_Area_mm2,
+                                                     log_Total_Sample_Area_mm2,
+                                                     Habitat_Degraded),
+                             #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
+  )
+
+
+head(rich.area.i_fitted)
+nrow(rich.area.i_fitted)
+View(rich.area.i_fitted)
+
+
+# fixed effect coefficients
+rich.area.i_fixef <- fixef(rich.p_i)
+head(rich.area.i_fixef)
+
+# Random effect coefficients
+rich.area.i_coef <- coef(rich.p_i)
+rich.area.i_coef
+
+
+setwd(paste0(path2wd, 'Data/'))
+save(rich.area.i_fitted, rich.area.i_fixef, file = 'rich.area.i.poisson.mod_dat.Rdata')
+
+setwd(paste0(path2wd, 'Data/'))
+load('rich.area.i.poisson.mod_dat.Rdata')
+
+# plot richness area relationship
+colnames(sb_prep_area)
+
+fig_rich.area.i <- ggplot() + 
+  # facet_wrap(~Habitat_Broad, scales="free") +
+  # horizontal zero line
+  geom_hline(yintercept = 0, lty = 2) +
+  # raw data points
+  geom_point(data = sb_prep_area ,
+             aes(x = (Total_Sample_Area_mm2/1000000),
+                 # x = Total_Sample_Area_mm2,
+                 y = Total_Species,
+                 colour = Habitat_Degraded),
+             size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
+  # fixed effect
+  geom_line(data = rich.area.i_fitted,
+            aes(x = (Total_Sample_Area_mm2/1000000), 
+                # x = Total_Sample_Area_mm2,
+                y = Estimate, colour = Habitat_Degraded),
+            size = 1) +
+  # uncertainy in fixed effect
+  geom_ribbon(data = rich.area.i_fitted,
+              aes( x =  (Total_Sample_Area_mm2/1000000), 
+                   #x =  Total_Sample_Area_mm2, 
+                   ymin = Q2.5, ymax = Q97.5,  fill = Habitat_Degraded),
+              alpha = 0.3) +
+  #coord_cartesian(xlim = c(min(sb_prep_area$Total_Sample_Area_mm2), quantile(sb_prep_area$Total_Sample_Area_mm2, 0.97))) +
+  # xlim(0,10) + ylim(0,200) +
+  scale_color_viridis(discrete = T, option="D")  +
+  scale_fill_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+                                  legend.position="bottom") +
+  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
+       color = "Degraded Habitat", fill = "Degraded Habitat", title = "Degraded Habitat")# +  guides(col = guide_legend(ncol = 2)) +
+  # xlim(0,800)+ ylim(0,200)+
+ #scale_x_log10() + scale_y_log10() 
+
+fig_rich.area.i
 
 
 (fig_rich.area.zone | fig_rich.area.habs)
