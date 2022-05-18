@@ -6,7 +6,8 @@ library(brms)
 path <- '/gpfs1/data/idiv_chase/emmala/Seed-Bank-Map'
 sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.strings=c(""," ","NA","NA ","na"))
 
-sb_dat <- sb %>% filter(!is.na(Total_Species),
+# Total_Species   Seed_density_m2   Total_Seeds
+sb_dat <- sb %>% filter(!is.na(Total_Seeds),
                         !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
@@ -18,21 +19,15 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
 # %>% filter(!Habitat_Broad == "Arable")
 
 
-# rich.p_i <- brm(Total_Species ~ Habitat_Degraded + log_Total_Sample_Area_mm2 * Habitat_Broad * Biome_WWF_Zone + ( 1 | Method/studyID/rowID ),
-#                 family = poisson(), data = sb, cores = 4, chains = 4, iter = 2000, warmup =1000)
+# rich.p_i <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Habitat_Degraded  + ( 1 | Method/studyID/rowID ) ,
+#                   family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
+#                   control = list(adapt_delta = 0.99))
 
-# rich.p_i_2 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Biome_WWF_Zone  * Habitat_Broad + ( 1 | Habitat_Degraded ) + ( 1 | Method/studyID/rowID ),
-#                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
+seeds.p_i <- brm(Total_Seeds ~ log_Total_Sample_Area_mm2 *  Habitat_Degraded  + ( 1 | Method/studyID/rowID ) ,
+                family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
+                control = list(adapt_delta = 0.99))
 
-
-# rich.p_i_3 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Biome_WWF_Zone  * Habitat_Broad + ( Biome_WWF_Zone  * Habitat_Broad  | Habitat_Degraded ) ,
-#                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
-
-rich.p_i <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Habitat_Degraded  + ( 1 | Method/studyID/rowID ) ,
-                  family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
-                  control = list(adapt_delta = 0.99))
-
-save(rich.p_i,
+save(seeds.p_i,
      file=Sys.getenv('OFILE'))
 
 
