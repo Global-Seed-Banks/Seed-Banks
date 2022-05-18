@@ -98,15 +98,15 @@ colnames(sb_prep)
 
 sb_prep$Habitat_Degraded <- as.factor(sb_prep$Habitat_Degraded)
 
-rich.area.4 <- glmer(Total_Species ~  Habitat_Broad  + Habitat_Degraded +  Biome_WWF_Zone * log(Total_Sample_Area_m2) +
-                       ( 1 | Method/studyID/rowID ), 
+rich.area.4 <- glmer(Total_Species ~    Biome_WWF_Zone * Habitat_Broad  * log(Total_Sample_Area_m2) +
+                       ( Biome_WWF_Zone * Habitat_Broad | Habitat_Degraded) + (1 | Method/studyID/rowID ), 
                      family = poisson(), data = sb_prep)
 
 # overall summary
 summary(rich.area.4)
 
 # in log-log
-plot_model(rich.area.4, type = "pred", terms = c("Total_Sample_Area_m2", "Biome_WWF_Zone")) +
+plot_model(rich.area.4, type = "pred", terms = c("Total_Sample_Area_m2",  "Habitat_Broad", "Biome_WWF_Zone")) +
   scale_x_log10() + scale_y_log10() 
 
 # on linear scale

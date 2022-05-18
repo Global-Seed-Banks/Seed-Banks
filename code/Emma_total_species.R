@@ -345,14 +345,14 @@ fig_rich.area.i <- ggplot() +
   theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
   labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Degraded Habitat", fill = "Degraded Habitat", title = "Degraded Habitat")# +  guides(col = guide_legend(ncol = 2)) +
+       color = "Degraded Habitat", fill = "Degraded Habitat", title = "Degraded Habitat")+  guides(col = guide_legend(ncol = 2)) +
   # xlim(0,800)+ ylim(0,200)+
- #scale_x_log10() + scale_y_log10() 
+ scale_x_log10() + scale_y_log10() 
 
 fig_rich.area.i
 
 
-(fig_rich.area.zone | fig_rich.area.habs)
+(fig_rich.area.zone | fig_rich.area.habs | fig_rich.area.i)
 
 
 
@@ -370,17 +370,18 @@ rich.area.zone.fixed.p <- posterior_samples(rich.p_zones, "^b" , subset = floor(
 head(rich.area.zone.fixed.p)
 
 # select columns of interests and give meaningful names
-rich.area.zone_global_posterior <-  rich.area.zone.fixed.p %>% dplyr::select(`b_log_Total_Sample_Area_mm2`,
+rich.area.zone_global_posterior <-  rich.area.zone.fixed.p %>% dplyr::select(`b_Intercept`,
+                                                                    `b_log_Total_Sample_Area_mm2`,
                                                                    `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`,
                                                                    `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`,
                                                                    `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`,
                                                                    `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`) %>%
-  mutate(rich.area.bor.global =`b_log_Total_Sample_Area_mm2`,
+  mutate(rich.area.bor.global =`b_Intercept`,
          rich.med.global =`b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`,
          rich.temp.global = `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`,
          rich.trop.global = `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`,
          rich.tund.global = `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`,
-         rich.area.med.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`),
+         rich.area.med.global = (`b_log_Total_Sample_Area_mm2` + `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`),
          rich.area.temp.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`),
          rich.area.trop.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`),
          rich.area.tund.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`),
