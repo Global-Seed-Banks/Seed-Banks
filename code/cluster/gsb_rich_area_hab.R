@@ -6,8 +6,10 @@ library(brms)
 path <- '/gpfs1/data/idiv_chase/emmala/Seed-Bank-Map'
 sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.strings=c(""," ","NA","NA ","na"))
 
-sb_dat <- sb %>% filter(!is.na(Total_Species),
-                        !is.na(Total_Sample_Area_mm2)) %>%
+# Total_Species   Seed_density_m2   Total_Seeds
+sb_dat <- sb %>% 
+  filter(!is.na(Total_Seeds),
+                        !is.na(Total_Seeds)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
           Biome_WWF_Zone = as.factor(Biome_WWF_Zone),
@@ -16,22 +18,16 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
           rowID = as.factor(rowID),
           Method = as.factor(Method)) #%>% filter(!Habitat_Broad == "Arable")
 
+# rich.p_habs <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad + ( 1 | Method/studyID/rowID ),
+#                     family = poisson(), data = sb, cores = 4, chains = 4, iter = 3000, warmup =1000,
+#                     control = list(adapt_delta = 0.99) )
 
-rich.p_habs <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad + ( 1 | Method/studyID/rowID ),
+seeds.p_habs <- brm(Total_Seeds ~ log_Total_Sample_Area_mm2 * Habitat_Broad + ( 1 | Method/studyID/rowID ),
                 family = poisson(), data = sb, cores = 4, chains = 4, iter = 3000, warmup =1000,
                 control = list(adapt_delta = 0.99) )
 
-# rich.p_habs_2 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad + ( log_Total_Sample_Area_mm2 * Habitat_Broad | Habitat_Degraded) + ( 1  | Method/studyID/rowID ),
-#                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
 
-
-# rich.p_habs_3 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad + ( log_Total_Sample_Area_mm2 * Habitat_Broad | Habitat_Degraded) ,
-#                      family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
-
-# rich.p_habs_4 <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad +  ( Habitat_Broad | Method/studyID/rowID ) ,
-#                      family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup =1000)
-
-save(rich.p_habs,
+save(seeds.p_habs,
      file=Sys.getenv('OFILE'))
 
 
