@@ -53,83 +53,103 @@ head(sb_prep_area)
 nrow(sb_prep_area)
 
 
-
 setwd(paste0(path2wd, 'Model_Fits/'))
-# save model object
-#save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
-
-# allowing intercepts to vary- mods converge
+# models run on cluster, load in model objects here
 load( 'rich_zone.Rdata')
 load( 'rich_hab.Rdata')
 load( 'rich_deg.Rdata')
 
 
-# rich.p_zones
-# rich.p_habs
+# rich_zones
+# rich_habs
+# rich_deg
 
 # model summary
-summary(rich.p_zones)
-
-summary(rich.p_i) 
-
-summary(rich.p_habs)
+summary(rich_zones)
+summary(rich_habs) 
+summary(rich_deg)
 
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich.zone <- pp_check(rich.p_zones)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") + xlim(0,300)+ ylim(0,0.040)+
+pp_rich.zone <- pp_check(rich_zones)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
+  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
+
+
+pp_rich.habs <- pp_check(rich_habs)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") +   xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
 
-pp_rich.habs <- pp_check(rich.p_habs)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") +   xlim(0,300)+ ylim(0,0.040)+
-  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
+pp_rich.deg <- pp_check(rich_deg)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") +  xlim(0,300)+ ylim(0,0.025)+
+  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-
-pp_rich.area_i <- pp_check(rich.p_i)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") +  xlim(0,300)+ ylim(0,0.040)+
-  theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
-
-(pp_rich.zone | pp_rich.habs |  pp_rich.area_i)
+(pp_rich.zone | pp_rich.habs |  pp_rich.deg)
 
 
 # caterpillars/chains
-plot(rich.p_zones)
-plot(rich.p_habs)
-plot(rich.p_i)
+plot(rich_zones)
+plot(rich_habs)
+plot(rich_deg)
 
 # # check model residuals
 # zones
-mr.zones <- residuals(rich.p_zones)
+mr.zones <- residuals(rich_zones)
 mr.zones <- as.data.frame(mr.zones)
 nrow(mr.zones)
-nrow(sb_prep_area)
-zones.plot <- cbind(sb_prep_area, mr.zones$Estimate)
 
-#mr.zoneske sure they are factors
+sb_prep_area_zone <- sb_prep_area %>% filter(!Habitat_Broad == "Arable")
+nrow(sb_prep_area_zone)
+zones.plot <- cbind(sb_prep_area_zone, mr.zones$Estimate)
+head(zones.plot)
+#mr.zones make sure they are factors
 zones.plot$Biome_WWF_Zone <- as.factor(zones.plot$Biome_WWF_Zone )
+zones.plot$Method <- as.factor(zones.plot$Method )
 zones.plot$studyID <- as.factor(zones.plot$studyID )
 zones.plot$rowID <- as.factor(zones.plot$rowID )
 #plot residuals
-par(mfrow=c(1,3))
+par(mfrow=c(2,2))
 with(zones.plot, plot(Biome_WWF_Zone, mr.zones$Estimate))
+with(zones.plot, plot(Method, mr.zones$Estimate))
 with(zones.plot, plot(studyID, mr.zones$Estimate))
 with(zones.plot, plot(rowID, mr.zones$Estimate))
+
+
 # and habs
-mr.habs <- residuals(rich.p_habs)
+mr.habs <- residuals(rich_habs)
 mr.habs <- as.data.frame(mr.habs)
 nrow(mr.habs)
 nrow(sb_prep_area)
 habs.plot <- cbind(sb_prep_area, mr.habs$Estimate)
 habs.plot$Habitat_Broad <- as.factor(habs.plot$Habitat_Broad )
+habs.plot$Method <- as.factor(habs.plot$Method )
 habs.plot$studyID <- as.factor(habs.plot$studyID )
 habs.plot$rowID <- as.factor(habs.plot$rowID )
 #plot residuals
-par(mfrow=c(1,3))
+par(mfrow=c(2,2))
 with(habs.plot, plot(Habitat_Broad, mr.habs$Estimate))
+with(habs.plot, plot(Method, mr.habs$Estimate))
 with(habs.plot, plot(studyID, mr.habs$Estimate))
 with(habs.plot, plot(rowID, mr.habs$Estimate))
+
+# and deg
+mr.deg <- residuals(rich_deg)
+mr.deg <- as.data.frame(mr.deg)
+nrow(mr.deg)
+nrow(sb_prep_area)
+deg.plot <- cbind(sb_prep_area, mr.deg$Estimate)
+deg.plot$Habitat_Degraded <- as.factor(deg.plot$Habitat_degraded )
+deg.plot$Method <- as.factor(deg.plot$Method )
+deg.plot$studyID <- as.factor(deg.plot$studyID )
+deg.plot$rowID <- as.factor(deg.plot$rowID )
+#plot residuals
+par(mfrow=c(2,2))
+with(deg.plot, plot(Habitat_Degraded, mr.deg$Estimate))
+with(deg.plot, plot(Method, mr.deg$Estimate))
+with(deg.plot, plot(studyID, mr.deg$Estimate))
+with(deg.plot, plot(rowID, mr.deg$Estimate))
 
 head(sb_prep_area)
 
@@ -138,7 +158,7 @@ head(sb_prep_area)
 rich.area.zone_fitted <- cbind(rich.p_zones$data,
                              fitted(rich.p_zones, re_formula = NA
                              )) %>%
-  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
+  as_tibble() %>% inner_join(sb_prep_area_zone %>% select(Total_Species, 
                                                     Total_Number_Samples, Total_Sample_Area_mm2,
                                                     log_Total_Sample_Area_mm2,
                                                   Biome_WWF_Zone),
@@ -149,24 +169,84 @@ rich.area.zone_fitted <- cbind(rich.p_zones$data,
 head(rich.area.zone_fitted)
 nrow(rich.area.zone_fitted)
 
+rich.area.habs_fitted <- cbind(rich.p_habs$data,
+                               fitted(rich.p_habs, re_formula = NA
+                               )) %>%
+  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
+                                                     Total_Number_Samples, Total_Sample_Area_mm2,
+                                                     log_Total_Sample_Area_mm2,
+                                                     Habitat_Broad),
+                             #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
+  )
+
+
+head(rich.area.habs_fitted)
+nrow(rich.area.habs_fitted)
+
+
+summary(rich.p_i)
+
+rich_deg_fitted <- cbind(rich_deg$data,
+                            fitted(rich.p_i, re_formula = NA
+                            )) %>%
+  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
+                                                     Total_Number_Samples, Total_Sample_Area_mm2,
+                                                     log_Total_Sample_Area_mm2,
+                                                     Habitat_Degraded),
+                             #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
+  )
+
+
+head(rich_deg_fitted)
+nrow(rich_deg_fitted)
+
 
 
 # fixed effect coefficients
-rich.area.zone_fixef <- fixef(rich.p_zones)
-head(rich.area.zone_fixef)
+rich_zone_fixef <- fixef(rich_zones)
+head(rich_zone_fixef)
 
 # Random effect coefficients
-rich.area.zone_coef <- coef(rich.p_zones)
-rich.area.zone_coef # dont really need this
+rich_zone_coef <- coef(rich_zones)
+rich_zone_coef # dont really need this
 
+
+
+# fixed effect coefficients
+rich_habs_fixef <- fixef(rich_habs)
+head(rich_habs_fixef)
+
+# Random effect coefficients
+rich_habs_coef <- coef(rich_habs)
+rich_habs_coef
+
+
+
+# fixed effect coefficients
+rich_deg_fixef <- fixef(rich_deg)
+head(rich_deg_fixef)
+
+# Random effect coefficients
+rich_deg_coef <- coef(rich_deg)
+rich._deg_coef
 
  setwd(paste0(path2wd, 'Data/'))
 # # # save data objects to avoid doing this every time
-save(rich.area.zone_fitted, rich.area.zone_fixef, file = 'rich.area.zone.poisson.mod_dat.Rdata')
+save(rich_zone_fitted, rich_zone_fixef, file = 'rich_zone.mod_dat.Rdata')
 
+
+setwd(paste0(path2wd, 'Data/'))
+save(rich_habs_fitted, rich_habs_fixef, file = 'rich_habs.mod_dat.Rdata')
+
+
+setwd(paste0(path2wd, 'Data/'))
+save(rich_deg_fitted, rich_deg_fixef, file = 'rich_deg.mod_dat.Rdata')
+
+
+# plots
  setwd(paste0(path2wd, 'Data/'))
  #load('rich.area.poisson.mod_dat.Rdata')
- load('rich.area.zone.poisson.mod_dat.Rdata')
+ load('rich_zone.mod_dat.Rdata')
 
 # plot richness area zone relationship
 
@@ -176,20 +256,20 @@ fig_rich.area.zone <- ggplot() +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_prep_area ,
+  geom_point(data = sb_prep_area_zone ,
              aes(x = (Total_Sample_Area_mm2/1000000),
                 # x = Total_Sample_Area_mm2,
                  y = Total_Species, colour = Biome_WWF_Zone,
                  ), 
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
-  geom_line(data = rich.area.zone_fitted,
+  geom_line(data = rich_zone_fitted,
             aes(x = (Total_Sample_Area_mm2/1000000), 
                # x = Total_Sample_Area_mm2,
                 y = Estimate, colour = Biome_WWF_Zone),
             size = 1) +
   # uncertainy in fixed effect
-  geom_ribbon(data = rich.area.zone_fitted,
+  geom_ribbon(data = rich_zone_fitted,
               aes( x =  (Total_Sample_Area_mm2/1000000), 
                   #x =  Total_Sample_Area_mm2, 
                   ymin = Q2.5, ymax = Q97.5, fill = Biome_WWF_Zone),
@@ -210,36 +290,8 @@ fig_rich.area.zone
 # Habitat
 
 
-rich.area.habs_fitted <- cbind(rich.p_habs$data,
-                          fitted(rich.p_habs, re_formula = NA
-                          )) %>%
-  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
-                                                     Total_Number_Samples, Total_Sample_Area_mm2,
-                                                     log_Total_Sample_Area_mm2,
-                                                      Habitat_Broad),
-                             #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
-  )
-
-
-head(rich.area.habs_fitted)
-nrow(rich.area.habs_fitted)
-
-
-
-# fixed effect coefficients
-rich.area.habs_fixef <- fixef(rich.p_habs)
-head(rich.area.habs_fixef)
-
-# Random effect coefficients
-rich.area.habs_coef <- coef(rich.p_habs)
-rich.area.habs_coef
-
-
 setwd(paste0(path2wd, 'Data/'))
-save(rich.area.habs_fitted, rich.area.habs_fixef, file = 'rich.area.habs.poisson.mod_dat.Rdata')
-
-setwd(paste0(path2wd, 'Data/'))
-load('rich.area.habs.poisson.mod_dat.Rdata')
+load('rich_habs.mod_dat.Rdata')
 
 # plot richness area relationship
 colnames(sb_prep_area)
@@ -256,13 +308,13 @@ fig_rich.area.habs <- ggplot() +
                  colour = Habitat_Broad),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
-  geom_line(data = rich.area.habs_fitted,
+  geom_line(data = rich._habs_fitted,
             aes(x = (Total_Sample_Area_mm2/1000000), 
                 # x = Total_Sample_Area_mm2,
                 y = Estimate, colour = Habitat_Broad),
             size = 1) +
   # uncertainy in fixed effect
-  geom_ribbon(data = rich.area.habs_fitted,
+  geom_ribbon(data = rich_habs_fitted,
               aes( x =  (Total_Sample_Area_mm2/1000000), 
                    #x =  Total_Sample_Area_mm2, 
                    ymin = Q2.5, ymax = Q97.5,  fill = Habitat_Broad),
@@ -281,38 +333,8 @@ fig_rich.area.habs <- ggplot() +
 fig_rich.area.habs
 
 
-summary(rich.p_i)
-
-rich.area.i_fitted <- cbind(rich.p_i$data,
-                               fitted(rich.p_i, re_formula = NA
-                               )) %>%
-  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
-                                                     Total_Number_Samples, Total_Sample_Area_mm2,
-                                                     log_Total_Sample_Area_mm2,
-                                                     Habitat_Degraded),
-                             #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
-  )
-
-
-head(rich.area.i_fitted)
-nrow(rich.area.i_fitted)
-View(rich.area.i_fitted)
-
-
-# fixed effect coefficients
-rich.area.i_fixef <- fixef(rich.p_i)
-head(rich.area.i_fixef)
-
-# Random effect coefficients
-rich.area.i_coef <- coef(rich.p_i)
-rich.area.i_coef
-
-
 setwd(paste0(path2wd, 'Data/'))
-save(rich.area.i_fitted, rich.area.i_fixef, file = 'rich.area.i.poisson.mod_dat.Rdata')
-
-setwd(paste0(path2wd, 'Data/'))
-load('rich.area.i.poisson.mod_dat.Rdata')
+load('rich_deg.mod_dat.Rdata')
 
 # plot richness area relationship
 colnames(sb_prep_area)
@@ -329,13 +351,13 @@ fig_rich.area.i <- ggplot() +
                  colour = Habitat_Degraded),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
-  geom_line(data = rich.area.i_fitted,
+  geom_line(data = rich_deg_fitted,
             aes(x = (Total_Sample_Area_mm2/1000000), 
                 # x = Total_Sample_Area_mm2,
                 y = Estimate, colour = Habitat_Degraded),
             size = 1) +
   # uncertainy in fixed effect
-  geom_ribbon(data = rich.area.i_fitted,
+  geom_ribbon(data = rich_deg_fitted,
               aes( x =  (Total_Sample_Area_mm2/1000000), 
                    #x =  Total_Sample_Area_mm2, 
                    ymin = Q2.5, ymax = Q97.5,  fill = Habitat_Degraded),
