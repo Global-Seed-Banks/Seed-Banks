@@ -33,22 +33,24 @@ sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
 
+# rich_zones <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (1 | Method/studyID/rowID ),
+#                   family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
+#                   control = list(adapt_delta = 0.99,
+#                                  max_treedepth = 12)
+# )
+
+
+# rich_habs <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad + ( 1 | Method/studyID/rowID ),
+#                  family = poisson(), data = sb, cores = 4, chains = 4, iter = 3000, warmup =1000,
+#                  control = list(adapt_delta = 0.99) )
+
+# rich_deg <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Habitat_Degraded  + ( 1 | Method/studyID/rowID ) ,
+#                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
+#                 control = list(adapt_delta = 0.99))
+# 
 
 head(sb_prep_area)
 nrow(sb_prep_area)
-
-# WWF Zones
-# rich.p_zones <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (1 | Method/studyID/rowID ),
-#                     family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 2000, warmup = 1000
-# )
-
-# Habitats
-# rich.p_habs <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Habitat_Broad + ( 1 | Method/studyID/rowID ),
-#                    family = poisson(), data = sb, cores = 4, chains = 4, iter = 2000, warmup =1000)
-
-# Interaction model (running now)
-# rich.p_i <- brm(Total_Species ~ Habitat_Broad  + Habitat_Degraded + log_Total_Sample_Area_mm2 * Habitat_Broad * Biome_WWF_Zone + ( 1 | Method/studyID/rowID ),
-#                 family = poisson(), data = sb, cores = 4, chains = 4, iter = 2000, warmup =1000)
 
 
 
@@ -57,9 +59,9 @@ setwd(paste0(path2wd, 'Model_Fits/'))
 #save(rich.area, file = 'gsb_rich_area-poisson.Rdata')
 
 # allowing intercepts to vary- mods converge
-load( 'gsb_rich_area_hab.Rdata')
-load( 'gsb_rich_area_zone.Rdata')
-load( 'gsb_rich_area_i.Rdata')
+load( 'rich_zone.Rdata')
+load( 'rich_hab.Rdata')
+load( 'rich_deg.Rdata')
 
 
 # rich.p_zones
