@@ -21,7 +21,7 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
 
 rich_deg <- brm(Total_Species ~ log_Total_Sample_Area_mm2 *  Habitat_Degraded  + ( 1 | Method/studyID/rowID ) ,
                   family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
-                  control = list(adapt_delta = 0.99))
+                  control = list(adapt_delta = 0.999))
 
 
 save(rich_deg,

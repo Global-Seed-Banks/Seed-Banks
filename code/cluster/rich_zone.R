@@ -19,8 +19,8 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
 
 rich_zones <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (1 | Method/studyID/rowID ),
                     family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
-                    control = list(adapt_delta = 0.99,
-                                   max_treedepth = 12)
+                    control = list(adapt_delta = 0.999,
+                                   max_treedepth = 13)
 )
 
 
