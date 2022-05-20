@@ -282,7 +282,7 @@ fig_rich.zone <- ggplot() +
   #xlim(0,800)+ ylim(0,200)+
   #scale_x_log10() + scale_y_log10() 
 
-fig_rich.area.zone
+fig_rich.zone
 
 # (Total_Sample_Area_mm2/1000000) =m2
 
@@ -382,12 +382,19 @@ fig_rich.deg
 
 # global effects
 rich_zone.fixed.p <- as_draws(rich_zones, subset = floor(runif(n = 1000, 1, max = 2000)))
-nrow(rich.zone.fixed.p)
-head(rich.zone.fixed.p)
-colnames(rich.zone.fixed.p)
+
+rich_zone.fixed.p
+nrow(rich_zone.fixed.p)
+head(rich_zone.fixed.p)
+colnames(rich_zone.fixed.p)
 
 # select columns of interests and give meaningful names
-rich_zone_global_posterior <-  rich.zone.fixed.p %>% 
+rich_zone_global_posterior <-  rich_zone.fixed.p %>% 
+  purrr::pluck("b_log_Total_Sample_Area_mm2"#,"b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert",
+              # "b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate", "b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical",
+              #"b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra"
+              ) #%>%
+  as_tibble() %>%
   mutate(rich.bor.global = (`b_log_Total_Sample_Area_mm2` ),
          rich.med.global = (`b_log_Total_Sample_Area_mm2` + `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`),
          rich.temp.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`),
@@ -396,6 +403,7 @@ rich_zone_global_posterior <-  rich.zone.fixed.p %>%
   ) %>%
   dplyr::select(c(rich.bor.global, rich.med.global, rich.temp.global, rich.trop.global, rich.tund.global ))
 
+ View(rich_zone_global_posterior)
 head(rich_zone_global_posterior)
 
 rich.bor.p <-  rich_zone_global_posterior %>% 
