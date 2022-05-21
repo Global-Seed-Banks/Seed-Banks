@@ -275,12 +275,13 @@ fig_rich.zone <- ggplot() +
               alpha = 0.3 ) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "WWF Zone", fill = "WWF Zone", title= "WWF Zones") + guides(col = guide_legend(ncol = 2))#+
+  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+                                  legend.position="none") +
+  labs(y = "Total Species",  #x = expression(paste('Total Sample Area ' , m^2)),
+       x="",
+       color = "WWF Zone", fill = "WWF Zone", subtitle= "WWF Zones") + guides(col = guide_legend(ncol = 2))+
   #xlim(0,800)+ ylim(0,200)+
-  #scale_x_log10() + scale_y_log10() 
+  scale_x_log10() + scale_y_log10() 
 
 fig_rich.zone
 
@@ -322,12 +323,13 @@ fig_rich.habs <- ggplot() +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Habitats", fill = "Habitats", title = "Habitats") +  guides(col = guide_legend(ncol = 2)) #+
+  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+                                  legend.position="none") +
+  labs(y = "", # x = expression(paste('Total Sample Area ' , m^2)),
+       x="",
+       color = "Habitats", fill = "Habitats", subtitle = "Habitats") +  guides(col = guide_legend(ncol = 2)) +
 # xlim(0,800)+ ylim(0,200)+
- #scale_x_log10() + scale_y_log10() 
+ scale_x_log10() + scale_y_log10() 
 
 fig_rich.habs
 
@@ -365,17 +367,25 @@ fig_rich.deg <- ggplot() +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Degraded Habitat", fill = "Degraded Habitat", title = "Degraded Habitat")+  guides(col = guide_legend(ncol = 2)) #+
+  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+                                  legend.position="none") +
+  labs(y = "", # x = expression(paste('Total Sample Area ' , m^2)),
+       x= "",
+       color = "Degraded Habitat", fill = "Degraded Habitat", subtitle = "Degraded Habitat")+  guides(col = guide_legend(ncol = 2)) +
   # xlim(0,800)+ ylim(0,200)+
- #scale_x_log10() + scale_y_log10() 
+ scale_x_log10() + scale_y_log10() 
 
 fig_rich.deg
 
 
-(fig_rich.zone | fig_rich.habs | fig_rich.deg)
+Almost_Total_Species_Fig <- (fig_rich.zone | fig_rich.habs | fig_rich.deg)
+
+
+Total_Species_Fig <- (Almost_Total_Species_Fig) + plot_annotation(title = "Total Species",
+                                                              theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + plot_layout(ncol=3)
+
+
+Total_Species_Fig
 
 
 # (Total_Sample_Area_mm2/1000000) =m2

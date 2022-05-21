@@ -24,7 +24,7 @@ sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 nrow(sb_prep)
 
 # remove NA values 
-sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species),
+sb_prep_area <- sb_prep %>% filter(!is.na(Total_Seeds),
                                    !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
@@ -32,6 +32,8 @@ sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species),
           Habitat_Broad = as.factor(Habitat_Broad),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
+
+nrow(sb_prep_area)
 
 # rich_zones <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (1 | Method/studyID/rowID ),
 #                   family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
@@ -73,17 +75,17 @@ summary(seeds.p_i)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_seed.zone <- pp_check(seeds_zones)+ xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "") + #xlim(0,300)+ ylim(0,0.025)+
+  labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 
 pp_seed.habs <- pp_check(seeds_habs)+ xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "") +  # xlim(0,300)+ ylim(0,0.025)+
+  labs(title= "") +  xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
 
 pp_seed.deg <- pp_check(seeds.p_i)+ xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "") +  #xlim(0,300)+ ylim(0,0.025)+
+  labs(title= "") +  xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 (pp_seed.zone | pp_seed.habs |  pp_seed.deg)
@@ -186,8 +188,8 @@ nrow(seeds_habs_fitted)
 
 summary(seeds_deg)
 
-seeds_deg_fitted <- cbind(seeds_deg$data,
-                         fitted(seeds_deg, re_formula = NA
+seeds_deg_fitted <- cbind(seeds.p_i$data,
+                         fitted(seeds.p_i, re_formula = NA
                          )) %>%
   as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
                                                      Total_Number_Samples, Total_Sample_Area_mm2,
@@ -223,11 +225,11 @@ seeds_habs_coef
 
 
 # fixed effect coefficients
-seeds_deg_fixef <- fixef(seeds_deg)
+seeds_deg_fixef <- fixef(seeds.p_i)
 head(seeds_deg_fixef)
 
 # Random effect coefficients
-seeds_deg_coef <- coef(seeds_deg)
+seeds_deg_coef <- coef(seeds.p_i)
 seeds_deg_coef
 
 setwd(paste0(path2wd, 'Data/'))
@@ -250,6 +252,8 @@ load('seeds_zone.mod_dat.Rdata')
 
 # plot seedsness area zone relationship
 
+sb_prep_area_zone %>% summarise
+
 fig_seeds.zone <- ggplot() + 
   #facet_wrap(~Biome_WWF_Zone, scales="free") +
   # horizontal zero line
@@ -258,7 +262,7 @@ fig_seeds.zone <- ggplot() +
   geom_point(data = sb_prep_area_zone ,
              aes(x = (Total_Sample_Area_mm2/1000000),
                  # x = Total_Sample_Area_mm2,
-                 y = Total_Species, colour = Biome_WWF_Zone,
+                 y = Total_Seeds, colour = Biome_WWF_Zone,
              ), 
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
@@ -275,12 +279,13 @@ fig_seeds.zone <- ggplot() +
               alpha = 0.3 ) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "WWF Zone", fill = "WWF Zone", title= "WWF Zones") + guides(col = guide_legend(ncol = 2))#+
-#xlim(0,800)+ ylim(0,200)+
-#scale_x_log10() + scale_y_log10() 
+  labs(y = "Total Seeds",  x = expression(paste('Total Sample Area ' , m^2)),
+       color = "WWF Zone", fill = "WWF Zone", subtitle= "") + guides(col = guide_legend(ncol = 2)) +
+#xlim(0,800)+ 
+#  coord_cartesian( ylim = c(0,530000))# +
+scale_x_log10() + scale_y_log10() 
 
 fig_seeds.zone
 
@@ -303,7 +308,7 @@ fig_seeds.habs <- ggplot() +
   geom_point(data = sb_prep_area ,
              aes(x = (Total_Sample_Area_mm2/1000000),
                  # x = Total_Sample_Area_mm2,
-                 y = Total_Species,
+                 y = Total_Seeds,
                  colour = Habitat_Broad),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
@@ -322,12 +327,12 @@ fig_seeds.habs <- ggplot() +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Habitats", fill = "Habitats", title = "Habitats") +  guides(col = guide_legend(ncol = 2)) #+
+  labs(y = "",  x = expression(paste('Total Sample Area ' , m^2)),
+       color = "Habitats", fill = "Habitats", subtitle = "") +  guides(col = guide_legend(ncol = 2)) +
 # xlim(0,800)+ ylim(0,200)+
-#scale_x_log10() + scale_y_log10() 
+scale_x_log10() + scale_y_log10() 
 
 fig_seeds.habs
 
@@ -346,7 +351,7 @@ fig_seeds.deg <- ggplot() +
   geom_point(data = sb_prep_area ,
              aes(x = (Total_Sample_Area_mm2/1000000),
                  # x = Total_Sample_Area_mm2,
-                 y = Total_Species,
+                 y = Total_Seeds,
                  colour = Habitat_Degraded),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
@@ -365,14 +370,24 @@ fig_seeds.deg <- ggplot() +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=18 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(y = "Total Species",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Degraded Habitat", fill = "Degraded Habitat", title = "Degraded Habitat")+  guides(col = guide_legend(ncol = 2)) #+
+  labs(y = "",  x = expression(paste('Total Sample Area ' , m^2)),
+       color = "Degraded Habitat", fill = "Degraded Habitat", subtitle = "")+  guides(col = guide_legend(ncol = 2)) +
 # xlim(0,800)+ ylim(0,200)+
-#scale_x_log10() + scale_y_log10() 
+scale_x_log10() + scale_y_log10() 
 
 fig_seeds.deg
 
 
-(fig_seeds.zone | fig_seeds.habs | fig_seeds.deg)
+Almost_Total_Seeds_Fig <- (fig_seeds.zone | fig_seeds.habs | fig_seeds.deg)
+
+
+Total_Seeds_Fig <- (Almost_Total_Seeds_Fig) + plot_annotation(title = "Total Seeds",
+                  theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + plot_layout(ncol=3)
+
+
+Total_Seeds_Fig
+
+
+(Total_Species_Fig / Total_Seeds_Fig)
