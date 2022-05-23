@@ -40,6 +40,8 @@ sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Samp
 
 head(sb_calc)
 
+summary(sb_calc)
+
 sb_calc$Biome_WWF_Zone<- as.factor(as.character(sb_calc$Biome_WWF_Zone))
 levels(sb_calc$Biome_WWF_Zone)
 
@@ -51,6 +53,8 @@ sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(To
                                   `min-Total_Sample_Area_mm2` = min(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
                                   `max-Total_Sample_Area_m2` = max(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
                                   `min-Total_Sample_Area_m2` = min(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
+                                  `max-Centred_log_Total_Sample_Area_m2` = max(as.numeric(Centred_log_Total_Sample_Area_m2), na.rm = TRUE),
+                                  `min-Centred_log_Total_Sample_Area_m2` = min(as.numeric(Centred_log_Total_Sample_Area_m2), na.rm = TRUE),
                                   `min-Sample_Volume_mm3` = min(as.numeric(Sample_Volume_mm3), na.rm = TRUE),
                                   `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
                                   `min-Total_Sample_Volume_mm3` = min(as.numeric(Total_Sample_Volume_mm3), na.rm = TRUE),
