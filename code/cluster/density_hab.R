@@ -19,7 +19,7 @@ sb_dat <- sb %>%
 
 
 density_habs <- brm(Seed_density_m2 ~  Habitat_Broad + ( 1 | Method/studyID/rowID ),
-                family = gaussian(), data = sb, cores = 4, chains = 4, iter = 3000, warmup =1000,
+                family = student(), data = sb, cores = 4, chains = 4, iter = 3000, warmup =1000,
                 control = list(adapt_delta = 0.99) )
 
 

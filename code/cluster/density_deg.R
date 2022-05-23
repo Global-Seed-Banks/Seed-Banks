@@ -19,7 +19,7 @@ sb_dat <- sb %>% filter(!is.na(Seed_density_m2)) %>%
 
 
 density_deg <- brm(Seed_density_m2 ~  Habitat_Degraded  + ( 1 | Method/studyID/rowID ) ,
-                  family = gaussian(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
+                  family = student(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
                   control = list(adapt_delta = 0.99))
 
 
