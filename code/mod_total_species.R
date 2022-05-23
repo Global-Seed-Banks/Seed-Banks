@@ -24,7 +24,7 @@ sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 nrow(sb_prep)
 
 # remove NA values 
-sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species),
+sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
@@ -32,6 +32,10 @@ sb_prep_area <- sb_prep %>% filter(!is.na(Total_Species),
           Habitat_Broad = as.factor(Habitat_Broad),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
+
+
+sb_rich_area_zone <- sb_rich_area %>% filter(!Habitat_Broad == "Arable")
+
 
 # rich_zones <- brm(Total_Species ~ log_Total_Sample_Area_mm2 * Biome_WWF_Zone + (1 | Method/studyID/rowID ),
 #                   family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
@@ -100,9 +104,9 @@ mr.zones <- residuals(rich_zones)
 mr.zones <- as.data.frame(mr.zones)
 nrow(mr.zones)
 
-sb_prep_area_zone <- sb_prep_area %>% filter(!Habitat_Broad == "Arable")
+
 nrow(sb_prep_area_zone)
-zones.plot <- cbind(sb_prep_area_zone, mr.zones$Estimate)
+zones.plot <- cbind(sb_rich_area_zone, mr.zones$Estimate)
 head(zones.plot)
 #mr.zones make sure they are factors
 zones.plot$Biome_WWF_Zone <- as.factor(zones.plot$Biome_WWF_Zone )
@@ -122,7 +126,7 @@ mr.habs <- residuals(rich_habs)
 mr.habs <- as.data.frame(mr.habs)
 nrow(mr.habs)
 nrow(sb_prep_area)
-habs.plot <- cbind(sb_prep_area, mr.habs$Estimate)
+habs.plot <- cbind(sb_rich_area, mr.habs$Estimate)
 habs.plot$Habitat_Broad <- as.factor(habs.plot$Habitat_Broad )
 habs.plot$Method <- as.factor(habs.plot$Method )
 habs.plot$studyID <- as.factor(habs.plot$studyID )
@@ -139,7 +143,7 @@ mr.deg <- residuals(rich_deg)
 mr.deg <- as.data.frame(mr.deg)
 nrow(mr.deg)
 nrow(sb_prep_area)
-deg.plot <- cbind(sb_prep_area, mr.deg$Estimate)
+deg.plot <- cbind(sb_rich_area, mr.deg$Estimate)
 deg.plot$Habitat_Degraded <- as.factor(deg.plot$Habitat_degraded )
 deg.plot$Method <- as.factor(deg.plot$Method )
 deg.plot$studyID <- as.factor(deg.plot$studyID )
@@ -158,7 +162,7 @@ head(sb_prep_area)
 rich_zone_fitted <- cbind(rich_zones$data,
                              fitted(rich_zones, re_formula = NA
                              )) %>%
-  as_tibble() %>% inner_join(sb_prep_area_zone %>% select(Total_Species, 
+  as_tibble() %>% inner_join(sb_rich_area_zone %>% select(Total_Species, 
                                                     Total_Number_Samples, Total_Sample_Area_mm2,
                                                     log_Total_Sample_Area_mm2,
                                                   Biome_WWF_Zone),
@@ -172,7 +176,7 @@ nrow(rich_zone_fitted)
 rich_habs_fitted <- cbind(rich_habs$data,
                                fitted(rich_habs, re_formula = NA
                                )) %>%
-  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
+  as_tibble() %>% inner_join(sb_rich_area %>% select(Total_Species, 
                                                      Total_Number_Samples, Total_Sample_Area_mm2,
                                                      log_Total_Sample_Area_mm2,
                                                      Habitat_Broad),
@@ -189,7 +193,7 @@ summary(rich_deg)
 rich_deg_fitted <- cbind(rich_deg$data,
                             fitted(rich_deg, re_formula = NA
                             )) %>%
-  as_tibble() %>% inner_join(sb_prep_area %>% select(Total_Species, 
+  as_tibble() %>% inner_join(sb_rich_area %>% select(Total_Species, 
                                                      Total_Number_Samples, Total_Sample_Area_mm2,
                                                      log_Total_Sample_Area_mm2,
                                                      Habitat_Degraded),
@@ -255,7 +259,7 @@ fig_rich.zone <- ggplot() +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_prep_area_zone ,
+  geom_point(data = sb_rich_area_zone ,
              aes(x = (Total_Sample_Area_mm2/1000000),
                 # x = Total_Sample_Area_mm2,
                  y = Total_Species, colour = Biome_WWF_Zone,
@@ -301,7 +305,7 @@ fig_rich.habs <- ggplot() +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_prep_area ,
+  geom_point(data = sb_rich_area ,
              aes(x = (Total_Sample_Area_mm2/1000000),
                  # x = Total_Sample_Area_mm2,
                  y = Total_Species,
@@ -345,7 +349,7 @@ fig_rich.deg <- ggplot() +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_prep_area ,
+  geom_point(data = sb_rich_area ,
              aes(x = (Total_Sample_Area_mm2/1000000),
                  # x = Total_Sample_Area_mm2,
                  y = Total_Species,
