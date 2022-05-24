@@ -19,8 +19,8 @@ sb_dat <- sb %>%
           Method = as.factor(Method)) #%>% filter(!Habitat_Broad == "Arable")
 
 rich_habs <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Habitat_Broad + ( 1 | Method/studyID/rowID ),
-                    family = poisson(), data = sb, cores = 4, chains = 4, iter = 3000, warmup =1000,
-                    control = list(adapt_delta = 0.99) )
+                    family = poisson(), data = sb, cores = 4, chains = 4, iter = 4000, warmup =1000,
+                    control = list(adapt_delta = 0.999) )
 
 
 save(rich_habs,

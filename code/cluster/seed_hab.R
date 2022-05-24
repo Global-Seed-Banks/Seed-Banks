@@ -21,7 +21,8 @@ sb_dat <- sb %>%
 
 seeds_habs <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Habitat_Broad + ( 1 | Method/studyID/rowID ),
                 family = poisson(), data = sb, cores = 4, chains = 4, iter = 3000, warmup =1000,
-                control = list(adapt_delta = 0.99) )
+               # control = list(adapt_delta = 0.99) 
+               )
 
 
 save(seeds_habs,

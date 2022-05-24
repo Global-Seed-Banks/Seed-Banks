@@ -22,7 +22,8 @@ sb_dat <- sb %>% filter(!is.na(Total_Seeds),
 
 seeds_deg <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 *  Habitat_Degraded  + ( 1 | Method/studyID/rowID ) ,
                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 3000, warmup =1000,
-                control = list(adapt_delta = 0.99))
+               # control = list(adapt_delta = 0.99)
+                )
 
 save(seeds_deg,
      file=Sys.getenv('OFILE'))
