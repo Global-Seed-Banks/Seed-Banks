@@ -18,10 +18,10 @@ sb_dat <- sb %>% filter(!is.na(Total_Seeds),
           Method = as.factor(Method)) %>% filter(!Habitat_Broad == "Arable")
 
 
-seeds_zones <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_WWF_Zone + (1 | Method/studyID/rowID ),
-                    family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
+seeds_zones <- brm(log_Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_WWF_Zone + (1 | Method/studyID/rowID ),
+                    family = student(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                     # control = list(adapt_delta = 0.99,
-                    #                max_treedepth = 12)
+                    #                max_treedepth 
 )
 
 
