@@ -93,6 +93,7 @@ pp_rich.deg <- pp_check(rich_deg)+ xlab( "Total Species") + ylab("Density") +
 (pp_rich.zone | pp_rich.habs |  pp_rich.deg)
 
 
+
 # caterpillars/chains
 plot(rich_zones)
 plot(rich_habs)
@@ -165,6 +166,8 @@ rich_zone_fitted <- cbind(rich_zones$data,
   as_tibble() %>% inner_join(sb_rich_area_zone %>% select(Total_Species, 
                                                     Total_Number_Samples, Total_Sample_Area_mm2,
                                                     log_Total_Sample_Area_mm2,
+                                                    Total_Sample_Area_m2, log_Total_Sample_Area_m2,
+                                                    Centred_log_Total_Sample_Area_m2,
                                                   Biome_WWF_Zone),
                            #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
   )
@@ -179,6 +182,8 @@ rich_habs_fitted <- cbind(rich_habs$data,
   as_tibble() %>% inner_join(sb_rich_area %>% select(Total_Species, 
                                                      Total_Number_Samples, Total_Sample_Area_mm2,
                                                      log_Total_Sample_Area_mm2,
+                                                     Total_Sample_Area_m2, log_Total_Sample_Area_m2,
+                                                     Centred_log_Total_Sample_Area_m2,
                                                      Habitat_Broad),
                              #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
   )
@@ -196,6 +201,8 @@ rich_deg_fitted <- cbind(rich_deg$data,
   as_tibble() %>% inner_join(sb_rich_area %>% select(Total_Species, 
                                                      Total_Number_Samples, Total_Sample_Area_mm2,
                                                      log_Total_Sample_Area_mm2,
+                                                     Total_Sample_Area_m2, log_Total_Sample_Area_m2,
+                                                     Centred_log_Total_Sample_Area_m2,
                                                      Habitat_Degraded),
                              #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
   )
@@ -260,21 +267,24 @@ fig_rich.zone <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_rich_area_zone ,
-             aes(x = (Total_Sample_Area_mm2/1000000),
+             aes(#x = (Total_Sample_Area_mm2/1000000),
                 # x = Total_Sample_Area_mm2,
+                 x = Total_Sample_Area_m2,
                  y = Total_Species, colour = Biome_WWF_Zone,
                  ), 
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
   geom_line(data = rich_zone_fitted,
-            aes(x = (Total_Sample_Area_mm2/1000000), 
+            aes(#x = (Total_Sample_Area_mm2/1000000), 
                # x = Total_Sample_Area_mm2,
+              x = Total_Sample_Area_m2,
                 y = Estimate, colour = Biome_WWF_Zone),
             size = 1) +
   # uncertainy in fixed effect
   geom_ribbon(data = rich_zone_fitted,
-              aes( x =  (Total_Sample_Area_mm2/1000000), 
+              aes( #x =  (Total_Sample_Area_mm2/1000000), 
                   #x =  Total_Sample_Area_mm2, 
+                x = Total_Sample_Area_m2,
                   ymin = Q2.5, ymax = Q97.5, fill = Biome_WWF_Zone),
               alpha = 0.3 ) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -283,7 +293,7 @@ fig_rich.zone <- ggplot() +
                                   legend.position="none") +
   labs(y = "Total Species",  #x = expression(paste('Total Sample Area ' , m^2)),
        x="",
-       color = "WWF Zone", fill = "WWF Zone", subtitle= "WWF Zones") + guides(col = guide_legend(ncol = 2))+
+       color = "WWF Zone", fill = "WWF Zone", subtitle= "WWF Zones") + guides(col = guide_legend(ncol = 2)) +
   #xlim(0,800)+ ylim(0,200)+
   scale_x_log10() + scale_y_log10() 
 
@@ -394,8 +404,14 @@ Total_Species_Fig
 
 # (Total_Sample_Area_mm2/1000000) =m2
 
+
+# conditional effects
+rich_zone_c <- conditional_effects(rich_zones, effects = 'Centred_log_Total_Sample_Area_m2:Biome_WWF_Zone', re_formula = NA, method = 'fitted')  # conditional effects
+
+rich_zone_c
+
 # global effects
-rich_zone.fixed.p <- as_draws(rich_zones, subset = floor(runif(n = 1000, 1, max = 2000)))
+rich_zone.fixed.p <- as_draws_df(rich_zones, subset = floor(runif(n = 1000, 1, max = 2000)))
 
 rich_zone.fixed.p
 nrow(rich_zone.fixed.p)
@@ -404,16 +420,12 @@ colnames(rich_zone.fixed.p)
 
 # select columns of interests and give meaningful names
 rich_zone_global_posterior <-  rich_zone.fixed.p %>% 
-  purrr::pluck("b_log_Total_Sample_Area_mm2"#,"b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert",
-              # "b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate", "b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical",
-              #"b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra"
-              ) #%>%
   as_tibble() %>%
-  mutate(rich.bor.global = (`b_log_Total_Sample_Area_mm2` ),
-         rich.med.global = (`b_log_Total_Sample_Area_mm2` + `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneMediterraneanandDesert`),
-         rich.temp.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTemperate`),
-         rich.trop.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTropical`),
-         rich.tund.global = (`b_log_Total_Sample_Area_mm2`+ `b_log_Total_Sample_Area_mm2:Biome_WWF_ZoneTundra`),
+  mutate(rich.bor.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+         rich.med.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneMediterraneanandDesert`),
+         rich.temp.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneTemperate`),
+         rich.trop.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneTropical`),
+         rich.tund.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneTundra`),
   ) %>%
   dplyr::select(c(rich.bor.global, rich.med.global, rich.temp.global, rich.trop.global, rich.tund.global ))
 
@@ -477,4 +489,139 @@ fig_rich_zone_global <- ggplot() +
 fig_rich_zone_global
 
 
+# habs
+rich_hab.fixed.p <- as_draws_df(rich_habs, subset = floor(runif(n = 1000, 1, max = 2000)))
+
+rich_hab.fixed.p
+nrow(rich_zone.fixed.p)
+head(rich_zone.fixed.p)
+colnames(rich_hab.fixed.p)
+
+# select columns of interests and give meaningful names
+rich_hab_global_posterior <-  rich_hab.fixed.p %>% 
+  as_tibble() %>%
+  mutate(rich.aquatic.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+         rich.arable.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadArable`),
+         rich.forest.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadForest`),
+         rich.grassland.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadGrassland`),
+         rich.wetland.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadWetland`),
+  ) %>%
+  dplyr::select(c(rich.aquatic.global, rich.arable.global, rich.forest.global, rich.grassland.global, rich.wetland.global ))
+
+head(rich_hab_global_posterior)
+
+rich.aquatic.p <-  rich_hab_global_posterior %>% 
+  mutate( response = "Aquatic", eff = mean(rich.aquatic.global),
+          eff_lower = quantile(rich.aquatic.global, probs=0.025),
+          eff_upper = quantile(rich.aquatic.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Med
+rich.arable.p <-  rich_hab_global_posterior %>% 
+  mutate( response = "Arable", eff = mean(rich.arable.global),
+          eff_lower = quantile(rich.arable.global, probs=0.025),
+          eff_upper = quantile(rich.arable.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Temp
+rich.forest.p <-  rich_hab_global_posterior %>% 
+  mutate( response = "Forest", eff = mean(rich.forest.global),
+          eff_lower = quantile(rich.forest.global, probs=0.025),
+          eff_upper = quantile(rich.forest.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Trop
+rich.grassland.p <-  rich_hab_global_posterior %>% 
+  mutate( response = "Grassland", eff = mean(rich.grassland.global),
+          eff_lower = quantile(rich.grassland.global, probs=0.025),
+          eff_upper = quantile(rich.grassland.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Tund
+rich.wetland.p <-  rich_hab_global_posterior %>% 
+  mutate( response = "Wetland", eff = mean(rich.wetland.global),
+          eff_lower = quantile(rich.wetland.global, probs=0.025),
+          eff_upper = quantile(rich.wetland.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+global.rich_hab.p <- bind_rows(rich.aquatic.p, rich.arable.p,
+                                rich.forest.p, rich.grassland.p,
+                                rich.wetland.p)
+head(global.rich_hab.p)
+
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(global.rich_hab.p, file = 'global.rich_hab.posteriors.Rdata')
+
+
+fig_rich_hab_global <- ggplot() + 
+  geom_point(data = global.rich_hab.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.rich_hab.p, aes(x = response,ymin = eff_lower,
+                                               ymax = eff_upper, color=response),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_rich_hab_global
+
+
+
+# degraded habs
+rich_deg.fixed.p <- as_draws_df(rich_deg, subset = floor(runif(n = 1000, 1, max = 2000)))
+
+rich_deg.fixed.p
+nrow(rich_zone.fixed.p)
+head(rich_zone.fixed.p)
+colnames(rich_deg.fixed.p)
+
+# select columns of interests and give meaningful names
+rich_deg_global_posterior <-  rich_deg.fixed.p %>% 
+  as_tibble() %>%
+  mutate(rich.notdeg.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+         rich.deg.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Habitat_Degraded1`),
+  ) %>%
+  dplyr::select(c(rich.notdeg.global, rich.deg.global))
+
+head(rich_deg_global_posterior)
+
+rich.notdeg.p <-  rich_deg_global_posterior %>% 
+  mutate( response = "Not Degraded", eff = mean(rich.notdeg.global),
+          eff_lower = quantile(rich.notdeg.global, probs=0.025),
+          eff_upper = quantile(rich.notdeg.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+rich.deg.p <-  rich_deg_global_posterior %>% 
+  mutate( response = "Degraded", eff = mean(rich.deg.global),
+          eff_lower = quantile(rich.deg.global, probs=0.025),
+          eff_upper = quantile(rich.deg.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+global.rich_deg.p <- bind_rows(rich.notdeg.p, rich.deg.p)
+head(global.rich_deg.p)
+
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(global.rich_deg.p, file = 'global.rich_deg.posteriors.Rdata')
+
+
+fig_rich_deg_global <- ggplot() + 
+  geom_point(data = global.rich_deg.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.rich_deg.p, aes(x = response,ymin = eff_lower,
+                                              ymax = eff_upper, color=response),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_rich_deg_global
+
+
+fig_rich_zone_global | fig_rich_hab_global | fig_rich_deg_global
 

@@ -19,7 +19,7 @@ sb_dat <- sb %>% filter(!is.na(Seed_density_m2)) %>%
 
 density_zones <- brm(Seed_density_m2 ~  Biome_WWF_Zone + (1 | Method/studyID/rowID ),
                     family = student(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
-                    control = list(adapt_delta = 0.99,
+                    control = list(adapt_delta = 0.999,
                                    max_treedepth = 12)
 )
 

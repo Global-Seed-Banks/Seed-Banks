@@ -74,7 +74,7 @@ load( 'seed_deg.Rdata')
 # model summary
 summary(seeds_zones)
 summary(seeds_habs) 
-summary(seeds.p_i)
+summary(seeds_deg)
 
 
 # posterior predictive check
@@ -89,7 +89,7 @@ pp_seed.habs <- pp_check(seeds_habs)+ xlab( "Total Seeds") + ylab("Density") +
   theme_classic()+  theme(legend.position= "bottom") # predicted vs. observed values
 
 
-pp_seed.deg <- pp_check(seeds.p_i)+ xlab( "Total Seeds") + ylab("Density") +
+pp_seed.deg <- pp_check(seeds_deg)+ xlab( "Total Seeds") + ylab("Density") +
   labs(title= "") +  xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
@@ -167,6 +167,8 @@ seeds_zone_fitted <- cbind(seeds_zones$data,
   as_tibble() %>% inner_join(sb_seeds_area_zone %>% select(Total_Species, 
                                                           Total_Number_Samples, Total_Sample_Area_mm2,
                                                           log_Total_Sample_Area_mm2,
+                                                          Total_Sample_Area_m2, log_Total_Sample_Area_m2,
+                                                          Centred_log_Total_Sample_Area_m2,
                                                           Biome_WWF_Zone),
                              #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
   )
@@ -181,6 +183,8 @@ seeds_habs_fitted <- cbind(seeds_habs$data,
   as_tibble() %>% inner_join(sb_seeds_area %>% select(Total_Species, 
                                                      Total_Number_Samples, Total_Sample_Area_mm2,
                                                      log_Total_Sample_Area_mm2,
+                                                     Total_Sample_Area_m2, log_Total_Sample_Area_m2,
+                                                     Centred_log_Total_Sample_Area_m2,
                                                      Habitat_Broad),
                              #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
   )
@@ -192,12 +196,14 @@ nrow(seeds_habs_fitted)
 
 summary(seeds_deg)
 
-seeds_deg_fitted <- cbind(seeds.p_i$data,
-                         fitted(seeds.p_i, re_formula = NA
+seeds_deg_fitted <- cbind(seeds_deg$data,
+                         fitted(seeds_deg, re_formula = NA
                          )) %>%
   as_tibble() %>% inner_join(sb_seeds_area %>% select(Total_Species, 
                                                      Total_Number_Samples, Total_Sample_Area_mm2,
                                                      log_Total_Sample_Area_mm2,
+                                                     Total_Sample_Area_m2, log_Total_Sample_Area_m2,
+                                                     Centred_log_Total_Sample_Area_m2,
                                                      Habitat_Degraded),
                              #  by= c("Total_Species2","Biome_WWF_Zone","Habitat_Broad","studyID", "rowID")
   )
@@ -229,11 +235,11 @@ seeds_habs_coef
 
 
 # fixed effect coefficients
-seeds_deg_fixef <- fixef(seeds.p_i)
+seeds_deg_fixef <- fixef(seeds_deg)
 head(seeds_deg_fixef)
 
 # Random effect coefficients
-seeds_deg_coef <- coef(seeds.p_i)
+seeds_deg_coef <- coef(seeds_deg)
 seeds_deg_coef
 
 setwd(paste0(path2wd, 'Data/'))
@@ -256,7 +262,7 @@ load('seeds_zone.mod_dat.Rdata')
 
 # plot seedsness area zone relationship
 
-sb_prep_area_zone %>% summarise
+
 
 fig_seeds.zone <- ggplot() + 
   #facet_wrap(~Biome_WWF_Zone, scales="free") +
@@ -395,3 +401,221 @@ Total_Seeds_Fig
 
 
 (Total_Species_Fig / Total_Seeds_Fig)
+
+
+
+# global effects
+seeds_zone.fixed.p <- as_draws_df(seeds_zones, subset = floor(runif(n = 1000, 1, max = 2000)))
+
+seeds_zone.fixed.p
+nrow(seeds_zone.fixed.p)
+head(seeds_zone.fixed.p)
+colnames(seeds_zone.fixed.p)
+
+# select columns of interests and give meaningful names
+seeds_zone_global_posterior <-  seeds_zone.fixed.p %>% 
+  as_tibble() %>%
+  mutate(seeds.bor.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+         seeds.med.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneMediterraneanandDesert`),
+         seeds.temp.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneTemperate`),
+         seeds.trop.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneTropical`),
+         seeds.tund.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_ZoneTundra`),
+  ) %>%
+  dplyr::select(c(seeds.bor.global, seeds.med.global, seeds.temp.global, seeds.trop.global, seeds.tund.global ))
+
+View(seeds_zone_global_posterior)
+head(seeds_zone_global_posterior)
+
+seeds.bor.p <-  seeds_zone_global_posterior %>% 
+  mutate( response = "Boreal", eff = mean(seeds.bor.global),
+          eff_lower = quantile(seeds.bor.global, probs=0.025),
+          eff_upper = quantile(seeds.bor.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Med
+seeds.med.p <-  seeds_zone_global_posterior %>% 
+  mutate( response = "MediterraneanandDesert", eff = mean(seeds.med.global),
+          eff_lower = quantile(seeds.med.global, probs=0.025),
+          eff_upper = quantile(seeds.med.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Temp
+seeds.temp.p <-  seeds_zone_global_posterior %>% 
+  mutate( response = "Temperate", eff = mean(seeds.temp.global),
+          eff_lower = quantile(seeds.temp.global, probs=0.025),
+          eff_upper = quantile(seeds.temp.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Trop
+seeds.trop.p <-  seeds_zone_global_posterior %>% 
+  mutate( response = "Tropical", eff = mean(seeds.trop.global),
+          eff_lower = quantile(seeds.trop.global, probs=0.025),
+          eff_upper = quantile(seeds.trop.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Tund
+seeds.tund.p <-  seeds_zone_global_posterior %>% 
+  mutate( response = "Tundra", eff = mean(seeds.tund.global),
+          eff_lower = quantile(seeds.tund.global, probs=0.025),
+          eff_upper = quantile(seeds.tund.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+global.seeds_zone.p <- bind_rows(seeds.bor.p, seeds.med.p,
+                                seeds.temp.p, seeds.trop.p,
+                                seeds.tund.p)
+head(global.seeds_zone.p)
+
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(global.seeds_zone.p, file = 'global.seeds_zone.posteriors.Rdata')
+
+
+fig_seeds_zone_global <- ggplot() + 
+  geom_point(data = global.seeds_zone.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.seeds_zone.p, aes(x = response,ymin = eff_lower,
+                                               ymax = eff_upper, color=response),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_seeds_zone_global
+
+
+# habs
+seeds_hab.fixed.p <- as_draws_df(seeds_habs, subset = floor(runif(n = 1000, 1, max = 2000)))
+
+seeds_hab.fixed.p
+nrow(seeds_zone.fixed.p)
+head(seeds_zone.fixed.p)
+colnames(seeds_hab.fixed.p)
+
+# select columns of interests and give meaningful names
+seeds_hab_global_posterior <-  seeds_hab.fixed.p %>% 
+  as_tibble() %>%
+  mutate(seeds.aquatic.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+         seeds.arable.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadArable`),
+         seeds.forest.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadForest`),
+         seeds.grassland.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadGrassland`),
+         seeds.wetland.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Habitat_BroadWetland`),
+  ) %>%
+  dplyr::select(c(seeds.aquatic.global, seeds.arable.global, seeds.forest.global, seeds.grassland.global, seeds.wetland.global ))
+
+head(seeds_hab_global_posterior)
+
+seeds.aquatic.p <-  seeds_hab_global_posterior %>% 
+  mutate( response = "Aquatic", eff = mean(seeds.aquatic.global),
+          eff_lower = quantile(seeds.aquatic.global, probs=0.025),
+          eff_upper = quantile(seeds.aquatic.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Med
+seeds.arable.p <-  seeds_hab_global_posterior %>% 
+  mutate( response = "Arable", eff = mean(seeds.arable.global),
+          eff_lower = quantile(seeds.arable.global, probs=0.025),
+          eff_upper = quantile(seeds.arable.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Temp
+seeds.forest.p <-  seeds_hab_global_posterior %>% 
+  mutate( response = "Forest", eff = mean(seeds.forest.global),
+          eff_lower = quantile(seeds.forest.global, probs=0.025),
+          eff_upper = quantile(seeds.forest.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Trop
+seeds.grassland.p <-  seeds_hab_global_posterior %>% 
+  mutate( response = "Grassland", eff = mean(seeds.grassland.global),
+          eff_lower = quantile(seeds.grassland.global, probs=0.025),
+          eff_upper = quantile(seeds.grassland.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# Tund
+seeds.wetland.p <-  seeds_hab_global_posterior %>% 
+  mutate( response = "Wetland", eff = mean(seeds.wetland.global),
+          eff_lower = quantile(seeds.wetland.global, probs=0.025),
+          eff_upper = quantile(seeds.wetland.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+global.seeds_hab.p <- bind_rows(seeds.aquatic.p, seeds.arable.p,
+                               seeds.forest.p, seeds.grassland.p,
+                               seeds.wetland.p)
+head(global.seeds_hab.p)
+
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(global.seeds_hab.p, file = 'global.seeds_hab.posteriors.Rdata')
+
+
+fig_seeds_hab_global <- ggplot() + 
+  geom_point(data = global.seeds_hab.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.seeds_hab.p, aes(x = response,ymin = eff_lower,
+                                              ymax = eff_upper, color=response),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_seeds_hab_global
+
+
+
+# degraded habs
+seeds_deg.fixed.p <- as_draws_df(seeds_deg, subset = floor(runif(n = 1000, 1, max = 2000)))
+
+seeds_deg.fixed.p
+nrow(seeds_zone.fixed.p)
+head(seeds_zone.fixed.p)
+colnames(seeds_deg.fixed.p)
+
+# select columns of interests and give meaningful names
+seeds_deg_global_posterior <-  seeds_deg.fixed.p %>% 
+  as_tibble() %>%
+  mutate(seeds.notdeg.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+         seeds.deg.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Habitat_Degraded1`),
+  ) %>%
+  dplyr::select(c(seeds.notdeg.global, seeds.deg.global))
+
+head(seeds_deg_global_posterior)
+
+seeds.notdeg.p <-  seeds_deg_global_posterior %>% 
+  mutate( response = "Not Degraded", eff = mean(seeds.notdeg.global),
+          eff_lower = quantile(seeds.notdeg.global, probs=0.025),
+          eff_upper = quantile(seeds.notdeg.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+seeds.deg.p <-  seeds_deg_global_posterior %>% 
+  mutate( response = "Degraded", eff = mean(seeds.deg.global),
+          eff_lower = quantile(seeds.deg.global, probs=0.025),
+          eff_upper = quantile(seeds.deg.global, probs=0.975)) %>%
+  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+
+global.seeds_deg.p <- bind_rows(seeds.notdeg.p, seeds.deg.p)
+head(global.seeds_deg.p)
+
+setwd(paste0(path2wd, 'Data/'))
+# save data objects to avoid time of compiling every time
+save(global.seeds_deg.p, file = 'global.seeds_deg.posteriors.Rdata')
+
+
+fig_seeds_deg_global <- ggplot() + 
+  geom_point(data = global.seeds_deg.p, aes(x = response, y = eff,color=response),size = 2) +
+  geom_errorbar(data = global.seeds_deg.p, aes(x = response,ymin = eff_lower,
+                                              ymax = eff_upper, color=response),
+                width = 0, size = 0.7) +
+  labs(x = '',
+       y='Slope') +
+  geom_hline(yintercept = 0, lty = 2) +
+  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
+                               strip.background = element_blank(),legend.position="none")
+
+fig_seeds_deg_global
+
+
+fig_seeds_zone_global | fig_seeds_hab_global | fig_seeds_deg_global
+
