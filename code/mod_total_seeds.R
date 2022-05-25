@@ -261,7 +261,11 @@ setwd(paste0(path2wd, 'Data/'))
 load('seeds_zone.mod_dat.Rdata')
 
 # plot seedsness area zone relationship
+seeds_zones
 
+seed_zone_c <- conditional_effects(seeds_zones, effects = 'Centred_log_Total_Sample_Area_m2:Biome_WWF_Zone', re_formula = NA, method = 'fitted')  # conditional effects
+
+seed_zone_c
 
 
 fig_seeds.zone <- ggplot() + 

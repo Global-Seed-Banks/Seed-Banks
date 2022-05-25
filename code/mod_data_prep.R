@@ -21,7 +21,8 @@ head(sb)
 colnames(sb)
 
 
-sb_calc <- sb %>% mutate( Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
+sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
+                          Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
                           log_Total_Number_Samples = log(Total_Number_Samples),
                           log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
