@@ -274,32 +274,35 @@ fig_seeds.zone <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_seeds_area_zone ,
-             aes(x = (Total_Sample_Area_mm2/1000000),
-                 # x = Total_Sample_Area_mm2,
+             aes(#x = (Total_Sample_Area_mm2/1000000),
+                  x = Total_Sample_Area_m2,
                  y = Total_Seeds, colour = Biome_WWF_Zone,
              ), 
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
   geom_line(data = seeds_zone_fitted,
-            aes(x = (Total_Sample_Area_mm2/1000000), 
-                # x = Total_Sample_Area_mm2,
+            aes(#x = (Total_Sample_Area_mm2/1000000), 
+                 x = Total_Sample_Area_m2,
                 y = Estimate, colour = Biome_WWF_Zone),
             size = 1) +
   # uncertainy in fixed effect
   geom_ribbon(data = seeds_zone_fitted,
-              aes( x =  (Total_Sample_Area_mm2/1000000), 
-                   #x =  Total_Sample_Area_mm2, 
+              aes( #x =  (Total_Sample_Area_mm2/1000000), 
+                   x =  Total_Sample_Area_m2, 
                    ymin = Q2.5, ymax = Q97.5, fill = Biome_WWF_Zone),
-              alpha = 0.3 ) +
+              alpha = 0.1 ) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
+ #coord_cartesian(xlim = c(min(sb_seeds_area_zone$Total_Sample_Area_m2), quantile(sb_seeds_area_zone$Total_Sample_Area_m2, 0.97))) +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(y = "Total Seeds",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "WWF Zone", fill = "WWF Zone", subtitle= "") + guides(col = guide_legend(ncol = 2)) +
-#xlim(0,800)+ 
+  labs(y = "Total Seeds",  #x = expression(paste('Total Sample Area ' , m^2)),
+       x='',
+       color = "WWF Zone", fill = "WWF Zone", subtitle= "") + guides(col = guide_legend(ncol = 2)) #+
+#ylim(0,200)
 #  coord_cartesian( ylim = c(0,530000))# +
-scale_x_log10() + scale_y_log10() 
+#scale_x_log10() + scale_y_log10() 
 
 fig_seeds.zone
 
@@ -320,33 +323,35 @@ fig_seeds.habs <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_seeds_area ,
-             aes(x = (Total_Sample_Area_mm2/1000000),
-                 # x = Total_Sample_Area_mm2,
+             aes(#x = (Total_Sample_Area_mm2/1000000),
+                  x = Total_Sample_Area_m2,
                  y = Total_Seeds,
                  colour = Habitat_Broad),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
   geom_line(data = seeds_habs_fitted,
-            aes(x = (Total_Sample_Area_mm2/1000000), 
-                # x = Total_Sample_Area_mm2,
+            aes(#x = (Total_Sample_Area_mm2/1000000), 
+                 x = Total_Sample_Area_m2,
                 y = Estimate, colour = Habitat_Broad),
             size = 1) +
   # uncertainy in fixed effect
   geom_ribbon(data = seeds_habs_fitted,
-              aes( x =  (Total_Sample_Area_mm2/1000000), 
-                   #x =  Total_Sample_Area_mm2, 
+              aes(# x =  (Total_Sample_Area_mm2/1000000), 
+                   x =  Total_Sample_Area_m2, 
                    ymin = Q2.5, ymax = Q97.5,  fill = Habitat_Broad),
-              alpha = 0.3) +
-  #coord_cartesian(xlim = c(min(sb_prep_area$Total_Sample_Area_mm2), quantile(sb_prep_area$Total_Sample_Area_mm2, 0.97))) +
+              alpha = 0.1) +
+  #coord_cartesian(xlim = c(min(sb_seeds_area$Total_Sample_Area_m2), quantile(sb_seeds_area$Total_Sample_Area_m2, 0.97))) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
   labs(y = "",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Habitats", fill = "Habitats", subtitle = "") +  guides(col = guide_legend(ncol = 2)) +
-# xlim(0,800)+ ylim(0,200)+
-scale_x_log10() + scale_y_log10() 
+       color = "Habitats", fill = "Habitats", subtitle = "") +  guides(col = guide_legend(ncol = 2))#+
+# xlim(0,800)+ 
+#(0,100)
+#scale_x_log10() + scale_y_log10() 
 
 fig_seeds.habs
 
@@ -363,33 +368,36 @@ fig_seeds.deg <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_seeds_area ,
-             aes(x = (Total_Sample_Area_mm2/1000000),
-                 # x = Total_Sample_Area_mm2,
+             aes(#x = (Total_Sample_Area_mm2/1000000),
+                  x = Total_Sample_Area_m2,
                  y = Total_Seeds,
                  colour = Habitat_Degraded),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
   geom_line(data = seeds_deg_fitted,
-            aes(x = (Total_Sample_Area_mm2/1000000), 
-                # x = Total_Sample_Area_mm2,
+            aes(#x = (Total_Sample_Area_mm2/1000000), 
+                 x = Total_Sample_Area_m2,
                 y = Estimate, colour = Habitat_Degraded),
             size = 1) +
   # uncertainy in fixed effect
   geom_ribbon(data = seeds_deg_fitted,
-              aes( x =  (Total_Sample_Area_mm2/1000000), 
-                   #x =  Total_Sample_Area_mm2, 
+              aes( #x =  (Total_Sample_Area_mm2/1000000), 
+                   x =  Total_Sample_Area_m2, 
                    ymin = Q2.5, ymax = Q97.5,  fill = Habitat_Degraded),
-              alpha = 0.3) +
-  #coord_cartesian(xlim = c(min(sb_prep_area$Total_Sample_Area_mm2), quantile(sb_prep_area$Total_Sample_Area_mm2, 0.97))) +
+              alpha = 0.1) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
+  #coord_cartesian(xlim = c(min(sb_seeds_area$Total_Sample_Area_m2), quantile(sb_seeds_area$Total_Sample_Area_m2, 0.97))) +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="bottom") +
-  labs(y = "",  x = expression(paste('Total Sample Area ' , m^2)),
-       color = "Degraded Habitat", fill = "Degraded Habitat", subtitle = "")+  guides(col = guide_legend(ncol = 2)) +
-# xlim(0,800)+ ylim(0,200)+
-scale_x_log10() + scale_y_log10() 
+  labs(y = "",  #x = expression(paste('Total Sample Area ' , m^2)),
+       x='',
+       color = "Degraded Habitat", fill = "Degraded Habitat", subtitle = "")+  guides(col = guide_legend(ncol = 2))# +
+# xlim(0,800)+ 
+  #ylim(0,200)
+#scale_x_log10() + scale_y_log10() 
 
 fig_seeds.deg
 
@@ -437,7 +445,7 @@ seeds.bor.p <-  seeds_zone_global_posterior %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 # Med
 seeds.med.p <-  seeds_zone_global_posterior %>% 
-  mutate( response = "MediterraneanandDesert", eff = mean(seeds.med.global),
+  mutate( response = "Mediterranean and Desert", eff = mean(seeds.med.global),
           eff_lower = quantile(seeds.med.global, probs=0.025),
           eff_upper = quantile(seeds.med.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
@@ -476,13 +484,13 @@ fig_seeds_zone_global <- ggplot() +
                                                ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
-       y='Slope') +
+       y='Slope', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
-  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_y_continuous(limits = c(-10, 10), breaks=c(-10, -5, 0, 5, 10)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
-                               strip.background = element_blank(),legend.position="none")
+                               strip.background = element_blank(),legend.position="none")  + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 fig_seeds_zone_global
 
@@ -554,9 +562,9 @@ fig_seeds_hab_global <- ggplot() +
                                               ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
-       y='Slope') +
+       y='', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
-  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_y_continuous(limits = c(-10, 10), breaks=c(-10, -5, 0, 5, 10)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -610,9 +618,9 @@ fig_seeds_deg_global <- ggplot() +
                                               ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
-       y='Slope') +
+       y='', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
-  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_y_continuous(limits = c(-10, 10), breaks=c(-10, -5, 0, 5, 10)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -626,5 +634,8 @@ Total_Seeds_Eff <- (fig_seeds_zone_global | fig_seeds_hab_global | fig_seeds_deg
 
 Total_Species_Eff / Total_Seeds_Eff
 
+Total_Seeds_Fig <- (Almost_Total_Seeds_Fig/Total_Seeds_Eff) + plot_annotation(title = "Total Seeds",
+                                                    theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + plot_layout(ncol=1, nrow=2)
 
 
+Total_Seeds_Fig

@@ -178,7 +178,7 @@ Density_Zone_Fig <- ggplot() +
   theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="none") 
+                               strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 
 Density_Zone_Fig
@@ -203,7 +203,7 @@ Density_Hab_Fig <- ggplot() +
                 aes(x = Habitat_Broad, ymin = lower__, ymax = upper__, colour = Habitat_Broad),
                 size = 1, width = 0) +
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+       y = '',#expression(paste('Seed density (',m^2,')')),
        subtitle= 'Habitats') +
   # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +
@@ -239,7 +239,7 @@ Density_Deg_Fig <- ggplot() +
                 aes(x = Habitat_Degraded, ymin = lower__, ymax = upper__, colour = Habitat_Degraded),
                 size = 1, width = 0) +
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+       y = '', #expression(paste('Seed density (',m^2,')')),
        subtitle= 'Habitat Degraded') +
   # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +

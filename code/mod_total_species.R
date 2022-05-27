@@ -285,16 +285,18 @@ fig_rich.zone <- ggplot() +
                   #x =  Total_Sample_Area_mm2, 
                 x = Total_Sample_Area_m2,
                   ymin = Q2.5, ymax = Q97.5, fill = Biome_WWF_Zone),
-              alpha = 0.3 ) +
+              alpha = 0.1 ) +
+  #coord_cartesian(xlim = c(min(sb_rich_area_zone$Total_Sample_Area_m2), quantile(sb_rich_area_zone$Total_Sample_Area_m2, 0.97))) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="none") +
-  labs(y = "Total Species",  #x = expression(paste('Total Sample Area ' , m^2)),
+                                  legend.position="bottom") +
+  labs(y = "Total Species", # x = expression(paste('Total Sample Area ' , m^2)),
        x="",
-       color = "WWF Zone", fill = "WWF Zone", subtitle= "WWF Zones") + guides(col = guide_legend(ncol = 2)) +
+       color = "WWF Zone", fill = "WWF Zone", subtitle= "") + guides(col = guide_legend(ncol = 2))# +
   #xlim(0,800)+ ylim(0,200)+
-  scale_x_log10() + scale_y_log10() 
+  #scale_x_log10() + scale_y_log10() 
 
 fig_rich.zone
 
@@ -331,18 +333,19 @@ fig_rich.habs <- ggplot() +
               aes( x =  (Total_Sample_Area_mm2/1000000), 
                    #x =  Total_Sample_Area_mm2, 
                    ymin = Q2.5, ymax = Q97.5,  fill = Habitat_Broad),
-              alpha = 0.3) +
-  #coord_cartesian(xlim = c(min(sb_prep_area$Total_Sample_Area_mm2), quantile(sb_prep_area$Total_Sample_Area_mm2, 0.97))) +
+              alpha = 0.1) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
+  #coord_cartesian(xlim = c(min(sb_rich_area$Total_Sample_Area_m2), quantile(sb_rich_area$Total_Sample_Area_m2, 0.997))) +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="none") +
-  labs(y = "", # x = expression(paste('Total Sample Area ' , m^2)),
-       x="",
-       color = "Habitats", fill = "Habitats", subtitle = "Habitats") +  guides(col = guide_legend(ncol = 2)) +
+                                  legend.position="bottom") +
+  labs(y = "",  x = expression(paste('Total Sample Area ' , m^2)),
+       #x="",
+       color = "Habitats", fill = "Habitats", subtitle = "") +  guides(col = guide_legend(ncol = 2))# +
 # xlim(0,800)+ ylim(0,200)+
- scale_x_log10() + scale_y_log10() 
+ #scale_x_log10() + scale_y_log10() 
 
 fig_rich.habs
 
@@ -359,34 +362,35 @@ fig_rich.deg <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_rich_area ,
-             aes(x = (Total_Sample_Area_mm2/1000000),
-                 # x = Total_Sample_Area_mm2,
+             aes(#x = (Total_Sample_Area_mm2/1000000),
+                  x = Total_Sample_Area_m2,
                  y = Total_Species,
                  colour = Habitat_Degraded),
              size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
   geom_line(data = rich_deg_fitted,
-            aes(x = (Total_Sample_Area_mm2/1000000), 
-                # x = Total_Sample_Area_mm2,
+            aes(#x = (Total_Sample_Area_mm2/1000000), 
+                x = Total_Sample_Area_m2,
                 y = Estimate, colour = Habitat_Degraded),
             size = 1) +
   # uncertainy in fixed effect
   geom_ribbon(data = rich_deg_fitted,
-              aes( x =  (Total_Sample_Area_mm2/1000000), 
-                   #x =  Total_Sample_Area_mm2, 
+              aes(#x =  (Total_Sample_Area_mm2/1000000), 
+                   x =  Total_Sample_Area_m2, 
                    ymin = Q2.5, ymax = Q97.5,  fill = Habitat_Degraded),
-              alpha = 0.3) +
-  #coord_cartesian(xlim = c(min(sb_prep_area$Total_Sample_Area_mm2), quantile(sb_prep_area$Total_Sample_Area_mm2, 0.97))) +
+              alpha = 0.1) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
+    #coord_cartesian(xlim = c(min(sb_rich_area$Total_Sample_Area_m2), quantile(sb_rich_area$Total_Sample_Area_m2, 0.97))) +
   # xlim(0,10) + ylim(0,200) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="none") +
-  labs(y = "", # x = expression(paste('Total Sample Area ' , m^2)),
+                                  legend.position="bottom") +
+  labs(y = "",  #x = expression(paste('Total Sample Area ' , m^2)),
        x= "",
-       color = "Degraded Habitat", fill = "Degraded Habitat", subtitle = "Degraded Habitat")+  guides(col = guide_legend(ncol = 2)) +
+       color = "Degraded Habitat", fill = "Degraded Habitat", subtitle = "")+  guides(col = guide_legend(ncol = 2)) #+
   # xlim(0,800)+ ylim(0,200)+
- scale_x_log10() + scale_y_log10() 
+ #scale_x_log10() + scale_y_log10() 
 
 fig_rich.deg
 
@@ -438,7 +442,7 @@ rich.bor.p <-  rich_zone_global_posterior %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 # Med
 rich.med.p <-  rich_zone_global_posterior %>% 
-  mutate( response = "MediterraneanandDesert", eff = mean(rich.med.global),
+  mutate( response = "Mediterranean and Desert", eff = mean(rich.med.global),
           eff_lower = quantile(rich.med.global, probs=0.025),
           eff_upper = quantile(rich.med.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
@@ -470,6 +474,7 @@ setwd(paste0(path2wd, 'Data/'))
 # save data objects to avoid time of compiling every time
 save(global.rich_zone.p, file = 'global.rich_zone.posteriors.Rdata')
 
+head(global.rich_zone.p)
 
 fig_rich_zone_global <- ggplot() + 
   geom_point(data = global.rich_zone.p, aes(x = response, y = eff,color=response),size = 2) +
@@ -477,13 +482,13 @@ fig_rich_zone_global <- ggplot() +
                                                ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
-       y='Slope') +
+       y='Slope', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
-  # scale_y_continuous(breaks=c(0,-8)) +
+   scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
-                               strip.background = element_blank(),legend.position="none")
+                               strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 fig_rich_zone_global
 
@@ -555,9 +560,9 @@ fig_rich_hab_global <- ggplot() +
                                                ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
-       y='Slope') +
+       y='', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
-  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -611,9 +616,9 @@ fig_rich_deg_global <- ggplot() +
                                               ymax = eff_upper, color=response),
                 width = 0, size = 0.7) +
   labs(x = '',
-       y='Slope') +
+       y='', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
-  # scale_y_continuous(breaks=c(0,-8)) +
+  scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
@@ -624,3 +629,11 @@ fig_rich_deg_global
 
 Total_Species_Eff <- (fig_rich_zone_global | fig_rich_hab_global | fig_rich_deg_global)
 
+Total_Species_Eff
+
+
+
+Total_Species_Fig <- (Almost_Total_Species_Fig / Total_Species_Eff) + plot_annotation(title = "Total Species",
+                                                          theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + plot_layout(ncol=1, nrow=2)
+
+Total_Species_Fig
