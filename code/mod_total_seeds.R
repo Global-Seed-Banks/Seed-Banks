@@ -637,5 +637,5 @@ Total_Species_Eff / Total_Seeds_Eff
 Total_Seeds_Fig <- (Almost_Total_Seeds_Fig/Total_Seeds_Eff) + plot_annotation(title = "Total Seeds",
                                                     theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + plot_layout(ncol=1, nrow=2)
 
-
+# LANDSCAPE 10 X 16
 Total_Seeds_Fig

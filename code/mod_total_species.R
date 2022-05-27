@@ -636,4 +636,9 @@ Total_Species_Eff
 Total_Species_Fig <- (Almost_Total_Species_Fig / Total_Species_Eff) + plot_annotation(title = "Total Species",
                                                           theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + plot_layout(ncol=1, nrow=2)
 
+# LANDSCAPE 10 X 16
 Total_Species_Fig
+
+
+
+
