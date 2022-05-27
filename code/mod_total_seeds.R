@@ -621,5 +621,10 @@ fig_seeds_deg_global <- ggplot() +
 fig_seeds_deg_global
 
 
-fig_seeds_zone_global | fig_seeds_hab_global | fig_seeds_deg_global
+Total_Seeds_Eff <- (fig_seeds_zone_global | fig_seeds_hab_global | fig_seeds_deg_global)
+
+
+Total_Species_Eff / Total_Seeds_Eff
+
+
 

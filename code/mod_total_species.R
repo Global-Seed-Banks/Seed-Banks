@@ -53,8 +53,7 @@ sb_rich_area_zone <- sb_rich_area %>% filter(!Habitat_Broad == "Arable")
 #                 control = list(adapt_delta = 0.99))
 # 
 
-head(sb_prep_area)
-nrow(sb_prep_area)
+
 
 
 setwd(paste0(path2wd, 'Model_Fits/'))
@@ -623,5 +622,5 @@ fig_rich_deg_global <- ggplot() +
 fig_rich_deg_global
 
 
-fig_rich_zone_global | fig_rich_hab_global | fig_rich_deg_global
+Total_Species_Eff <- (fig_rich_zone_global | fig_rich_hab_global | fig_rich_deg_global)
 
