@@ -591,13 +591,13 @@ rich_deg_global_posterior <-  rich_deg.fixed.p %>%
 head(rich_deg_global_posterior)
 
 rich.notdeg.p <-  rich_deg_global_posterior %>% 
-  mutate( response = "Not Degraded", eff = mean(rich.notdeg.global),
+  mutate( response = "0", eff = mean(rich.notdeg.global),
           eff_lower = quantile(rich.notdeg.global, probs=0.025),
           eff_upper = quantile(rich.notdeg.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
 rich.deg.p <-  rich_deg_global_posterior %>% 
-  mutate( response = "Degraded", eff = mean(rich.deg.global),
+  mutate( response = "1", eff = mean(rich.deg.global),
           eff_lower = quantile(rich.deg.global, probs=0.025),
           eff_upper = quantile(rich.deg.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 

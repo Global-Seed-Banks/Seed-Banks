@@ -593,13 +593,13 @@ seeds_deg_global_posterior <-  seeds_deg.fixed.p %>%
 head(seeds_deg_global_posterior)
 
 seeds.notdeg.p <-  seeds_deg_global_posterior %>% 
-  mutate( response = "Not Degraded", eff = mean(seeds.notdeg.global),
+  mutate( response = "0", eff = mean(seeds.notdeg.global),
           eff_lower = quantile(seeds.notdeg.global, probs=0.025),
           eff_upper = quantile(seeds.notdeg.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
 seeds.deg.p <-  seeds_deg_global_posterior %>% 
-  mutate( response = "Degraded", eff = mean(seeds.deg.global),
+  mutate( response = "1", eff = mean(seeds.deg.global),
           eff_lower = quantile(seeds.deg.global, probs=0.025),
           eff_upper = quantile(seeds.deg.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
