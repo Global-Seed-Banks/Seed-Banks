@@ -278,7 +278,7 @@ fig_seeds.zone <- ggplot() +
                   x = Total_Sample_Area_m2,
                  y = Total_Seeds, colour = Biome_WWF_Zone,
              ), 
-             size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
+             size = 1.2, alpha = 0.3, position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
   geom_line(data = seeds_zone_fitted,
             aes(#x = (Total_Sample_Area_mm2/1000000), 
@@ -296,7 +296,7 @@ fig_seeds.zone <- ggplot() +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
  #coord_cartesian(xlim = c(min(sb_seeds_area_zone$Total_Sample_Area_m2), quantile(sb_seeds_area_zone$Total_Sample_Area_m2, 0.97))) +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="bottom") +
+                                  legend.position="none") +
   labs(y = "Total Seeds",  #x = expression(paste('Total Sample Area ' , m^2)),
        x='',
        color = "WWF Zone", fill = "WWF Zone", subtitle= "") + guides(col = guide_legend(ncol = 2)) #+
@@ -489,6 +489,8 @@ fig_seeds_zone_global <- ggplot() +
   scale_y_continuous(limits = c(-10, 10), breaks=c(-10, -5, 0, 5, 10)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #panel.background = element_rect(fill = "transparent"), # bg of the panel
+                               plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
                                axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")  + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
@@ -646,20 +648,20 @@ Total_Seeds_Fig
 
 
 
-seeds_zone <- fig_seeds.zone +  annotation_custom(ggplotGrob(fig_seeds_zone_global), xmin = 11, xmax = 15, 
-                                                ymin = 75, ymax = 100)
+seeds_zone <- fig_seeds.zone +  annotation_custom(ggplotGrob(fig_seeds_zone_global), xmin = 11, xmax = 15.75, 
+                                                ymin = 70, ymax = 110)
 
 seeds_zone
 
 
-seeds_hab <- fig_seeds.habs +  annotation_custom(ggplotGrob(fig_seeds_hab_global), xmin = 11, xmax = 15, 
-                                               ymin = 75, ymax = 100)
+seeds_hab <- fig_seeds.habs +  annotation_custom(ggplotGrob(fig_seeds_hab_global), xmin = 11, xmax = 15.75, 
+                                               ymin = 75, ymax = 108)
 
 seeds_hab
 
 
-seeds_deg <- fig_seeds.deg +  annotation_custom(ggplotGrob(fig_seeds_deg_global), xmin = 11, xmax = 15, 
-                                              ymin = 75, ymax = 100)
+seeds_deg <- fig_seeds.deg +  annotation_custom(ggplotGrob(fig_seeds_deg_global), xmin = 11, xmax = 15.75, 
+                                              ymin = 75, ymax = 108)
 
 seeds_deg
 

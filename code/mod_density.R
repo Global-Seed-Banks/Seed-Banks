@@ -256,3 +256,7 @@ Density_Deg_Fig
 
 
 Density_Zone_Fig | Density_Hab_Fig | Density_Deg_Fig
+
+
+
+rich_zone | rich_zone_i

@@ -295,7 +295,7 @@ fig_rich.zone <- ggplot() +
                                   legend.position="bottom") +
   labs(y = "Total Species", # x = expression(paste('Total Sample Area ' , m^2)),
        x="",
-       color = "WWF Zone", fill = "WWF Zone", subtitle= "") + guides(col = guide_legend(ncol = 2))# +
+       color = "WWF Zone", fill = "WWF Zone", subtitle= "") + guides(col = guide_legend(nrow = 2))# +
   #xlim(0,800)+ ylim(0,200)+
   #scale_x_log10() + scale_y_log10() 
 
@@ -488,6 +488,8 @@ fig_rich_zone_global <- ggplot() +
    scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #panel.background = element_rect(fill = "transparent"), # bg of the panel
+                               plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
                                axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
@@ -624,6 +626,8 @@ fig_rich_deg_global <- ggplot() +
   scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               panel.background = element_rect(fill = "transparent"), # bg of the panel
+                               plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
                                axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
@@ -646,20 +650,20 @@ Total_Species_Fig
 
 
 # inset slope effects
-rich_zone <- fig_rich.zone +  annotation_custom(ggplotGrob(fig_rich_zone_global), xmin = 11, xmax = 15, 
-                                        ymin = 75, ymax = 100)
+rich_zone <- fig_rich.zone +  annotation_custom(ggplotGrob(fig_rich_zone_global), xmin = 11, xmax = 15.75, 
+                                        ymin = 70, ymax = 110)
 
 rich_zone
 
 
-rich_hab <- fig_rich.habs +  annotation_custom(ggplotGrob(fig_rich_hab_global), xmin = 11, xmax = 15, 
-                                                ymin = 75, ymax = 100)
+rich_hab <- fig_rich.habs +  annotation_custom(ggplotGrob(fig_rich_hab_global), xmin = 11, xmax = 15.75, 
+                                                ymin = 75, ymax = 108)
 
 rich_hab
 
 
-rich_deg <- fig_rich.deg +  annotation_custom(ggplotGrob(fig_rich_deg_global), xmin = 11, xmax = 15, 
-                                               ymin = 75, ymax = 100)
+rich_deg <- fig_rich.deg +  annotation_custom(ggplotGrob(fig_rich_deg_global), xmin = 11, xmax = 15.75, 
+                                               ymin = 75, ymax = 108)
 
 rich_deg
 
