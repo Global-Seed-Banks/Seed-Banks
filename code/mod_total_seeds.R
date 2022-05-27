@@ -489,6 +489,7 @@ fig_seeds_zone_global <- ggplot() +
   scale_y_continuous(limits = c(-10, 10), breaks=c(-10, -5, 0, 5, 10)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")  + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
@@ -567,6 +568,7 @@ fig_seeds_hab_global <- ggplot() +
   scale_y_continuous(limits = c(-10, 10), breaks=c(-10, -5, 0, 5, 10)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
@@ -623,6 +625,7 @@ fig_seeds_deg_global <- ggplot() +
   scale_y_continuous(limits = c(-10, 10), breaks=c(-10, -5, 0, 5, 10)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
@@ -639,3 +642,24 @@ Total_Seeds_Fig <- (Almost_Total_Seeds_Fig/Total_Seeds_Eff) + plot_annotation(ti
 
 # LANDSCAPE 10 X 16
 Total_Seeds_Fig
+
+
+
+
+seeds_zone <- fig_seeds.zone +  annotation_custom(ggplotGrob(fig_seeds_zone_global), xmin = 11, xmax = 15, 
+                                                ymin = 75, ymax = 100)
+
+seeds_zone
+
+
+seeds_hab <- fig_seeds.habs +  annotation_custom(ggplotGrob(fig_seeds_hab_global), xmin = 11, xmax = 15, 
+                                               ymin = 75, ymax = 100)
+
+seeds_hab
+
+
+seeds_deg <- fig_seeds.deg +  annotation_custom(ggplotGrob(fig_seeds_deg_global), xmin = 11, xmax = 15, 
+                                              ymin = 75, ymax = 100)
+
+seeds_deg
+

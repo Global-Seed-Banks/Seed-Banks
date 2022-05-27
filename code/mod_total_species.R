@@ -33,6 +33,7 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
 
+head(sb_rich_area)
 
 sb_rich_area_zone <- sb_rich_area %>% filter(!Habitat_Broad == "Arable")
 
@@ -271,7 +272,7 @@ fig_rich.zone <- ggplot() +
                  x = Total_Sample_Area_m2,
                  y = Total_Species, colour = Biome_WWF_Zone,
                  ), 
-             size = 1.2, shape=1, position = position_jitter(width = 0.25, height=2.5)) +
+             size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
   geom_line(data = rich_zone_fitted,
             aes(#x = (Total_Sample_Area_mm2/1000000), 
@@ -487,6 +488,7 @@ fig_rich_zone_global <- ggplot() +
    scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
@@ -565,6 +567,7 @@ fig_rich_hab_global <- ggplot() +
   scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
@@ -621,6 +624,7 @@ fig_rich_deg_global <- ggplot() +
   scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none")
 
@@ -638,6 +642,26 @@ Total_Species_Fig <- (Almost_Total_Species_Fig / Total_Species_Eff) + plot_annot
 
 # LANDSCAPE 10 X 16
 Total_Species_Fig
+
+
+
+# inset slope effects
+rich_zone <- fig_rich.zone +  annotation_custom(ggplotGrob(fig_rich_zone_global), xmin = 11, xmax = 15, 
+                                        ymin = 75, ymax = 100)
+
+rich_zone
+
+
+rich_hab <- fig_rich.habs +  annotation_custom(ggplotGrob(fig_rich_hab_global), xmin = 11, xmax = 15, 
+                                                ymin = 75, ymax = 100)
+
+rich_hab
+
+
+rich_deg <- fig_rich.deg +  annotation_custom(ggplotGrob(fig_rich_deg_global), xmin = 11, xmax = 15, 
+                                               ymin = 75, ymax = 100)
+
+rich_deg
 
 
 
