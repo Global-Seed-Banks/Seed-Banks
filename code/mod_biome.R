@@ -75,13 +75,13 @@ plot(rich_biome)
 plot(rich_biome_broad)
 
 
-head(sb_rich_area_biome)
+head(sb_rich_area_zone)
 # WWF biomeS model
 # # for plotting fixed effects
 rich_biome_fitted <- cbind(rich_biome$data,
                           fitted(rich_biome, re_formula = NA
                           )) %>%
-  as_tibble() %>% inner_join(sb_rich_area_biome %>% select(Total_Species, 
+  as_tibble() %>% inner_join(sb_rich_area_zone %>% select(Total_Species, 
                                                           Total_Number_Samples, Total_Sample_Area_mm2,
                                                           log_Total_Sample_Area_mm2,
                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
@@ -93,6 +93,19 @@ rich_biome_fitted <- cbind(rich_biome$data,
 
 head(rich_biome_fitted)
 nrow(rich_biome_fitted)
+
+rich_biome_broad_fitted <- cbind(rich_biome_broad$data,
+                           fitted(rich_biome_broad, re_formula = NA
+                           )) %>%
+  as_tibble() %>% inner_join(sb_rich_area_zone %>% select(Total_Species, 
+                                                           Total_Number_Samples, Total_Sample_Area_mm2,
+                                                           log_Total_Sample_Area_mm2,
+                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
+                                                           Centred_log_Total_Sample_Area_m2,
+                                                           Biome_WWF_Broad),
+                             #  by= c("Total_Species2","Biome_WWF_biome","Habitat_Broad","studyID", "rowID")
+  )
+
 
 
 
@@ -162,6 +175,50 @@ fig_rich.biome <- ggplot() +
 #scale_x_log10() + scale_y_log10() 
 
 fig_rich.biome
+
+
+fig_rich.biome.broad <- ggplot() + 
+  #facet_wrap(~Biome_WWF_biome, scales="free") +
+  # horizontal zero line
+  geom_hline(yintercept = 0, lty = 2) +
+  # raw data points
+  geom_point(data = sb_rich_area_zone ,
+             aes(#x = (Total_Sample_Area_mm2/1000000),
+               # x = Total_Sample_Area_mm2,
+               x = Total_Sample_Area_m2,
+               y = Total_Species, colour = Biome_WWF_Broad,
+             ), 
+             size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
+  # fixed effect
+  geom_line(data = rich_biome_broad_fitted,
+            aes(#x = (Total_Sample_Area_mm2/1000000), 
+              # x = Total_Sample_Area_mm2,
+              x = Total_Sample_Area_m2,
+              y = Estimate, colour = Biome_WWF_Broad),
+            size = 1) +
+  # uncertainy in fixed effect
+  geom_ribbon(data = rich_biome_broad_fitted,
+              aes( #x =  (Total_Sample_Area_mm2/1000000), 
+                #x =  Total_Sample_Area_mm2, 
+                x = Total_Sample_Area_m2,
+                ymin = Q2.5, ymax = Q97.5, fill = Biome_WWF_Broad),
+              alpha = 0.1 ) +
+  #coord_cartesian(xlim = c(min(sb_rich_area_biome$Total_Sample_Area_m2), quantile(sb_rich_area_biome$Total_Sample_Area_m2, 0.97))) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  scale_fill_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+                                  legend.position="bottom") +
+  labs(y = "Total Species", # x = expression(paste('Total Sample Area ' , m^2)),
+       x="",
+       color = "WWF biome", fill = "WWF biome", subtitle= "") + guides(col = guide_legend(nrow = 5)) #+
+#xlim(0,800)+ ylim(0,200)+
+#scale_x_log10() + scale_y_log10() 
+
+fig_rich.biome.broad
+
+
+fig_rich.biome | fig_rich.biome.broad
 
 rich_biome.fixed.p <- as_draws_df(rich_biome, subset = floor(runif(n = 1000, 1, max = 2000)))
 
