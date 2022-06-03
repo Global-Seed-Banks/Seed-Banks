@@ -23,14 +23,16 @@ setwd(path2wd)
 sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
 nrow(sb_prep)
+head(sb_prep)
 
 # remove NA values 
 sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
-          Biome_WWF_biome = as.factor(Biome_WWF_biome),
+          Biome_WWF_biome = as.factor(Biome_WWF),
           Habitat_Broad = as.factor(Habitat_Broad),
+          Biome_Hab = as.factor(Biome_Hab),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
 
@@ -46,7 +48,7 @@ sb_rich_area %>% distinct(Biome_WWF, Biome_WWF_Broad, Biome_WWF_biome) %>% arran
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'rich_biome.Rdata')
+load( 'rich_biome_hab.Rdata')
 load( 'rich_biome_broad.Rdata')
 
 summary(rich_biome)
@@ -81,18 +83,20 @@ head(sb_rich_area_zone)
 rich_biome_fitted <- cbind(rich_biome$data,
                           fitted(rich_biome, re_formula = NA
                           )) %>%
-  as_tibble() %>% inner_join(sb_rich_area_zone %>% select(Total_Species, 
+  as_tibble() %>% inner_join(sb_rich_area %>% select(Total_Species, 
                                                           Total_Number_Samples, Total_Sample_Area_mm2,
                                                           log_Total_Sample_Area_mm2,
                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
                                                           Centred_log_Total_Sample_Area_m2,
-                                                          Biome_WWF),
+                                                          Biome_WWF, Biome_Hab),
                              #  by= c("Total_Species2","Biome_WWF_biome","Habitat_Broad","studyID", "rowID")
   )
 
 
 head(rich_biome_fitted)
 nrow(rich_biome_fitted)
+rich_biome_fitted$Biome_Hab<- as.factor(rich_biome_fitted$Biome_Hab)
+levels(rich_biome_fitted$Biome_Hab)
 
 rich_biome_broad_fitted <- cbind(rich_biome_broad$data,
                            fitted(rich_biome_broad, re_formula = NA
@@ -141,11 +145,11 @@ fig_rich.biome <- ggplot() +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_rich_area_zone ,
+  geom_point(data = sb_rich_area_biome ,
              aes(#x = (Total_Sample_Area_mm2/1000000),
                # x = Total_Sample_Area_mm2,
                x = Total_Sample_Area_m2,
-               y = Total_Species, colour = Biome_WWF,
+               y = Total_Species, colour = Biome_Hab,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
@@ -153,14 +157,14 @@ fig_rich.biome <- ggplot() +
             aes(#x = (Total_Sample_Area_mm2/1000000), 
               # x = Total_Sample_Area_mm2,
               x = Total_Sample_Area_m2,
-              y = Estimate, colour = Biome_WWF),
+              y = Estimate, colour = Biome_Hab),
             size = 1) +
   # uncertainy in fixed effect
   geom_ribbon(data = rich_biome_fitted,
               aes( #x =  (Total_Sample_Area_mm2/1000000), 
                 #x =  Total_Sample_Area_mm2, 
                 x = Total_Sample_Area_m2,
-                ymin = Q2.5, ymax = Q97.5, fill = Biome_WWF),
+                ymin = Q2.5, ymax = Q97.5, fill = Biome_Hab),
               alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_rich_area_biome$Total_Sample_Area_m2), quantile(sb_rich_area_biome$Total_Sample_Area_m2, 0.97))) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
@@ -170,7 +174,7 @@ fig_rich.biome <- ggplot() +
                                   legend.position="bottom") +
   labs(y = "Total Species", # x = expression(paste('Total Sample Area ' , m^2)),
        x="",
-       color = "WWF biome", fill = "WWF biome", subtitle= "") + guides(col = guide_legend(nrow = 5)) #+
+       color = "WWF biome", fill = "WWF biome", subtitle= "") + guides(col = guide_legend(nrow = 7)) #+
 #xlim(0,800)+ ylim(0,200)+
 #scale_x_log10() + scale_y_log10() 
 

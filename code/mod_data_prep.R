@@ -74,35 +74,21 @@ sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(To
 
 sb_deets
 
+head(sb_calc)
 
-# for now, change 0's to 1's- to discuss later
-# sb_prep <- sb_calc %>% mutate( Total_Species2 = case_when(Total_Species == 0 ~ 1, 
-#                                                           TRUE ~ as.numeric(as.character(Total_Species))),
-#                                Seed_density_m22 = case_when(Seed_density_m2 == 0 ~ 1, 
-#                                                             TRUE ~ as.numeric(as.character(Seed_density_m2))),
-#                                Total_Seeds2 = case_when(Total_Seeds == 0 ~ 1, 
-#                                                         TRUE ~ as.numeric(as.character(Total_Seeds))),
-# ) %>%
-#   mutate(log_Total_Species2 = log(Total_Species2),
-#          log_Seed_density_m22 = log(Seed_density_m22),
-#          log_Seed_density_m22 = log(Seed_density_m22) )
-# 
-# head(sb_prep)
-# nrow(sb_prep)
-# 
-# is.numeric(sb_prep$Total_Species2)
-# min(sb_prep$Total_Species2, na.rm = TRUE)
-# max(sb_prep$Total_Species2, na.rm = TRUE)
-# 
-# sb00 <- sb_calc %>% filter(Total_Species == 0)
-# sb00
-# nrow(sb00)
+sb_calc %>% distinct(Habitat_Broad, Biome_WWF, Biome_WWF_Broad, Biome_WWF_Zone)
+
+sb_mod <- sb_calc %>% mutate(Biome_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
+                                         TRUE ~ Biome_WWF))
 
 
-View(sb_calc)
+sb_mod %>% distinct(Biome_Hab) %>% arrange(Biome_Hab)
+
+sb_mod %>% distinct(Biome_WWF )
+
 
 setwd(paste0(path2wd, 'Data/'))
-write.csv(sb_calc,  "sb_prep.csv")
+write.csv(sb_mod,  "sb_prep.csv")
 
 
 
