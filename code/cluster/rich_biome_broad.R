@@ -16,7 +16,9 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID),
-          Method = as.factor(Method)) #%>% filter(!Habitat_Broad == "Arable")
+          Method = as.factor(Method)) %>% 
+  mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
+                                     TRUE ~ Biome_WWF_Broad))
 
 rich_biome_broad <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + (1 | Method/studyID/rowID ),
                     family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,

@@ -16,7 +16,9 @@ sb_dat <- sb %>% filter(!is.na(Total_Seeds),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID),
-          Method = as.factor(Method)) #%>% filter(!Habitat_Broad == "Arable")
+          Method = as.factor(Method)) %>% 
+  mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
+                                     TRUE ~ Biome_WWF_Broad))
 
 
 seeds_biome_broad <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + (1 | Method/studyID/rowID ),

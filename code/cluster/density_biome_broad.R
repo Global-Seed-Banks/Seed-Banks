@@ -15,7 +15,9 @@ sb_dat <- sb %>% filter(!is.na(Seed_density_m2)) %>%
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID),
-          Method = as.factor(Method)) #%>% filter(!Habitat_Broad == "Arable")
+          Method = as.factor(Method)) %>% 
+  mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
+                                     TRUE ~ Biome_WWF_Broad))
 
 
 density_biome_broad <- brm(Seed_density_m2 ~  Biome_Broad_Hab + (1 | Method/studyID/rowID ),
