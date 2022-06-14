@@ -74,19 +74,19 @@ sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(To
 
 sb_deets
 
-head(sb_calc)
+summary(sb_calc)
 
 sb_calc %>% distinct(Habitat_Broad, Biome_WWF, Biome_WWF_Broad, Biome_WWF_Zone)
 
-sb_mod <- sb_calc %>% mutate(Biome_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
-                                         TRUE ~ Biome_WWF)) %>% 
+ sb_mod <- sb_calc %>% #mutate(Biome_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
+#                                          TRUE ~ Biome_WWF)) %>% 
   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
                                                                                              TRUE ~ Biome_WWF_Broad))
 
 
-sb_mod %>% distinct(Biome_Hab, Biome_Broad_Hab) %>% arrange(Biome_Hab, Biome_Broad_Hab)
+sb_mod %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 
-sb_mod %>% distinct(Biome_WWF, Biome_WWF_Broad )
+sb_mod %>% distinct(Biome_WWF, Biome_WWF_Broad) %>% arrange(Biome_WWF_Broad)
 
 
 setwd(paste0(path2wd, 'Data/'))

@@ -27,14 +27,10 @@ summary(sb_prep)
 sb_density_area <- sb_prep %>% filter(!is.na(Seed_density_m2)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
-          #Biome_WWF_Broad = as.factor(Biome_WWF_Broad),
-         # Habitat_Broad = as.factor(Habitat_Broad),
-         # Biome_Hab = as.factor(Biome_Hab),
+          Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
+         Habitat_Broad = as.factor(Habitat_Broad),
           studyID = as.factor(studyID),
-           rowID = as.factor(rowID))  %>% 
-   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
-                                     TRUE ~ Biome_WWF_Broad))
-
+           rowID = as.factor(rowID))  
 nrow(sb_density_area)
 
 levels(sb_density_area$Habitat_Broad)
@@ -47,7 +43,7 @@ load( 'density_biome_broad.Rdata')
 
 
 
-# density_biome
+# density_biome_broad
 # density_habs
 # density_deg
 
@@ -56,61 +52,77 @@ summary(density_biome_broad)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_den.biome <- pp_check(density_biome)+ xlab( "Total density") + ylab("Density") +
+pp_den.biome_broad <- pp_check(density_biome_broad)+ xlab( "Total density") + ylab("Density") +
   labs(title= "") +# xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_den.biome 
+pp_den.biome_broad 
 
 
 # caterpillars/chains
-plot(density_biome)
+plot(density_biome_broad)
 
 
 # # check model residuals
-# biome
-mr.biome <- residuals(density_biome)
-mr.biome <- as.data.frame(mr.biome)
-nrow(mr.biome)
+# biome_broad
+mr.biome_broad <- residuals(density_biome_broad)
+mr.biome_broad <- as.data.frame(mr.biome_broad)
+nrow(mr.biome_broad)
 
-nrow(sb_density_area_biome)
-biome.plot <- cbind(sb_density_area_biome, mr.biome$Estimate)
-head(biome.plot)
-#mr.biome make sure they are factors
-biome.plot$Biome_WWF_biome <- as.factor(biome.plot$Biome_WWF_biome )
-biome.plot$Method <- as.factor(biome.plot$Method )
-biome.plot$studyID <- as.factor(biome.plot$studyID )
-biome.plot$rowID <- as.factor(biome.plot$rowID )
+nrow(sb_density_area_biome_broad)
+biome_broad.plot <- cbind(sb_density_area_biome_broad, mr.biome_broad$Estimate)
+head(biome_broad.plot)
+#mr.biome_broad make sure they are factors
+biome_broad.plot$biome_broad_WWF_biome_broad <- as.factor(biome_broad.plot$biome_broad_WWF_biome_broad )
+biome_broad.plot$Method <- as.factor(biome_broad.plot$Method )
+biome_broad.plot$studyID <- as.factor(biome_broad.plot$studyID )
+biome_broad.plot$rowID <- as.factor(biome_broad.plot$rowID )
 #plot residuals
 par(mfrow=c(2,2))
-with(biome.plot, plot(Biome_WWF_biome, mr.biome$Estimate))
-with(biome.plot, plot(Method, mr.biome$Estimate))
-with(biome.plot, plot(studyID, mr.biome$Estimate))
-with(biome.plot, plot(rowID, mr.biome$Estimate))
+with(biome_broad.plot, plot(biome_broad_WWF_biome_broad, mr.biome_broad$Estimate))
+with(biome_broad.plot, plot(Method, mr.biome_broad$Estimate))
+with(biome_broad.plot, plot(studyID, mr.biome_broad$Estimate))
+with(biome_broad.plot, plot(rowID, mr.biome_broad$Estimate))
 
 
 
 
-density_biome_c <- conditional_effects(density_biome, effects = 'Biome_Hab', re_formula = NA, method = 'fitted')  # conditional effects
-
-head(density_biome_c)
+density_biome_broad_c <- conditional_effects(density_biome_broad, effects = 'Biome_Broad_Hab', re_formula = NA, method = 'fitted')  # conditional effects
 
 
-Density_biome_Fig <- ggplot() + 
+density_biome_broad_df <-
+  as.data.frame(density_biome_broad_c$`Biome_Broad_Hab`)
+
+
+density_conditional_effects <- density_biome_broad_df %>%
+  select(Biome_Broad_Hab, estimate__, lower__, upper__) %>%
+  mutate( Model = "Density",
+          `WWF Biome`= Biome_Broad_Hab,
+          Estimate = round(estimate__ , 2),
+         `Upper CI` = round(upper__ , 2),
+         `Lower CI` = round(lower__ , 2),
+         ) %>% select(Model, `WWF Biome`, Estimate, `Upper CI`, `Lower CI`)
+
+head(density_conditional_effects)
+
+setwd(paste0(path2wd, 'Tables/'))
+write.csv(density_conditional_effects, "table_3.csv")
+
+Density_biome_broad_Fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = sb_density_area,
-             aes(x = Biome_Hab, y = Seed_density_m2, #colour = 	"#C0C0C0"
-                 colour = Biome_Hab
+             aes(x = Biome_Broad_Hab, y = Seed_density_m2, #colour = 	"#C0C0C0"
+                 colour = Biome_Broad_Hab
                  ), 
              size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
-  geom_point(data = density_biome_c$Biome_Hab,
-             aes(x = Biome_Hab, y = estimate__, colour = Biome_Hab), size = 3) +
-  geom_errorbar(data = density_biome_c$Biome_Hab,
-                aes(x = Biome_Hab, ymin = lower__, ymax = upper__, colour = Biome_Hab),
+  geom_point(data = density_conditional_effects,
+             aes(x =  `WWF Biome`, y = Estimate, colour =  `WWF Biome`), size = 3) +
+  geom_errorbar(data = density_conditional_effects,
+                aes(x =  `WWF Biome`, ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Seed density (',m^2,')')),
-       subtitle= 'WWF Biome') +
+       subtitle= '') +
  # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
@@ -122,5 +134,5 @@ Density_biome_Fig <- ggplot() +
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 
-Density_biome_Fig
+Density_biome_broad_Fig
 
