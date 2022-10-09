@@ -8,6 +8,7 @@ library(brms)
 library(bayesplot)
 library(patchwork)
 library(viridis)
+library(tidybayes)
 
 user <- Sys.info()["user"]
 
@@ -93,7 +94,6 @@ density_biome_broad_c <- conditional_effects(density_biome_broad, effects = 'Bio
 density_biome_broad_df <-
   as.data.frame(density_biome_broad_c$`Biome_Broad_Hab`)
 
-
 density_conditional_effects <- density_biome_broad_df %>%
   select(Biome_Broad_Hab, estimate__, lower__, upper__) %>%
   mutate( Model = "Density",
@@ -108,8 +108,50 @@ head(density_conditional_effects)
 setwd(paste0(path2wd, 'Tables/'))
 write.csv(density_conditional_effects, "table_3.csv")
 
+
+# predicted average density across all
+density.fitted <- sb_density_area %>% 
+  mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
+  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>% 
+  summarise(Seed_density_m2 =  mean(Seed_density_m2)) %>%
+  nest(data = c(Biome_Broad_Hab, Seed_density_m2) ) %>%
+  mutate(fitted = map(data, ~epred_draws(density_biome_broad, newdata= .x, re_formula = ~(Seed_density_m2 * Biome_Broad_Hab) ))) 
+
+
+head(density.fitted)
+
+
+density.fitted.df  <- density.fitted %>% 
+  unnest(cols = c(fitted)) %>% select(-data) %>%
+  select(-c(.row, .chain, .iteration))  %>%
+select(-c(Biome_Broad_Hab_group, Biome_Broad_Hab)) %>%
+  ungroup() 
+
+head(density.fitted.df)
+
+
+density.total.mean <- density.fitted.df %>%
+  select(-.draw) %>%
+  select(-c(Biome_Broad_Hab_group, Seed_density_m2)) %>%
+  ungroup() %>%
+  #group_by(Seed_density_m2) %>%
+  mutate( P_Estimate = mean(.epred),
+          P_Estimate_lower = quantile(.epred, probs=0.025),
+          P_Estimate_upper = quantile(.epred, probs=0.975) ) %>% 
+  select(-.epred) %>% distinct()
+
+head(density.total.mean)
+
+
+
 Density_biome_broad_Fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = density.total.mean,
+             aes(yintercept = P_Estimate), size = 0.45) +
+  geom_rect(data = density.total.mean,
+            aes(xmin = -Inf, xmax = Inf,
+                ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
+            alpha = 0.05) +
   geom_point(data = sb_density_area,
              aes(x = Biome_Broad_Hab, y = Seed_density_m2, #colour = 	"#C0C0C0"
                  colour = Biome_Broad_Hab
