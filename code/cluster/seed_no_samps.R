@@ -18,13 +18,13 @@ sb_dat <- sb %>% filter(!is.na(Total_Seeds),
           Method = as.factor(Method)) 
 
 
-seeds_biome_broad <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + (1 | Method/studyID/rowID ),
+seeds_no_samps <- brm(Total_Seeds ~ Centred_log_Total_Number_Samples * Biome_Broad_Hab + (1 | Method/studyID/rowID ),
                     family = student(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                      control = list(adapt_delta = 0.999)
 )
 
 
-save(seeds_biome_broad,
+save(seeds_no_samps,
      file=Sys.getenv('OFILE'))
 
 
