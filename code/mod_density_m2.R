@@ -40,7 +40,7 @@ levels(sb_density_area$Habitat_Broad)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'density_biome_broad.Rdata')
+load( 'density_m2.Rdata')
 
 
 

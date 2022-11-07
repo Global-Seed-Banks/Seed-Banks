@@ -42,7 +42,7 @@ head(sb_rich_area)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'rich_biome_broad.Rdata')
+load( 'rich_m2.Rdata')
 
 
 summary(rich_biome_broad)
