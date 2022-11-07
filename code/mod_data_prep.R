@@ -32,28 +32,30 @@ sb_vol <- sb %>% mutate(New_Volume_mm3 = Method_Volume_mm3) %>%
 summary(sb_vol)
 View(sb_vol)
 
-sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
+sb_calc <- sb_vol %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
                           log_Total_Number_Samples = log(Total_Number_Samples),
-                          log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
                           log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
                           Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000),
-                          Total_Sample_Volume_m3 = (Total_Sample_Volume_mm3 / 1000000000),
+                          Calc_Volume_m3 = (Calc_Volume_mm3 / 1000000000),
                           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
-                          log_Total_Sample_Volume_m3 = log(Total_Sample_Volume_m3),
+                          log_Calc_Volume_m3 = log(Calc_Volume_m3),
                           Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
-                          Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3, na.rm = TRUE),
-                          Centred_Total_Sample_Volume_m3 = Total_Sample_Volume_m3 - mean(Total_Sample_Volume_m3, na.rm = TRUE),
+                          Centred_Calc_Volume_mm3 = Calc_Volume_mm3 - mean(Calc_Volume_mm3, na.rm = TRUE),
+                          Centred_Calc_Volume_m3 = Calc_Volume_m3 - mean(Calc_Volume_m3, na.rm = TRUE),
                           Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
                           Centred_log_Total_Number_Samples = log_Total_Number_Samples - mean(log_Total_Number_Samples, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
-                          Centred_log_Total_Sample_Volume_m3 = log_Total_Sample_Volume_m3 - mean(log_Total_Sample_Volume_m3, na.rm = TRUE),
+                          Centred_log_Calc_Volume_m3 = log_Calc_Volume_m3 - mean(log_Calc_Volume_m3, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE)
 ) 
 
 
+# Centred_log_Total_Sample_Area_m2
+# Centred_log_Calc_Volume_m3
+# Centred_log_Total_Number_Samples
 head(sb_calc)
 
 summary(sb_calc)
