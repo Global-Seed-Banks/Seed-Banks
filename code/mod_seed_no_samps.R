@@ -54,11 +54,11 @@ summary(seeds_no_samps)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_seed.biome_broad <- pp_check(seeds_no_samps)+ xlab( "Total Seeds") + ylab("Density") +
+pp_seed_no_samps <- pp_check(seeds_no_samps)+ xlab( "Total Seeds") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_seed.biome_broad 
+pp_seed_no_samps 
 
 
 # caterpillars/chains

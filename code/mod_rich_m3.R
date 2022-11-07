@@ -48,16 +48,14 @@ load( 'rich_m3.Rdata')
 summary(rich_m3)
 
 
-
-
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich.biome_broad <- pp_check(rich_m3)+ xlab( "Total Species") + ylab("Density") +
+pp_rich_m3 <- pp_check(rich_m3)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 
-pp_rich.biome_broad 
+pp_rich_m3
 
 
 

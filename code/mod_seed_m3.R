@@ -39,35 +39,31 @@ head(sb_seed_vol)
 
 
 
-sb_seed_vol %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
-
-
-
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'seed_m3.Rdata')
 
 
-summary(seeds_biome_broad)
+summary(seeds_m3)
 
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_seed.biome_broad <- pp_check(seeds_biome_broad)+ xlab( "Total Seeds") + ylab("Density") +
+pp_seed_m3 <- pp_check(seeds_m3)+ xlab( "Total Seeds") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_seed.biome_broad 
+pp_seed_m3 
 
 
 # caterpillars/chains
-plot(seeds_biome_broad)
+plot(seeds_m3)
 
 
 # # check model residuals
 # zones
-mr.biome_broad <- residuals(seeds_biome_broad)
+mr.biome_broad <- residuals(seeds_m3)
 mr.biome_broad <- as.data.frame(mr.biome_broad)
 nrow(mr.biome_broad)
 
@@ -91,8 +87,8 @@ with(biome_broad.plot, plot(rowID, mr.biome_broad$Estimate))
 head(sb_seed_vol)
 # WWF biome_broadS model
 # # for plotting fixed effects
-seed_biome_broad_fitted <- cbind(seeds_biome_broad$data,
-                          fitted(seeds_biome_broad, re_formula = NA
+seed_biome_broad_fitted <- cbind(seeds_m3$data,
+                          fitted(seeds_m3, re_formula = NA
                           )) %>%
   as_tibble() %>% inner_join(sb_seed_vol %>% select(Total_Species, 
                                                      Calc_Volume_m3,
@@ -107,11 +103,11 @@ nrow(seed_biome_broad_fitted)
 
 
 # fixed effect coefficients
-seed_biome_broad_fixef <- fixef(seeds_biome_broad)
+seed_biome_broad_fixef <- fixef(seeds_m3)
 head(seed_biome_broad_fixef)
 
 # Random effect coefficients
-seed_biome_broad_coef <- coef(seeds_biome_broad)
+seed_biome_broad_coef <- coef(seeds_m3)
 seed_biome_broad_coef # dont really need this
 
 
@@ -174,7 +170,7 @@ fig_seed.biome_broad
 
 
 
-seed_biome_broad.fixed.p <- as_draws_df(seeds_biome_broad, subset = floor(runif(n = 1000, 1, max = 2000)))
+seed_biome_broad.fixed.p <- as_draws_df(seeds_m3, subset = floor(runif(n = 1000, 1, max = 2000)))
 
 seed_biome_broad.fixed.p
 nrow(seed_biome_broad.fixed.p)

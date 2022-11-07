@@ -48,22 +48,19 @@ load( 'rich_no_samps.Rdata')
 summary(rich_no_samps)
 
 
-
-
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich.biome_broad <- pp_check(rich_no_samps)+ xlab( "Total Species") + ylab("Density") +
+pp_rich_no_samps <- pp_check(rich_no_samps)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 
-pp_rich.biome_broad 
+pp_rich_no_samps
 
 
 
 # caterpillars/chains
 plot(rich_no_samps)
-plot(rich_no_samps_broad)
 
 
 head(sb_rich_samps_zone)
