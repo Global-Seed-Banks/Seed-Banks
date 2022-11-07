@@ -19,7 +19,18 @@ sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
 
 head(sb)
 colnames(sb)
+summary(sb)
+View(sb)
 
+sb_vol <- sb %>% mutate(New_Volume_mm3 = Method_Volume_mm3) %>%
+  mutate(Method_Volume_Fraction_Mod = case_when( is.na(Method_Volume_Fraction) ~ 1 ,
+                                               TRUE ~ Method_Volume_Fraction ) ) %>%
+  mutate(Volume_Calc = (Sample_Volume_mm3 * Method_Volume_Fraction_Mod * Total_Number_Samples)) %>%
+  mutate(Calc_Volume_mm3 = case_when( is.na(New_Volume_mm3) ~ Volume_Calc,
+                     TRUE ~ New_Volume_mm3  ))
+
+summary(sb_vol)
+View(sb_vol)
 
 sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
@@ -28,12 +39,16 @@ sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           log_Total_Sample_Volume_mm3 = log(Total_Sample_Volume_mm3),
                           log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
                           Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000),
-                          Total_Sample_Volume_m3 = (Total_Sample_Volume_mm3/1000000000),
+                          Total_Sample_Volume_m3 = (Total_Sample_Volume_mm3 / 1000000000),
                           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
+                          log_Total_Sample_Volume_m3 = log(Total_Sample_Volume_m3),
                           Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
                           Centred_Total_Sample_Volume_mm3 = Total_Sample_Volume_mm3 - mean(Total_Sample_Volume_mm3, na.rm = TRUE),
+                          Centred_Total_Sample_Volume_m3 = Total_Sample_Volume_m3 - mean(Total_Sample_Volume_m3, na.rm = TRUE),
                           Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
-                          Centred_Total_Sample_Area_m2 = Total_Sample_Area_m2 - mean(Total_Sample_Area_m2, na.rm = TRUE),
+                          Centred_log_Total_Number_Samples = log_Total_Number_Samples - mean(log_Total_Number_Samples, na.rm = TRUE),
+                          Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
+                          Centred_log_Total_Sample_Volume_m3 = log_Total_Sample_Volume_m3 - mean(log_Total_Sample_Volume_m3, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE)
 ) 
@@ -88,6 +103,8 @@ sb_mod %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 
 sb_mod %>% distinct(Biome_WWF, Biome_WWF_Broad) %>% arrange(Biome_WWF_Broad)
 
+
+head(sb_mod)
 
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_mod,  "sb_prep.csv")

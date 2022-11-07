@@ -4,7 +4,7 @@ library(brms)
 
 
 path <- '/gpfs1/data/idiv_chase/emmala/Seed-Bank-Map'
-sb <- read.csv(paste0(path, '/sb_prep_broad.csv'), header=T, fill=TRUE, sep=",", na.strings=c(""," ","NA","NA ","na"))
+sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.strings=c(""," ","NA","NA ","na"))
 
 # Total_Species   Seed_density_m2   Total_Seeds
 sb_dat <- sb %>% filter(!is.na(Total_Species),
