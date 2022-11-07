@@ -26,8 +26,8 @@ nrow(sb_prep)
 head(sb_prep)
 
 # remove NA values 
-sb_seed_area <- sb_prep %>% filter(!is.na(Total_Seeds),
-                                   !is.na(Total_Sample_Area_mm2)) %>%
+sb_seed_samps <- sb_prep %>% filter(!is.na(Total_Seeds),
+                                   !is.na(Total_Number_Samples)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
@@ -35,11 +35,11 @@ sb_seed_area <- sb_prep %>% filter(!is.na(Total_Seeds),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
 
-head(sb_seed_area)
+head(sb_seed_samps)
 
 
 
-sb_seed_area %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
+sb_seed_samps %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 
 
 
@@ -49,12 +49,12 @@ setwd(paste0(path2wd, 'Model_Fits/'))
 load( 'seed_no_samps.Rdata')
 
 
-summary(seeds_biome_broad)
+summary(seeds_no_samps)
 
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_seed.biome_broad <- pp_check(seeds_biome_broad)+ xlab( "Total Seeds") + ylab("Density") +
+pp_seed.biome_broad <- pp_check(seeds_no_samps)+ xlab( "Total Seeds") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
@@ -62,17 +62,17 @@ pp_seed.biome_broad
 
 
 # caterpillars/chains
-plot(seeds_biome_broad)
+plot(seeds_no_samps)
 
 
 # # check model residuals
 # zones
-mr.biome_broad <- residuals(seeds_biome_broad)
+mr.biome_broad <- residuals(seeds_no_samps)
 mr.biome_broad <- as.data.frame(mr.biome_broad)
 nrow(mr.biome_broad)
 
 nrow(sb_prep_area_zone)
-biome_broad.plot <- cbind(sb_seed_area, mr.biome_broad$Estimate)
+biome_broad.plot <- cbind(sb_seed_samps, mr.biome_broad$Estimate)
 head(biome_broad.plot)
 #mr.biome_broad make sure they are factors
 biome_broad.plot$biome_broad_hab <- as.factor(biome_broad.plot$biome_broad_Hab )
@@ -88,17 +88,15 @@ with(biome_broad.plot, plot(rowID, mr.biome_broad$Estimate))
 
 
 
-head(sb_seed_area)
+head(sb_seed_samps)
 # WWF biome_broadS model
 # # for plotting fixed effects
-seed_biome_broad_fitted <- cbind(seeds_biome_broad$data,
-                          fitted(seeds_biome_broad, re_formula = NA
+seed_biome_broad_fitted <- cbind(seeds_no_samps$data,
+                          fitted(seeds_no_samps, re_formula = NA
                           )) %>%
-  as_tibble() %>% inner_join(sb_seed_area %>% select(Total_Species, 
-                                                          Total_Number_Samples, Total_Sample_Area_mm2,
-                                                          log_Total_Sample_Area_mm2,
-                                                          Total_Sample_Area_m2, log_Total_Sample_Area_m2,
-                                                          Centred_log_Total_Sample_Area_m2,
+  as_tibble() %>% inner_join(sb_seed_samps %>% select(Total_Species, 
+                                                     Total_Number_Samples,
+                                                     Centred_log_Total_Number_Samples,
                                                           Biome_Broad_Hab),
                              #  by= c("Total_Species2","Biome_Broad_Hab","Habitat_Broad","studyID", "rowID")
   )
@@ -109,11 +107,11 @@ nrow(seed_biome_broad_fitted)
 
 
 # fixed effect coefficients
-seed_biome_broad_fixef <- fixef(seeds_biome_broad)
+seed_biome_broad_fixef <- fixef(seeds_no_samps)
 head(seed_biome_broad_fixef)
 
 # Random effect coefficients
-seed_biome_broad_coef <- coef(seeds_biome_broad)
+seed_biome_broad_coef <- coef(seeds_no_samps)
 seed_biome_broad_coef # dont really need this
 
 
@@ -130,14 +128,14 @@ load('seed_biome_broad.mod_dat.Rdata')
 
 # plot seedness area biome_broad relationship
 
-head(sb_seed_area_biome_broad)
+head(sb_seed_samps_biome_broad)
 
 fig_seed.biome_broad <- ggplot() + 
   #facet_wrap(~Biome_Broad_Hab, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_seed_area ,
+  geom_point(data = sb_seed_samps ,
              aes(#x = (Total_Sample_Area_mm2/1000000),
                # x = Total_Sample_Area_mm2,
                x = Total_Sample_Area_m2,
@@ -158,7 +156,7 @@ fig_seed.biome_broad <- ggplot() +
                 x = Total_Sample_Area_m2,
                 ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
               alpha = 0.1 ) +
-  #coord_cartesian(xlim = c(min(sb_seed_area_biome_broad$Total_Sample_Area_m2), quantile(sb_seed_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
+  #coord_cartesian(xlim = c(min(sb_seed_samps_biome_broad$Total_Sample_Area_m2), quantile(sb_seed_samps_biome_broad$Total_Sample_Area_m2, 0.97))) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
@@ -176,7 +174,7 @@ fig_seed.biome_broad
 
 
 
-seed_biome_broad.fixed.p <- as_draws_df(seeds_biome_broad, subset = floor(runif(n = 1000, 1, max = 2000)))
+seed_biome_broad.fixed.p <- as_draws_df(seeds_no_samps, subset = floor(runif(n = 1000, 1, max = 2000)))
 
 seed_biome_broad.fixed.p
 nrow(seed_biome_broad.fixed.p)
@@ -215,8 +213,8 @@ View(seed_biome_broad_global_posterior)
 head(seed_biome_broad_global_posterior)
 
 
-sb_seed_area_zone$biome_broad_WWF<- as.factor(sb_seed_area_zone$biome_broad_WWF)
-levels(sb_seed_area_zone$biome_broad_WWF)
+sb_seed_samps_zone$biome_broad_WWF<- as.factor(sb_seed_samps_zone$biome_broad_WWF)
+levels(sb_seed_samps_zone$biome_broad_WWF)
 
 # seed.bor.global, seed.des.global, seed.fgs.global, seed.mang.global, seed.medfs.global,
 # seed.mongs.global, seed.tempbf.global, seed.tempcf.global, seed.tempgs.global, seed.tropcf.global,
