@@ -29,7 +29,7 @@ path2wd <- switch(user,
 
 setwd(path2wd)
 
-sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
+sb <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
 
 
@@ -109,18 +109,20 @@ gsbm <- sb %>%
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
                  #color=`Habitat_Broad`
-                 color=`Biome_WWF_Zone`
-                 ), size=0.85,alpha=0.7) +
+                 color=`Biome_Broad_Hab`
+                 ), size=2,alpha=0.5) +
   #scale_color_viridis(discrete=TRUE,name="Habitat") +
- scale_color_manual( values= c("#39568CFF", "#FDE725FF", "#228B22","#95D840FF","#440154FF"))+
+ #scale_color_manual( values= c("#39568CFF", "#FDE725FF", "#228B22","#95D840FF","#440154FF"))+
+  scale_color_viridis(discrete = T, option="D")  +
   #scale_size_continuous(range=c(2,8), name="") +
   #coord_map(projection="mollweide")+
   coord_equal() +
   theme_void() +
   theme(
-    panel.spacing=unit(c(0,0,0,0), "null"),
-    plot.margin=grid::unit(c(1,1,1,1), "cm"),
-    legend.position=c(0.20,0.001),
+    # panel.spacing=unit(c(0,0,0,0), "null"),
+    # plot.margin=grid::unit(c(1,1,1,1), "cm"),
+    # legend.position=c(0.20,0.001),
+    legend.position = 'bottom',
     legend.direction="horizontal"
   ) +
   ggplot2::annotate("text", x = -190, y = -34, hjust = 0, size = 5, label = paste("The Global Soil Seed Bank"), color = "Black") +
@@ -132,7 +134,7 @@ gsbm <- sb %>%
             hjust = 0, size=4, color="black", alpha=0.5, parse=T) +
   # xlim(-190,190) +
   # ylim(-60,80) +
-  labs(color= "Biome_WWF_Zone")+
+  labs(color= "Biome_Broad_Hab")+
   scale_x_continuous(expand = c(0.006, 0.006)) 
 
 gsbm

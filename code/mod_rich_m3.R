@@ -61,7 +61,7 @@ pp_rich_m3
 
 # caterpillars/chains
 plot(rich_m3)
-plot(rich_m3_broad)
+
 
 
 head(sb_rich_vol_zone)
@@ -113,7 +113,7 @@ fig_rich.biome_broad <- ggplot() +
   geom_point(data = sb_rich_vol ,
              aes(#x = (Total_Sample_Area_mm2/1000000),
                # x = Total_Sample_Area_mm2,
-               x = Total_Sample_Area_m2,
+               x = Calc_Volume_m3,
                y = Total_Species, colour = Biome_Broad_Hab,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
@@ -121,14 +121,14 @@ fig_rich.biome_broad <- ggplot() +
   geom_line(data = rich_m3_fitted,
             aes(#x = (Total_Sample_Area_mm2/1000000), 
               # x = Total_Sample_Area_mm2,
-              x = Total_Sample_Area_m2,
+              x = Calc_Volume_m3,
               y = Estimate, colour = Biome_Broad_Hab),
             size = 1) +
   # uncertainy in fixed effect
   geom_ribbon(data = rich_m3_fitted,
               aes( #x =  (Total_Sample_Area_mm2/1000000), 
                 #x =  Total_Sample_Area_mm2, 
-                x = Total_Sample_Area_m2,
+                x = Calc_Volume_m3,
                 ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
               alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_rich_vol_biome_broad$Total_Sample_Area_m2), quantile(sb_rich_vol_biome_broad$Total_Sample_Area_m2, 0.97))) +
@@ -157,23 +157,23 @@ colnames(rich_m3.fixed.p)
 # select columns of interests and give meaningful names
 rich_m3_global_posterior <-  rich_m3.fixed.p %>% 
   as_tibble() %>%
-  mutate(rich.aq.global = (`b_Centred_log_Total_Sample_Area_m2` ),
-         rich.arable.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabArable` ),
-         rich.bor.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabBorealForestsDTaiga` ),
-         rich.des.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabDesertsandXericShrublands`),
-        # rich.fgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabFloodedGrasslandsandSavannas`),
-         #rich.mang.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMangroves`),
-         rich.medfs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMediterraneanForestsWoodlandsandScrub`),
-         rich.mongs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMontaneGrasslandsandShrublands`),
-         rich.tempbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateBroadleafandMixedForests`),
-         rich.tempcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateConiferForests`),
-         rich.tempgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateGrasslandsSavannasandShrublands`),
-        rich.tropf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalForests`),
-        # rich.tropcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalConiferousForests`),
-         #rich.tropdbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalDryBroadleafForests`),
-         rich.tropgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalGrasslandsSavannasandShrublands`),
-         #rich.tropmbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalMoistBroadleafForests`),
-         rich.tund.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTundra`),
+  mutate(rich.aq.global = (`b_Centred_log_Calc_Volume_m3` ),
+         rich.arable.global = (`b_Centred_log_Calc_Volume_m3` + `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabArable` ),
+         rich.bor.global = (`b_Centred_log_Calc_Volume_m3` + `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabBorealForestsDTaiga` ),
+         rich.des.global = (`b_Centred_log_Calc_Volume_m3` + `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabDesertsandXericShrublands`),
+        # rich.fgs.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabFloodedGrasslandsandSavannas`),
+         #rich.mang.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabMangroves`),
+         rich.medfs.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabMediterraneanForestsWoodlandsandScrub`),
+         rich.mongs.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabMontaneGrasslandsandShrublands`),
+         rich.tempbf.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTemperateBroadleafandMixedForests`),
+         rich.tempcf.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTemperateConiferForests`),
+         rich.tempgs.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTemperateGrasslandsSavannasandShrublands`),
+        rich.tropf.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTropicalandSubtropicalForests`),
+        # rich.tropcf.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTropicalandSubtropicalConiferousForests`),
+         #rich.tropdbf.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTropicalandSubtropicalDryBroadleafForests`),
+         rich.tropgs.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTropicalandSubtropicalGrasslandsSavannasandShrublands`),
+         #rich.tropmbf.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTropicalandSubtropicalMoistBroadleafForests`),
+         rich.tund.global = (`b_Centred_log_Calc_Volume_m3`+ `b_Centred_log_Calc_Volume_m3:Biome_Broad_HabTundra`),
   ) %>%
   dplyr::select(c(rich.aq.global, rich.arable.global, rich.bor.global, rich.des.global, #rich.fgs.global, rich.mang.global, 
                   rich.medfs.global,
