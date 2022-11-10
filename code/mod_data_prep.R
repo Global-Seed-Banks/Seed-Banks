@@ -40,9 +40,15 @@ head(sb_vol)
 # Total_Seeds / Total_Species 
 # seeds are the x axis and species are the y axis
 #  10 species on 10 seeds is more sp rich than 10 sp on 10,000 seeds
-
+# how many seeds do i extract from the seedbank to get a new seed?
 
 sb_calc <- sb_vol %>% mutate( log_Total_Seeds = log(Total_Seeds),
+                              log_Total_Species = log(Total_Species),
+                              log10_Total_Seeds = log10(Total_Seeds),
+                              log10_Total_Species = log10(Total_Species),
+                              ratio_seeds_species = (Total_Seeds / Total_Species),
+                              log_ratio_seeds_species = log(ratio_seeds_species),
+                              log10_ratio_seeds_species = log10(ratio_seeds_species),
                           Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
                           log_Total_Number_Samples = log(Total_Number_Samples),
