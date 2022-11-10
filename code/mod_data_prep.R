@@ -84,6 +84,8 @@ summary(sb_calc)
 
 View(sb_calc)
 
+sb_calc %>% distinct(log_Total_Seeds, Total_Seeds)
+
 sb_calc$Biome_WWF_Zone<- as.factor(as.character(sb_calc$Biome_WWF_Zone))
 levels(sb_calc$Biome_WWF_Zone)
 
