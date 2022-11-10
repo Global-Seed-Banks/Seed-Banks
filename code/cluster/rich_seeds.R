@@ -7,8 +7,8 @@ path <- '/gpfs1/data/idiv_chase/emmala/Seed-Bank-Map'
 sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.strings=c(""," ","NA","NA ","na"))
 
 # Total_Species   Seed_density_m2   Total_Seeds
-sb_dat <- sb %>% filter(!is.na(log10_Total_Species),
-                        !is.na(log10_Total_Seeds)) %>%
+sb_dat <- sb %>% filter(!is.na(Total_Species),
+                        !is.na(log_Total_Seeds)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
