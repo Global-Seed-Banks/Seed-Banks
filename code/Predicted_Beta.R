@@ -194,10 +194,10 @@ predicted_points <- read.csv(paste0(path2wd, 'Data/predicted_samps.csv'))
 
 rich_biome_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = predicted_points,
-             aes(x = Biome_Broad_Hab , y = a_predicted, colour = Biome_Broad_Hab),
-             #position = position_dodge(width = 0.75),
-             position = position_jitter(width = 0.3, height=0.5), size = 1, alpha = 0.2) +
+  # geom_point(data = predicted_points,
+  #            aes(x = Biome_Broad_Hab , y = a_predicted, colour = Biome_Broad_Hab),
+  #            #position = position_dodge(width = 0.75),
+  #            position = position_jitter(width = 0.3, height=0.5), size = 1, alpha = 0.2) +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = a_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
@@ -218,6 +218,7 @@ rich_biome_a <- ggplot() +
   ggtitle((expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))))+
   labs(x='',
        y = 'Average species richness',
+       subtitle = "a)"
   ) 
 
 
@@ -227,10 +228,10 @@ rich_biome_a
 rich_biome_g <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   #facet_wrap(.~scale) +
-  geom_point(data = predicted_points,
-             aes(x = Biome_Broad_Hab , y = g_predicted, colour = Biome_Broad_Hab),
-             #position = position_dodge(width = 0.75),
-             position = position_jitter(width = 0.3, height=0.35), size = 1, alpha = 0.2) +
+  # geom_point(data = predicted_points,
+  #            aes(x = Biome_Broad_Hab , y = g_predicted, colour = Biome_Broad_Hab),
+  #            #position = position_dodge(width = 0.75),
+  #            position = position_jitter(width = 0.3, height=0.35), size = 1, alpha = 0.2) +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = g_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
@@ -251,7 +252,7 @@ rich_biome_g <- ggplot() +
   ggtitle((expression(paste(italic(gamma), '-scale (15' ,m^2,')', sep = ''))))+
   labs(x='',
        y = 'Average species richness',
-       ) 
+       subtitle = "b)") 
 
 #(g/' ,m^2, '/year)'
 
@@ -262,10 +263,10 @@ rich_biome_g
 rich_biome_b <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   #facet_wrap(.~scale) +
-  geom_point(data = predicted_points,
-             aes(x = Biome_Broad_Hab , y = b_predicted, colour = Biome_Broad_Hab),
-             #position = position_dodge(width = 0.75),
-             position = position_jitter(width = 0.3, height=0.5), size = 1, alpha = 0.2) +
+  # geom_point(data = predicted_points,
+  #            aes(x = Biome_Broad_Hab , y = b_predicted, colour = Biome_Broad_Hab),
+  #            #position = position_dodge(width = 0.75),
+  #            position = position_jitter(width = 0.3, height=0.5), size = 1, alpha = 0.2) +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = b_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
@@ -286,7 +287,7 @@ rich_biome_b <- ggplot() +
    coord_cartesian( ylim = c(0,15)) +
   ggtitle((expression(paste(italic(beta), '-Diversity (', italic(gamma/alpha), ')', sep = '')))) + 
   ylab((expression(paste('Average ', italic(beta), '-Diversity ',sep = '')))) +  labs(x=''
-  ) + guides(col = guide_legend(ncol = 3))
+  ) + guides(col = guide_legend(ncol = 3)) + labs( subtitle= 'c)') 
 
 
 rich_biome_b

@@ -45,14 +45,14 @@ setwd(paste0(path2wd, 'Model_Fits/'))
 load( 'rich_m2.Rdata')
 
 
-summary(rich_biome_broad)
+summary(rich_m2)
 
 
 
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich.biome_broad <- pp_check(rich_biome_broad)+ xlab( "Total Species") + ylab("Density") +
+pp_rich.biome_broad <- pp_check(rich_m2)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
