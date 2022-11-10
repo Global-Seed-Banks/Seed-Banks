@@ -13,6 +13,8 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
            Habitat_Broad = as.factor(Habitat_Broad),
+          log_Total_Seeds = as.numeric(log_Total_Seeds),
+          Total_Species = as.numeric(Total_Species),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID),
           Method = as.factor(Method)) 
