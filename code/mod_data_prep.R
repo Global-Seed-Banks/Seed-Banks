@@ -53,10 +53,14 @@ sb_calc <- sb_vol %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
                           log_Total_Number_Samples = log(Total_Number_Samples),
                           log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
+                          log10_Total_Number_Samples = log10(Total_Number_Samples),
+                          log10_Total_Sample_Area_mm2 = log10(Total_Sample_Area_mm2),
                           Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000),
                           Calc_Volume_m3 = (Calc_Volume_mm3 / 1000000000),
                           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
                           log_Calc_Volume_m3 = log(Calc_Volume_m3),
+                          log10_Total_Sample_Area_m2 = log10(Total_Sample_Area_m2),
+                          log10_Calc_Volume_m3 = log10(Calc_Volume_m3),
                           Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
                           Centred_Calc_Volume_mm3 = Calc_Volume_mm3 - mean(Calc_Volume_mm3, na.rm = TRUE),
                           Centred_Calc_Volume_m3 = Calc_Volume_m3 - mean(Calc_Volume_m3, na.rm = TRUE),
@@ -65,7 +69,8 @@ sb_calc <- sb_vol %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
                           Centred_log_Calc_Volume_m3 = log_Calc_Volume_m3 - mean(log_Calc_Volume_m3, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
-                          Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE)
+                          Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE),
+                          Centred_log10_Total_Sample_Area_m2 = log10_Total_Sample_Area_m2 - mean(log10_Total_Sample_Area_m2, na.rm = TRUE)
 ) 
 
 
