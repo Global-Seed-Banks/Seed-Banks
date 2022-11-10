@@ -31,6 +31,16 @@ sb_vol <- sb %>% mutate(New_Volume_mm3 = Method_Volume_mm3) %>%
 
 summary(sb_vol)
 View(sb_vol)
+head(sb_vol)
+
+# Seed_density_m2
+# Total_Species
+# Total_Seeds
+
+# Total_Seeds / Total_Species 
+# seeds are the x axis and species are the y axis
+#  10 species on 10 seeds is more sp rich than 10 sp on 10,000 seeds
+
 
 sb_calc <- sb_vol %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
