@@ -17,7 +17,7 @@ sb_dat <- sb %>% filter(!is.na(Seed_density_m2)) %>%
           Method = as.factor(Method)) 
 
 
-density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab + (1 | Method/studyID/rowID ),
+density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab + (Biome_Broad_Hab  | Method/studyID ),
                     family = student(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                     control = list(adapt_delta = 0.999,
                                    max_treedepth = 12)

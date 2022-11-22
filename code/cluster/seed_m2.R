@@ -18,7 +18,7 @@ sb_dat <- sb %>% filter(!is.na(log_Total_Seeds),
           Method = as.factor(Method)) 
 
 
-seeds_m2 <- brm(log_Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + (1 | Method/studyID/rowID ),
+seeds_m2 <- brm(log_Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + (Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab | Method ),
                     family = student(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                      control = list(adapt_delta = 0.999)
 )
