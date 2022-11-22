@@ -27,10 +27,11 @@ head(sb_prep)
 
 # remove NA values 
 sb_seed_area <- sb_prep %>% filter(!is.na(Total_Seeds),
+                                   !Total_Seeds == 0,
                                    !is.na(Total_Sample_Area_mm2)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
-          Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
+          Biome_WWF_Broad = as.factor(Biome_WWF_Broad),
           Habitat_Broad = as.factor(Habitat_Broad),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
@@ -39,23 +40,23 @@ head(sb_seed_area)
 
 
 
-sb_seed_area %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
+sb_seed_area %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_WWF_Broad) %>% arrange(Biome_WWF_Broad)
 
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/new/'))
 # models run on cluster, load in model objects here
 load( 'seed_m2.Rdata')
 
 
-summary(seeds_biome_broad)
+summary(seeds_m2)
 
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_seed.biome_broad <- pp_check(seeds_biome_broad)+ xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
+pp_seed.biome_broad <- pp_check(seeds_m2)+ xlab( "Total Seeds") + ylab("Density") +
+  labs(title= "") + xlim(0,30)+ #ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_seed.biome_broad 
@@ -75,13 +76,13 @@ nrow(sb_prep_area_zone)
 biome_broad.plot <- cbind(sb_seed_area, mr.biome_broad$Estimate)
 head(biome_broad.plot)
 #mr.biome_broad make sure they are factors
-biome_broad.plot$biome_broad_hab <- as.factor(biome_broad.plot$biome_broad_Hab )
+biome_broad.plot$Biome_WWF_Broad <- as.factor(biome_broad.plot$Biome_WWF_Broad )
 biome_broad.plot$Method <- as.factor(biome_broad.plot$Method )
 biome_broad.plot$studyID <- as.factor(biome_broad.plot$studyID )
 biome_broad.plot$rowID <- as.factor(biome_broad.plot$rowID )
 #plot residuals
 par(mfrow=c(2,2))
-with(biome_broad.plot, plot(biome_broad_Hab, mr.biome_broad$Estimate))
+with(biome_broad.plot, plot(Biome_WWF_Broad, mr.biome_broad$Estimate))
 with(biome_broad.plot, plot(Method, mr.biome_broad$Estimate))
 with(biome_broad.plot, plot(studyID, mr.biome_broad$Estimate))
 with(biome_broad.plot, plot(rowID, mr.biome_broad$Estimate))
@@ -91,29 +92,29 @@ with(biome_broad.plot, plot(rowID, mr.biome_broad$Estimate))
 head(sb_seed_area)
 # WWF biome_broadS model
 # # for plotting fixed effects
-seed_biome_broad_fitted <- cbind(seeds_biome_broad$data,
-                          fitted(seeds_biome_broad, re_formula = NA
+seed_biome_broad_fitted <- cbind(seeds_m2$data,
+                          fitted(seeds_m2, re_formula = NA
                           )) %>%
-  as_tibble() %>% inner_join(sb_seed_area %>% select(Total_Species, 
+  as_tibble() %>% inner_join(sb_seed_area %>% select(Total_Seeds, 
                                                           Total_Number_Samples, Total_Sample_Area_mm2,
                                                           log_Total_Sample_Area_mm2,
                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
                                                           Centred_log_Total_Sample_Area_m2,
-                                                          Biome_Broad_Hab),
-                             #  by= c("Total_Species2","Biome_Broad_Hab","Habitat_Broad","studyID", "rowID")
+                                                     Biome_WWF_Broad, Habitat_Broad),
+                             #  by= c("Total_Species2","Biome_WWF_Broad","Habitat_Broad","studyID", "rowID")
   )
 
 
-head(seed_biome_broad_fitted)
+View(seed_biome_broad_fitted)
 nrow(seed_biome_broad_fitted)
 
 
 # fixed effect coefficients
-seed_biome_broad_fixef <- fixef(seeds_biome_broad)
+seed_biome_broad_fixef <- fixef(seeds_m2)
 head(seed_biome_broad_fixef)
 
 # Random effect coefficients
-seed_biome_broad_coef <- coef(seeds_biome_broad)
+seed_biome_broad_coef <- coef(seeds_m2)
 seed_biome_broad_coef # dont really need this
 
 
@@ -133,7 +134,7 @@ load('seed_biome_broad.mod_dat.Rdata')
 head(sb_seed_area_biome_broad)
 
 fig_seed.biome_broad <- ggplot() + 
-  #facet_wrap(~Biome_Broad_Hab, scales="free") +
+  #facet_wrap(~Biome_WWF_Broad, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -141,7 +142,7 @@ fig_seed.biome_broad <- ggplot() +
              aes(#x = (Total_Sample_Area_mm2/1000000),
                # x = Total_Sample_Area_mm2,
                x = Total_Sample_Area_m2,
-               y = Total_Species, colour = Biome_Broad_Hab,
+               y = Total_Seeds, colour = Biome_WWF_Broad,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
@@ -149,17 +150,17 @@ fig_seed.biome_broad <- ggplot() +
             aes(#x = (Total_Sample_Area_mm2/1000000), 
               # x = Total_Sample_Area_mm2,
               x = Total_Sample_Area_m2,
-              y = Estimate, colour = Biome_Broad_Hab),
+              y = exp(Estimate), colour = Biome_WWF_Broad),
             size = 0.75) +
   # uncertainy in fixed effect
   geom_ribbon(data = seed_biome_broad_fitted,
               aes( #x =  (Total_Sample_Area_mm2/1000000), 
                 #x =  Total_Sample_Area_mm2, 
                 x = Total_Sample_Area_m2,
-                ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
+                ymin = exp(Q2.5), ymax = exp(Q97.5), fill = Biome_WWF_Broad),
               alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_seed_area_biome_broad$Total_Sample_Area_m2), quantile(sb_seed_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
-  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
+  coord_cartesian( ylim = c(0,1000), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
@@ -176,7 +177,7 @@ fig_seed.biome_broad
 
 
 
-seed_biome_broad.fixed.p <- as_draws_df(seeds_biome_broad, subset = floor(runif(n = 1000, 1, max = 2000)))
+seed_biome_broad.fixed.p <- as_draws_df(seeds_m2, subset = floor(runif(n = 1000, 1, max = 2000)))
 
 seed_biome_broad.fixed.p
 nrow(seed_biome_broad.fixed.p)
@@ -186,25 +187,27 @@ colnames(seed_biome_broad.fixed.p)
 # select columns of interests and give meaningful names
 seed_biome_broad_global_posterior <-  seed_biome_broad.fixed.p %>% 
   as_tibble() %>%
-  mutate(seed.aq.global = (`b_Centred_log_Total_Sample_Area_m2` ),
-         seed.arable.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabArable` ),
-         seed.bor.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabBorealForestsDTaiga` ),
-         seed.des.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabDesertsandXericShrublands`),
-        # seed.fgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabFloodedGrasslandsandSavannas`),
-        # seed.mang.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMangroves`),
-         seed.medfs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMediterraneanForestsWoodlandsandScrub`),
-         seed.mongs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMontaneGrasslandsandShrublands`),
-         seed.tempbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateBroadleafandMixedForests`),
-         seed.tempcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateConiferForests`),
-         seed.tempgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateGrasslandsSavannasandShrublands`),
-         seed.tropf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalForests`),
-         #seed.tropcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalConiferousForests`),
-         #seed.tropdbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalDryBroadleafForests`),
-         seed.tropgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalGrasslandsSavannasandShrublands`),
-         #seed.tropmbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalMoistBroadleafForests`),
-         seed.tund.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTundra`),
+  mutate(#seed.aq.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+        # seed.arable.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadArable` ),
+         seed.bor.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+         #seed.bor.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadBorealForestsDTaiga` ),
+         seed.des.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadDesertsandXericShrublands`),
+        # seed.fgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadFloodedGrasslandsandSavannas`),
+        # seed.mang.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadMangroves`),
+         seed.medfs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadMediterraneanForestsWoodlandsandScrub`),
+         seed.mongs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadMontaneGrasslandsandShrublands`),
+         seed.tempbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTemperateBroadleafandMixedForests`),
+         seed.tempcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTemperateConiferForests`),
+         seed.tempgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTemperateGrasslandsSavannasandShrublands`),
+         seed.tropf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTropicalandSubtropicalForests`),
+         #seed.tropcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTropicalandSubtropicalConiferousForests`),
+         #seed.tropdbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTropicalandSubtropicalDryBroadleafForests`),
+         seed.tropgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTropicalandSubtropicalGrasslandsSavannasandShrublands`),
+         #seed.tropmbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTropicalandSubtropicalMoistBroadleafForests`),
+         seed.tund.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_WWF_BroadTundra`),
   ) %>%
-  dplyr::select(c(seed.aq.global, seed.arable.global, seed.bor.global, seed.des.global, #seed.fgs.global, seed.mang.global, 
+  dplyr::select(c(#seed.aq.global, seed.arable.global, 
+    seed.bor.global, seed.des.global, #seed.fgs.global, seed.mang.global, 
                   seed.medfs.global,
                   seed.mongs.global, seed.tempbf.global, seed.tempcf.global, seed.tempgs.global, 
                   #seed.tropcf.global, seed.tropdbf.global,  seed.tropmbf.global,
@@ -223,17 +226,17 @@ levels(sb_seed_area_zone$biome_broad_WWF)
 # seed.tropdbf.global, seed.tropgs.global, seed.tropmbf.global,
 # seed.tund.global
 
-seed.aq.p <-  seed_biome_broad_global_posterior %>% 
-  mutate( response = "Aquatic", eff = mean(seed.aq.global),
-          eff_lower = quantile(seed.aq.global, probs=0.025),
-          eff_upper = quantile(seed.aq.global, probs=0.975)) %>%
-  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-
-seed.arable.p <-  seed_biome_broad_global_posterior %>% 
-  mutate( response = "Arable", eff = mean(seed.arable.global),
-          eff_lower = quantile(seed.arable.global, probs=0.025),
-          eff_upper = quantile(seed.arable.global, probs=0.975)) %>%
-  dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# seed.aq.p <-  seed_biome_broad_global_posterior %>% 
+#   mutate( response = "Aquatic", eff = mean(seed.aq.global),
+#           eff_lower = quantile(seed.aq.global, probs=0.025),
+#           eff_upper = quantile(seed.aq.global, probs=0.975)) %>%
+#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
+# 
+# seed.arable.p <-  seed_biome_broad_global_posterior %>% 
+#   mutate( response = "Arable", eff = mean(seed.arable.global),
+#           eff_lower = quantile(seed.arable.global, probs=0.025),
+#           eff_upper = quantile(seed.arable.global, probs=0.975)) %>%
+#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
 seed.bor.p <-  seed_biome_broad_global_posterior %>% 
   mutate( response = "Boreal Forests/Taiga", eff = mean(seed.bor.global),
@@ -328,7 +331,7 @@ seed.tund.p <-  seed_biome_broad_global_posterior %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
 
-global.seed_biome_broad.p <- bind_rows(seed.aq.p, seed.arable.p,
+global.seed_biome_broad.p <- bind_rows(#seed.aq.p, seed.arable.p,
                                 seed.bor.p, seed.des.p,
                                 # seed.fgs.p, seed.mang.p,
                                  seed.medfs.p, seed.mongs.p, seed.tempbf.p, seed.tempcf.p, seed.tempgs.p, 
