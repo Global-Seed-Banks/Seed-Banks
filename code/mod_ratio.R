@@ -39,6 +39,15 @@ levels(sb_ratio$Habitat_Broad)
 
 View(sb_ratio)
 
+sb_ratio %>% 
+  mutate(Total_Sample_Area_m2 = round(Total_Sample_Area_m2, 2)) %>%
+  distinct(Biome_Broad_Hab, Method, Total_Sample_Area_m2, Total_Number_Samples, Total_Species) %>% 
+  arrange(Biome_Broad_Hab, Method, Total_Sample_Area_m2, Total_Number_Samples, Total_Species)
+
+sb_ratio %>% distinct(Centred_log_Total_Sample_Area_m2) %>% arrange(Centred_log_Total_Sample_Area_m2)
+
+
+
 ratio_1 <- sb_ratio %>% select(rowID, studyID, Total_Sample_Area_m2, Total_Seeds, Total_Species, ratio_seeds_species, Biome_Broad_Hab, Method, studyID, rowID ) %>%
   filter(!ratio_seeds_species == 1.000000)
 

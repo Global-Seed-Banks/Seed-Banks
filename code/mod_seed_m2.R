@@ -95,12 +95,12 @@ head(sb_seed_area)
 seed_biome_broad_fitted <- cbind(seeds_m2$data,
                           fitted(seeds_m2, re_formula = NA
                           )) %>%
-  as_tibble() %>% inner_join(sb_seed_area %>% select(Total_Seeds, 
+  as_tibble() %>% inner_join(sb_seed_area %>% select(Total_Seeds, log_Total_Seeds,
                                                           Total_Number_Samples, Total_Sample_Area_mm2,
                                                           log_Total_Sample_Area_mm2,
                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
                                                           Centred_log_Total_Sample_Area_m2,
-                                                     Biome_WWF_Broad, Habitat_Broad),
+                                                     Biome_WWF_Broad, Habitat_Broad, Biome_Broad_Hab),
                              #  by= c("Total_Species2","Biome_WWF_Broad","Habitat_Broad","studyID", "rowID")
   )
 
@@ -117,7 +117,37 @@ head(seed_biome_broad_fixef)
 seed_biome_broad_coef <- coef(seeds_m2)
 seed_biome_broad_coef # dont really need this
 
+sb_seed_area %>% select(Total_Sample_Area_m2, Centred_log_Total_Sample_Area_m2) %>%
+  filter(Total_Sample_Area_m2 == 0.01)
 
+sb_seed_area %>% select(Total_Sample_Area_m2, Centred_log_Total_Sample_Area_m2) %>%
+  distinct() %>% arrange(Total_Sample_Area_m2) %>% mutate(Total_Sample_Area_m2 = round(Total_Sample_Area_m2,2)) %>% 
+  filter(Total_Sample_Area_m2 >= 14)
+  #filter(Total_Sample_Area_m2 == 10)
+
+
+
+obs_nest.seeds <- sb_seed_area %>% 
+  mutate(Habitat_Broad_group = Habitat_Broad,
+         Biome_WWF_Broad_group = Biome_WWF_Broad) %>%
+  group_by(Habitat_Broad_group, Habitat_Broad,
+           Biome_WWF_Broad_group, Biome_WWF_Broad) %>% 
+  summarise(Centred_log_Total_Sample_Area_m2 = seq(-3.554035, 3.765562, length.out = 30 ),
+            Total_Sample_Area_m2 = seq(0.01, 15.10, length.out = 30)) %>%
+  nest(data = c(Biome_WWF_Broad, Habitat_Broad, Total_Sample_Area_m2, Centred_log_Total_Sample_Area_m2)) %>%
+  mutate(predicted = map(data, ~predict(seeds_m2, newdata= .x, re_formula = ~(Centred_log_Total_Sample_Area_m2 * Biome_WWF_Broad  | Habitat_Broad) ))) 
+
+obs_nest.seeds
+head(obs_nest.seeds)
+View(obs_nest.seeds)
+
+
+obs_nest.seeds.df <- obs_nest.seeds  %>% 
+  unnest(cols= c(data, predicted)) %>%
+    mutate( Biome_WWF_Broad = as.factor(Biome_WWF_Broad_group))
+  # select(-.prediction)
+
+head(obs_nest.seeds.df)
 
 setwd(paste0(path2wd, 'Data/'))
 # # # save data objects to avoid doing this every time
@@ -134,7 +164,7 @@ load('seed_biome_broad.mod_dat.Rdata')
 head(sb_seed_area_biome_broad)
 
 fig_seed.biome_broad <- ggplot() + 
-  #facet_wrap(~Biome_WWF_Broad, scales="free") +
+  facet_wrap(~Biome_WWF_Broad, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -145,6 +175,11 @@ fig_seed.biome_broad <- ggplot() +
                y = Total_Seeds, colour = Biome_WWF_Broad,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
+  geom_line(data = obs_nest.seeds.df,
+            aes(x = Total_Sample_Area_m2, y= exp(predicted[,1]), 
+                group = Habitat_Broad, line_type = Habitat_Broad
+                ),
+            size = 0.25) +
   # fixed effect
   geom_line(data = seed_biome_broad_fitted,
             aes(#x = (Total_Sample_Area_mm2/1000000), 

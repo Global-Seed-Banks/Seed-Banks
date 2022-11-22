@@ -38,7 +38,7 @@ levels(sb_density_area$Habitat_Broad)
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/new/'))
 # models run on cluster, load in model objects here
 load( 'density_m2.Rdata')
 
@@ -49,11 +49,11 @@ load( 'density_m2.Rdata')
 # density_deg
 
 # model summary
-summary(density_biome_broad)
+summary(density_m2)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_den.biome_broad <- pp_check(density_biome_broad)+ xlab( "Total density") + ylab("Density") +
+pp_den.biome_broad <- pp_check(density_m2)+ xlab( "Total density") + ylab("Density") +
   labs(title= "") +# xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
@@ -88,7 +88,7 @@ with(biome_broad.plot, plot(rowID, mr.biome_broad$Estimate))
 
 
 
-density_biome_broad_c <- conditional_effects(density_biome_broad, effects = 'Biome_Broad_Hab', re_formula = NA, method = 'fitted')  # conditional effects
+density_biome_broad_c <- conditional_effects(density_m2, effects = 'Biome_Broad_Hab', re_formula = NA, method = 'fitted')  # conditional effects
 
 
 density_biome_broad_df <-
