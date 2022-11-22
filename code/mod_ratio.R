@@ -37,7 +37,17 @@ nrow(sb_ratio)
 
 levels(sb_ratio$Habitat_Broad)
 
+View(sb_ratio)
 
+ratio_1 <- sb_ratio %>% select(rowID, studyID, Total_Sample_Area_m2, Total_Seeds, Total_Species, ratio_seeds_species, Biome_Broad_Hab, Method, studyID, rowID ) %>%
+  filter(!ratio_seeds_species == 1.000000)
+
+nrow(ratio_1)
+
+View(ratio_1)
+
+setwd(paste0(path2wd, 'Data/'))
+write.csv(ratio_1,  "ratio_1.csv")
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
@@ -55,7 +65,7 @@ summary(ratio)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_ratio <- pp_check(ratio)+ xlab( "Ratio") + ylab("Density") +
-  labs(title= "") +# xlim(0,300)+ ylim(0,0.025)+
+  labs(title= "") + xlim(0,5)+ #ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_ratio 
