@@ -54,7 +54,7 @@ summary(density_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_den.biome_broad <- pp_check(density_m2)+ xlab( "Total density") + ylab("Density") +
-  labs(title= "") +# xlim(0,300)+ ylim(0,0.025)+
+  labs(title= "") + xlim(0,10000)+ ylim(0,0.00075)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_den.biome_broad 
@@ -90,6 +90,7 @@ with(biome_broad.plot, plot(rowID, mr.biome_broad$Estimate))
 
 density_biome_broad_c <- conditional_effects(density_m2, effects = 'Biome_Broad_Hab', re_formula = NA, method = 'fitted')  # conditional effects
 
+density_biome_broad_c
 
 density_biome_broad_df <-
   as.data.frame(density_biome_broad_c$`Biome_Broad_Hab`)
@@ -115,7 +116,7 @@ density.fitted <- sb_density_area %>%
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>% 
   summarise(Seed_density_m2 =  mean(Seed_density_m2)) %>%
   nest(data = c(Biome_Broad_Hab, Seed_density_m2) ) %>%
-  mutate(fitted = map(data, ~epred_draws(density_biome_broad, newdata= .x, re_formula = ~(Seed_density_m2 * Biome_Broad_Hab) ))) 
+  mutate(fitted = map(data, ~epred_draws(density_m2, newdata= .x, re_formula = ~(Seed_density_m2 * Biome_Broad_Hab) ))) 
 
 
 head(density.fitted)

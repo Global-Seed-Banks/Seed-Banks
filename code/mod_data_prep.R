@@ -82,6 +82,8 @@ head(sb_calc)
 
 summary(sb_calc)
 
+
+sb_calc %>% distinct(ratio_seeds_species)
 View(sb_calc)
 
 sb_calc %>% distinct(log_Total_Seeds, Total_Seeds)
@@ -133,6 +135,8 @@ sb_mod %>% distinct(Biome_WWF, Biome_WWF_Broad) %>% arrange(Biome_WWF_Broad)
 
 
 head(sb_mod)
+
+
 
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_mod,  "sb_prep.csv")

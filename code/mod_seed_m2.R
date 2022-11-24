@@ -40,7 +40,7 @@ head(sb_seed_area)
 
 
 
-sb_seed_area %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_WWF_Broad) %>% arrange(Biome_WWF_Broad)
+sb_seed_area %>% distinct(Biome_Broad_Hab, Habitat_Degraded, Method, studyID) %>% arrange(Biome_Broad_Hab, Habitat_Degraded, Method, studyID)
 
 
 
@@ -56,7 +56,7 @@ summary(seeds_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_seed.biome_broad <- pp_check(seeds_m2)+ xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "") + xlim(0,30)+ #ylim(0,0.025)+
+  labs(title= "") + xlim(0,1000)+ #ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_seed.biome_broad 
@@ -164,7 +164,7 @@ load('seed_biome_broad.mod_dat.Rdata')
 head(sb_seed_area_biome_broad)
 
 fig_seed.biome_broad <- ggplot() + 
-  facet_wrap(~Biome_WWF_Broad, scales="free") +
+  facet_wrap(~Biome_Broad_Hab, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -172,30 +172,30 @@ fig_seed.biome_broad <- ggplot() +
              aes(#x = (Total_Sample_Area_mm2/1000000),
                # x = Total_Sample_Area_mm2,
                x = Total_Sample_Area_m2,
-               y = Total_Seeds, colour = Biome_WWF_Broad,
+               y = Total_Seeds, colour = Biome_Broad_Hab,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = obs_nest.seeds.df,
-            aes(x = Total_Sample_Area_m2, y= exp(predicted[,1]), 
-                group = Habitat_Broad, line_type = Habitat_Broad
-                ),
-            size = 0.25) +
+  # geom_line(data = obs_nest.seeds.df,
+  #           aes(x = Total_Sample_Area_m2, y= exp(predicted[,1]), 
+  #               group = Habitat_Broad, line_type = Habitat_Broad
+  #               ),
+  #           size = 0.25) +
   # fixed effect
   geom_line(data = seed_biome_broad_fitted,
             aes(#x = (Total_Sample_Area_mm2/1000000), 
               # x = Total_Sample_Area_mm2,
               x = Total_Sample_Area_m2,
-              y = exp(Estimate), colour = Biome_WWF_Broad),
+              y = Estimate, colour = Biome_Broad_Hab),
             size = 0.75) +
   # uncertainy in fixed effect
   geom_ribbon(data = seed_biome_broad_fitted,
               aes( #x =  (Total_Sample_Area_mm2/1000000), 
                 #x =  Total_Sample_Area_mm2, 
                 x = Total_Sample_Area_m2,
-                ymin = exp(Q2.5), ymax = exp(Q97.5), fill = Biome_WWF_Broad),
+                ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
               alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_seed_area_biome_broad$Total_Sample_Area_m2), quantile(sb_seed_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
-  coord_cartesian( ylim = c(0,1000), xlim = c(0,15)) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
