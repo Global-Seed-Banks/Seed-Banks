@@ -20,7 +20,7 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
 
 
 
-rich_m2 <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + ( Biome_Broad_Hab +  | Habitat_Degraded/Method/studyID/rowID ),
+rich_m2 <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + ( Biome_Broad_Hab   | Habitat_Degraded/Method/studyID/rowID ),
                     family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, inits = my_inits,
                     control = list(adapt_delta = 0.9999,
                                    max_treedepth = 13)
