@@ -9,6 +9,9 @@ library(bayesplot)
 library(patchwork)
 library(viridis)
 library(tidybayes)
+library(ggplot2)
+library(ggmcmc)
+library(lisa)
 
 user <- Sys.info()["user"]
 
@@ -34,11 +37,16 @@ sb_density_area <- sb_prep %>% filter(!is.na(Seed_density_m2)) %>%
            rowID = as.factor(rowID))  
 nrow(sb_density_area)
 
-levels(sb_density_area$Habitat_Broad)
+levels(sb_density_area$Biome_Broad_Hab)
+
+sb_density_area %>% distinct(Biome_Broad_Hab, Seed_density_m2) %>% arrange(Biome_Broad_Hab, Seed_density_m2)
+
+View(sb_density_area %>% select(Biome_Broad_Hab, Seed_density_m2) %>% 
+       filter(Biome_Broad_Hab == "Boreal Forests/Taiga") %>%
+       distinct() %>% arrange(Seed_density_m2))
 
 
-
-setwd(paste0(path2wd, 'Model_Fits/new/'))
+setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'density_m2.Rdata')
 
@@ -54,14 +62,46 @@ summary(density_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_den.biome_broad <- pp_check(density_m2)+ xlab( "Total density") + ylab("Density") +
-  labs(title= "") + xlim(0,10000)+ ylim(0,0.00075)+
+  labs(title= "") + xlim(-2000,40000)+ ylim(0,0.00020)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_den.biome_broad 
 
 
 # caterpillars/chains
-plot(density_biome_broad)
+plot(density_m2)
+
+# define the color palette
+fk <- lisa_palette("FridaKahlo", n = 31, type = "continuous")
+
+geom_trace <- function(subtitle = NULL, 
+                       xlab = "iteration", 
+                       xbreaks = 0:4 * 500) {
+  
+  list(
+    annotate(geom = "rect", 
+             xmin = 0, xmax = 1000, ymin = -Inf, ymax = Inf,
+             fill = fk[16], alpha = 1/2, size = 0),
+    geom_line(size = 1/3),
+    scale_color_manual(values = fk[c(3, 8, 27, 31)]),
+    scale_x_continuous(xlab, breaks = xbreaks, expand = c(0, 0)),
+    labs(subtitle = subtitle),
+    theme(panel.grid = element_blank())
+  )
+  
+}
+
+ggs(density_m2) %>%
+  filter(Parameter == "b_Intercept") %>% 
+  mutate(chain = factor(Chain),
+         intercept = value) %>%
+ggplot(aes(x = Iteration, y = intercept, color = chain)) +
+  geom_trace() +
+  coord_cartesian(ylim = c(-2500, 7500))
+
+
+
+
 
 
 # # check model residuals

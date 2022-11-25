@@ -45,7 +45,7 @@ sb_seed_area %>% distinct(Biome_Broad_Hab, Habitat_Degraded, Method, studyID) %>
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/new/'))
+setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'seed_m2.Rdata')
 
@@ -55,15 +55,15 @@ summary(seeds_m2)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_seed.biome_broad <- pp_check(seeds_m2)+ xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "") + xlim(0,1000)+ #ylim(0,0.025)+
+pp_seed.biome_broad <- pp_check(seeds_m2) + xlab( "Total Seeds") + ylab("Density") +
+  labs(title= "") + xlim(0,1000)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_seed.biome_broad 
 
 
 # caterpillars/chains
-plot(seeds_biome_broad)
+plot(seeds_m2)
 
 
 # # check model residuals

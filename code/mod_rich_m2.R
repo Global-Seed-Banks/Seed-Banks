@@ -52,8 +52,8 @@ summary(rich_m2)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich.biome_broad <- pp_check(rich_m2)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
+pp_rich.biome_broad <- pp_check(rich_m2,)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "") + #xlim(-200,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 
@@ -62,8 +62,8 @@ pp_rich.biome_broad
 
 
 # caterpillars/chains
-plot(rich_biome_broad)
-plot(rich_biome_broad_broad)
+plot(rich_m2)
+
 
 
 head(sb_rich_area_zone)
