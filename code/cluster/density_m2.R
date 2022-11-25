@@ -35,8 +35,8 @@ my_inits <- list(
   set_inits(seed = 4)
 )
 
-density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab + ( 1 | Habitat_Degraded/Method/studyID/rowID ),
-                    family = exgaussian(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, inits = my_inits,
+density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab + ( 1 + Biome_Broad_Hab + | Habitat_Degraded/Method/studyID/rowID ),
+                    family = exgaussian(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
                     control = list(adapt_delta = 0.999,
                                    max_treedepth = 12)
 )
