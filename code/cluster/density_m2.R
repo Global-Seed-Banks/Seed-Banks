@@ -16,10 +16,27 @@ sb_dat <- sb %>% filter(!is.na(Seed_density_m2)) %>%
           rowID = as.factor(rowID),
           Method = as.factor(Method)) 
 
-# init = 5000
+set_inits <- function(seed = 1) {
+  
+  set.seed(seed)
+  list(
+    Intercept = rnorm(n = 1, mean = 3000, sd = 500),
+    sigma     = runif(n = 1, min = 100, max = 150),
+    beta      = runif(n = 1, min = 350, max = 500)
+  )
+  
+}
+
+my_inits <- list(
+  # different seed values will return different results
+  set_inits(seed = 1),
+  set_inits(seed = 2),
+  set_inits(seed = 3),
+  set_inits(seed = 4)
+)
 
 density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab + ( 1 | Habitat_Degraded/Method/studyID/rowID ),
-                    family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
+                    family = exgaussian(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, inits = my_inits,
                     control = list(adapt_delta = 0.999,
                                    max_treedepth = 12)
 )
