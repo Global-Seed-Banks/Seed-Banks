@@ -18,8 +18,10 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
           rowID = as.factor(rowID),
           Method = as.factor(Method)) 
 
+# init 50
+
 rich_m2 <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + ( 1 | Habitat_Degraded/Method/studyID/rowID ),
-                    family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, init = 50, 
+                    family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
                     control = list(adapt_delta = 0.9999,
                                    max_treedepth = 13)
 )
