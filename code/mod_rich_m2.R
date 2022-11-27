@@ -49,7 +49,6 @@ summary(rich_m2)
 
 
 
-
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_rich.biome_broad <- pp_check(rich_m2,)+ xlab( "Total Species") + ylab("Density") +
