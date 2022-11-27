@@ -21,9 +21,9 @@ sb_dat <- sb %>% filter(#!is.na(log_Total_Seeds),
 
 
 
-seeds_m2 <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + ( 1  | Method/studyID/rowID ),
+seeds_m2 <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + ( 1  | Method/studyID ),
                     family = hurdle_lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
-                     control = list(adapt_delta = 0.999)
+                     control = list(adapt_delta = 0.999, max_treedepth = 13)
 )
 
 
