@@ -10,8 +10,7 @@ library(patchwork)
 library(viridis)
 library(tidybayes)
 library(ggplot2)
-library(ggmcmc)
-library(lisa)
+
 
 user <- Sys.info()["user"]
 
@@ -46,7 +45,7 @@ View(sb_density_area %>% select(Biome_Broad_Hab, Seed_density_m2) %>%
        distinct() %>% arrange(Seed_density_m2))
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/new/'))
 # models run on cluster, load in model objects here
 load( 'density_m2.Rdata')
 
@@ -70,6 +69,7 @@ pp_den.biome_broad
 
 # caterpillars/chains
 plot(density_m2)
+
 
 # define the color palette
 fk <- lisa_palette("FridaKahlo", n = 31, type = "continuous")
@@ -210,7 +210,7 @@ Density_biome_broad_Fig <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
-   coord_cartesian( ylim = c(0,10000)) +
+   coord_cartesian( ylim = c(0,12000)) +
   theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),

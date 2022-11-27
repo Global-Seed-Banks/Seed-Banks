@@ -40,7 +40,7 @@ head(sb_rich_area)
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/new/'))
 # models run on cluster, load in model objects here
 load( 'rich_m2.Rdata')
 
@@ -68,8 +68,8 @@ plot(rich_m2)
 head(sb_rich_area_zone)
 # WWF biome_broadS model
 # # for plotting fixed effects
-rich_biome_broad_fitted <- cbind(rich_biome_broad$data,
-                          fitted(rich_biome_broad, re_formula = NA
+rich_biome_broad_fitted <- cbind(rich_m2$data,
+                          fitted(rich_m2, re_formula = NA
                           )) %>%
   as_tibble() %>% inner_join(sb_rich_area %>% select(Total_Species, 
                                                           Total_Number_Samples, Total_Sample_Area_mm2,
@@ -85,11 +85,11 @@ head(rich_biome_broad_fitted)
 nrow(rich_biome_broad_fitted)
 
 # fixed effect coefficients
-rich_biome_broad_fixef <- fixef(rich_biome_broad)
+rich_biome_broad_fixef <- fixef(rich_m2)
 head(rich_biome_broad_fixef)
 
 # Random effect coefficients
-rich_biome_broad_coef <- coef(rich_biome_broad)
+rich_biome_broad_coef <- coef(rich_m2)
 rich_biome_broad_coef # dont really need this
 
 
@@ -109,7 +109,7 @@ load('rich_biome_broad.mod_dat.Rdata')
 head(sb_rich_area_biome_broad)
 
 fig_rich.biome_broad <- ggplot() + 
-  #facet_wrap(~Biome_Broad_Hab, scales="free") +
+  facet_wrap(~Biome_Broad_Hab, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -150,7 +150,7 @@ fig_rich.biome_broad
 
 
 
-rich_biome_broad.fixed.p <- as_draws_df(rich_biome_broad, subset = floor(runif(n = 1000, 1, max = 2000)))
+rich_biome_broad.fixed.p <- as_draws_df(rich_m2, subset = floor(runif(n = 1000, 1, max = 2000)))
 
 rich_biome_broad.fixed.p
 nrow(rich_biome_broad.fixed.p)

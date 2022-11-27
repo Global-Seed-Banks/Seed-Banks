@@ -37,7 +37,7 @@ sb_biome_area <- sb_prep %>% # filter(!is.na(Total_Species),
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/new/'))
 # models run on cluster, load in model objects here
 load( 'rich_m2.Rdata')
 load( 'seed_m2.Rdata')
@@ -190,7 +190,7 @@ write.csv(predicted_points,  "predicted_samps.csv")
 
 predicted_points <- read.csv(paste0(path2wd, 'Data/predicted_samps.csv'))
 
-
+head(rich_biome_div)
 
 rich_biome_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -202,7 +202,7 @@ rich_biome_a <- ggplot() +
              aes(x = Biome_Broad_Hab , y = a_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = Biome_Broad_Hab , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, colour = Biome_Broad_Hab),
+                aes(x = Biome_Broad_Hab , ymin = `a_Lower CI`, ymax =  `a_Upper CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -236,7 +236,7 @@ rich_biome_g <- ggplot() +
              aes(x = Biome_Broad_Hab , y = g_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = Biome_Broad_Hab , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`, colour = Biome_Broad_Hab),
+                aes(x = Biome_Broad_Hab , ymin = `g_Lower CI`, ymax =  `g_Upper CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -271,7 +271,7 @@ rich_biome_b <- ggplot() +
              aes(x = Biome_Broad_Hab , y = b_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = Biome_Broad_Hab , ymin = `b_Lower.CI`, ymax =  `b_Upper.CI`, colour = Biome_Broad_Hab),
+                aes(x = Biome_Broad_Hab , ymin = `b_Lower CI`, ymax =  `b_Upper CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
   scale_color_viridis(discrete = T, option="D")  +
