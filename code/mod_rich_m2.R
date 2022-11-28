@@ -360,11 +360,11 @@ g_legend <- function(a.gplot){
 # overall legend
 rich_biome_broad_leg <- g_legend(fig_rich.biome_broad)
 
-# lnadscape 10x16
-(fig_rich.biome_broad + theme(legend.position="none") | fig_rich_biome_broad_global) / (rich_biome_broad_leg) + 
+# lnadscape 16 X 20
+(fig_rich.biome_broad + theme(legend.position="none") )/ ( fig_rich_biome_broad_global) / (rich_biome_broad_leg) + 
   # plot_annotation(title = "Species richness in the \n global soil seedbank",
   #        theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + 
-  plot_layout(ncol=1, nrow=2, heights = c(10,1))
+  plot_layout(ncol=1, nrow=3, heights = c(12,7,2))
 
 
 

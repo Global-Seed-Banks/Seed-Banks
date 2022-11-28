@@ -71,36 +71,6 @@ pp_den.biome_broad
 plot(density_m2)
 
 
-# define the color palette
-fk <- lisa_palette("FridaKahlo", n = 31, type = "continuous")
-
-geom_trace <- function(subtitle = NULL, 
-                       xlab = "iteration", 
-                       xbreaks = 0:4 * 500) {
-  
-  list(
-    annotate(geom = "rect", 
-             xmin = 0, xmax = 1000, ymin = -Inf, ymax = Inf,
-             fill = fk[16], alpha = 1/2, size = 0),
-    geom_line(size = 1/3),
-    scale_color_manual(values = fk[c(3, 8, 27, 31)]),
-    scale_x_continuous(xlab, breaks = xbreaks, expand = c(0, 0)),
-    labs(subtitle = subtitle),
-    theme(panel.grid = element_blank())
-  )
-  
-}
-
-ggs(density_m2) %>%
-  filter(Parameter == "b_Intercept") %>% 
-  mutate(chain = factor(Chain),
-         intercept = value) %>%
-ggplot(aes(x = Iteration, y = intercept, color = chain)) +
-  geom_trace() +
-  coord_cartesian(ylim = c(-2500, 7500))
-
-
-
 
 
 

@@ -56,7 +56,7 @@ sb_seed_area %>% filter(Total_Seeds == 0)
 
 setwd(paste0(path2wd, 'Model_Fits/new/'))
 # models run on cluster, load in model objects here
-load( 'seed_m2.Rdata')
+load( 'seed_m2_2.Rdata')
 
 
 summary(seeds_m2)
@@ -436,5 +436,6 @@ g_legend <- function(a.gplot){
 seed_biome_broad_leg <- g_legend(fig_seed.biome_broad)
 
 
-(fig_seed.biome_broad + theme(legend.position="none") | fig_seed_biome_broad_global)/ (seed_biome_broad_leg) +  plot_layout(ncol=1, nrow=2, heights = c(10,1))
+# lnadscape 16 X 20
+(fig_seed.biome_broad + theme(legend.position="none") ) / ( fig_seed_biome_broad_global)/ (seed_biome_broad_leg) +  plot_layout(ncol=1, nrow=3, heights = c(12,7,2))
 
