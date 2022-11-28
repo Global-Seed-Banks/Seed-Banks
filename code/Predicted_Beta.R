@@ -87,8 +87,6 @@ View(head(rich_biome_predict_df))
 setwd(paste0(path2wd, 'Data/'))
 write.csv(rich_biome_predict_df,  "rich_biome_predict_df.csv")
 
-rm(list = ls())
-
 rich_biome_predict_df <- read.csv(paste0(path2wd, 'Data/rich_biome_predict_df.csv'))
 
 
@@ -138,7 +136,6 @@ head(rich_biome_scales)
 setwd(paste0(path2wd, 'Data/'))
 write.csv(rich_biome_scales,  "sb_av_div_scales.csv")
 
-rm(list = ls())
 
 rich_biome_scales <- read.csv(paste0(path2wd, 'Data/sb_av_div_scales.csv'))
 
@@ -202,7 +199,7 @@ rich_biome_a <- ggplot() +
              aes(x = Biome_Broad_Hab , y = a_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = Biome_Broad_Hab , ymin = `a_Lower CI`, ymax =  `a_Upper CI`, colour = Biome_Broad_Hab),
+                aes(x = Biome_Broad_Hab , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -214,7 +211,7 @@ rich_biome_a <- ggplot() +
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="none") + 
   #scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
-  # coord_cartesian( ylim = c(0,90)) +
+   coord_cartesian( ylim = c(0,80)) +
   ggtitle((expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))))+
   labs(x='',
        y = 'Average species richness',
@@ -236,7 +233,7 @@ rich_biome_g <- ggplot() +
              aes(x = Biome_Broad_Hab , y = g_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = Biome_Broad_Hab , ymin = `g_Lower CI`, ymax =  `g_Upper CI`, colour = Biome_Broad_Hab),
+                aes(x = Biome_Broad_Hab , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -248,7 +245,7 @@ rich_biome_g <- ggplot() +
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="none") + 
   #scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
- # coord_cartesian( ylim = c(0,90)) +
+  coord_cartesian( ylim = c(0,80)) +
   ggtitle((expression(paste(italic(gamma), '-scale (15' ,m^2,')', sep = ''))))+
   labs(x='',
        y = 'Average species richness',
@@ -271,7 +268,7 @@ rich_biome_b <- ggplot() +
              aes(x = Biome_Broad_Hab , y = b_Estimate, colour = Biome_Broad_Hab), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = Biome_Broad_Hab , ymin = `b_Lower CI`, ymax =  `b_Upper CI`, colour = Biome_Broad_Hab),
+                aes(x = Biome_Broad_Hab , ymin = `b_Lower.CI`, ymax =  `b_Upper.CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -291,5 +288,5 @@ rich_biome_b <- ggplot() +
 
 
 rich_biome_b
-#landscape 8 x 16
+#landscape 10 x 16
 (rich_biome_a + rich_biome_g) / (rich_biome_b)
