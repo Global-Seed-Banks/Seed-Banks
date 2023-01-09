@@ -1,0 +1,28 @@
+getwd(
+)
+sb.all<-read.csv("WoS outputs/seed bank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+sb.all<-read.csv("WoS outputs/seed bank/savedrecs_ALL.csv", stringsAsFactors=FALSE)https://www.webofknowledge.com
+sb.all<-read.csv("/Users/arau0001/Dropbox/Global seed banks/WoS outputs/seed bank/savedrecs_ALL.csv", stringsAsFactors=FALSE)https://www.webofknowledge.com
+sb.all<-read.csv("/Users/arau0001/Dropbox/Global seed banks/WoS outputs/seed bank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+sb.all<-read.csv("/Users/arau0001/Dropbox/Global seed banks/Seed-Bank-Map/WoS outputs/seed bank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+nrow(sb.all)
+sball<-read.csv("/Users/arau0001/Dropbox/Global seed banks/Seed-Bank-Map/WoS outputs/seedbank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+nrow(sball)
+sb.all<-sb.all[sb.all$PT=="J" & nchar(sb.all$DI)>0,] # reduce to Journal Articles and those with DOIs - 5537
+nrow(sb.all)
+sb.all<-sb.all[sb.all$PT=="J" & nchar(sb.all$DI)>0,] # reduce to Journal Articles and those with DOIs - 5537
+sb.all<-read.csv("WoS outputs/seedbank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+sb.all<-read.csv("/Users/arau0001/Dropbox/Global seed banks/Seed-Bank-Map/WoS outputs/seed bank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+bob<-rbind(sb.all)
+bob<-rbind(sb.all, sball)
+sb.all<-read.csv("/Users/arau0001/Dropbox/Global seed banks/Seed-Bank-Map/WoS outputs/seed bank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+sb.all<-sb.all[sb.all$PT=="J",] # reduce to Journal Articles and those with DOIs - 5537
+nrow(sb.all)
+sball<-sball[sb.all$PT=="J",] # reduce to Journal Articles and those with DOIs - 5537
+nrow(sball)
+sball<-sball[sball$PT=="J",] # reduce to Journal Articles and those with DOIs - 5537
+nrow(sball)
+sball<-read.csv("/Users/arau0001/Dropbox/Global seed banks/Seed-Bank-Map/WoS outputs/seedbank/savedrecs_ALL.csv", stringsAsFactors=FALSE)
+sball<-sball[sball$PT=="J",] # reduce to Journal Articles and those with DOIs - 5537
+nrow(sball)
+949+6157

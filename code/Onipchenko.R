@@ -93,4 +93,19 @@ write.csv(sum_dat, "~/Dropbox/Projects/SeedbankMap/data/Onipchenko/processed_dat
 
 
 
+### Ali's attempt Jan 2023
+
+setwd("/Users/arau0001/Dropbox/Global seed banks/")
+library(openxlsx)
+density <- read.xlsx("russiandatabase.xlsx", sheet = 1)
+species <- read.xlsx("russiandatabase.xlsx", sheet = 2)
+sites <- read.xlsx("russiandatabase.xlsx", sheet = 3)
+#refs <- read.xlsx("russiandatabase.xlsx", sheet = 4)
+
+# My idea is to loop through. For each reference, take the reference number, sampling info, count species and sum density.
+
+ref<-unique(sites$Reference)[4]
+
+i<-sites$Ref.No[sites$Reference==ref & !is.na(sites$Reference)]
+sites$Area.sampled[sites$Ref.No==i]
 
