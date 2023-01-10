@@ -17,6 +17,16 @@ setwd(path2wd)
 
 sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
 
+
+nrow(sb)
+
+nrow(sb %>% select(studyID)  %>% distinct())
+
+sb %>% select(Country) %>% distinct() %>% arrange(Country)
+
+nrow( sb %>% select(studyID, Country)  %>%  distinct() %>% filter(!Country == "Russian Federation"))
+
+
 head(sb)
 colnames(sb)
 summary(sb)
