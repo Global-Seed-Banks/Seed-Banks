@@ -8,7 +8,7 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 
 # Total_Species   Seed_density_m2   Total_Seeds
 sb_dat <- sb %>% filter(!is.na(Total_Species),
-                       # !log_Total_Seeds == "-Inf",
+                        !log_Total_Seeds == "-Inf",
                         !is.na(Total_Seeds),
                         !is.na(log_Total_Species)) %>%
   # treat all random effects as factors
