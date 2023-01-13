@@ -146,12 +146,14 @@ sb_mod %>% distinct(Biome_WWF, Biome_WWF_Broad) %>% arrange(Biome_WWF_Broad)
 
 head(sb_mod)
 
-
+summary(sb_mod)
 
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_mod,  "sb_prep.csv")
 
 
+
+nrow(sb_mod %>% filter(Total_Seeds == 0))
 
 
 

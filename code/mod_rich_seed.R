@@ -45,7 +45,7 @@ sb_seed_area %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_Broad_Ha
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/jan/'))
 # models run on cluster, load in model objects here
 load( 'rich_seeds.Rdata')
 

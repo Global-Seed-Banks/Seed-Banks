@@ -21,7 +21,7 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
           rowID = as.factor(rowID),
           Method = as.factor(Method)) 
 
-rich_seeds <- brm(Total_Species ~ log_Total_Seeds * Biome_Broad_Hab + (Biome_Broad_Hab | Method/studyID ),
+rich_seeds <- brm(Total_Species ~ log_Total_Seeds * Biome_Broad_Hab + (1 | Method/studyID ),
                     family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                     control = list(adapt_delta = 0.9999,
                                    max_treedepth = 13)

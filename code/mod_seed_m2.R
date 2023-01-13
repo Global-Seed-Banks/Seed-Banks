@@ -56,8 +56,8 @@ sb_seed_area %>% filter(Total_Seeds == 0)
 
 setwd(paste0(path2wd, 'Model_Fits/new/'))
 # models run on cluster, load in model objects here
-load( 'seed_m2_2.Rdata')
-
+load( 'seed_m2_2.Rdata') # new folder- perfect
+load( 'seed_m2.Rdata') # jan folder 1- diverge t
 
 summary(seeds_m2)
 
@@ -65,7 +65,7 @@ summary(seeds_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_seed.biome_broad <- pp_check(seeds_m2) + xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "") + xlim(0,1000)+ ylim(0,0.025)+
+  labs(title= "") + xlim(0,8500)+ ylim(0,0.0009)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_seed.biome_broad 
