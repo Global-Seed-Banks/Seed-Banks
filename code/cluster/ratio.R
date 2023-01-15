@@ -20,7 +20,7 @@ sb_dat <- sb %>% filter(!is.na(ratio_seeds_species)) %>%
 
 ratio <- brm(ratio_seeds_species ~  Biome_Broad_Hab + (1 | Method/studyID ),
                     family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
-                    control = list(adapt_delta = 0.999,
+                    control = list(adapt_delta = 0.9999,
                                    max_treedepth = 12)
 )
 
