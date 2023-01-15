@@ -58,7 +58,7 @@ View(ratio_1)
 setwd(paste0(path2wd, 'Data/'))
 write.csv(ratio_1,  "ratio_1.csv")
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/jan/'))
 # models run on cluster, load in model objects here
 load( 'ratio.Rdata')
 
@@ -74,14 +74,14 @@ summary(ratio)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_ratio <- pp_check(ratio)+ xlab( "Ratio") + ylab("Density") +
-  labs(title= "") + xlim(0,5)+ #ylim(0,0.025)+
+  labs(title= "") + xlim(0,400)+ #ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_ratio 
 
 
 # caterpillars/chains
-plot(density_biome_broad)
+plot(ratio)
 
 
 # # check model residuals
@@ -116,7 +116,7 @@ ratio_df <-
 
 ratio_conditional_effects <- ratio_df %>%
   select(Biome_Broad_Hab, estimate__, lower__, upper__) %>%
-  mutate( Model = "Density",
+  mutate( Model = "Ratio",
           `WWF Biome`= Biome_Broad_Hab,
           Estimate = round(estimate__ , 2),
          `Upper CI` = round(upper__ , 2),
@@ -130,48 +130,48 @@ write.csv(ratio_conditional_effects, "table_3.csv")
 
 
 # predicted average density across all
-# density.fitted <- sb_ratio %>% 
-#   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
-#   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>% 
-#   summarise(Seed_density_m2 =  mean(Seed_density_m2)) %>%
-#   nest(data = c(Biome_Broad_Hab, Seed_density_m2) ) %>%
-#   mutate(fitted = map(data, ~epred_draws(density_biome_broad, newdata= .x, re_formula = ~(Seed_density_m2 * Biome_Broad_Hab) ))) 
-# 
-# 
-# head(density.fitted)
-# 
-# 
-# density.fitted.df  <- density.fitted %>% 
-#   unnest(cols = c(fitted)) %>% select(-data) %>%
-#   select(-c(.row, .chain, .iteration))  %>%
-# select(-c(Biome_Broad_Hab_group, Biome_Broad_Hab)) %>%
-#   ungroup() 
-# 
-# head(density.fitted.df)
-# 
-# 
-# density.total.mean <- density.fitted.df %>%
-#   select(-.draw) %>%
-#   select(-c(Biome_Broad_Hab_group, Seed_density_m2)) %>%
-#   ungroup() %>%
-#   #group_by(Seed_density_m2) %>%
-#   mutate( P_Estimate = mean(.epred),
-#           P_Estimate_lower = quantile(.epred, probs=0.025),
-#           P_Estimate_upper = quantile(.epred, probs=0.975) ) %>% 
-#   select(-.epred) %>% distinct()
-# 
-# head(density.total.mean)
+ratio.fitted <- sb_ratio %>%
+  mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
+  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>%
+  summarise(ratio_seeds_species =  mean(ratio_seeds_species)) %>%
+  nest(data = c(Biome_Broad_Hab, ratio_seeds_species) ) %>%
+  mutate(fitted = map(data, ~epred_draws(ratio, newdata= .x, re_formula = ~(Seed_ratio_m2 * Biome_Broad_Hab) )))
+
+
+head(ratio.fitted)
+
+
+ratio.fitted.df  <- ratio.fitted %>%
+  unnest(cols = c(fitted)) %>% select(-data) %>%
+  select(-c(.row, .chain, .iteration))  %>%
+select(-c(Biome_Broad_Hab_group, Biome_Broad_Hab)) %>%
+  ungroup()
+
+head(ratio.fitted.df)
+
+
+ratio.total.mean <- ratio.fitted.df %>%
+  select(-.draw) %>%
+  select(-c(Biome_Broad_Hab_group, ratio_seeds_species)) %>%
+  ungroup() %>%
+  #group_by(Seed_ratio_m2) %>%
+  mutate( P_Estimate = mean(.epred),
+          P_Estimate_lower = quantile(.epred, probs=0.025),
+          P_Estimate_upper = quantile(.epred, probs=0.975) ) %>%
+  select(-.epred) %>% distinct()
+
+head(ratio.total.mean)
 
 
 
 ratio_biome_broad_Fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  # geom_hline(data = ratio.total.mean,
-  #            aes(yintercept = P_Estimate), size = 0.45) +
-  # geom_rect(data = ratio.total.mean,
-  #           aes(xmin = -Inf, xmax = Inf,
-  #               ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
-  #           alpha = 0.05) +
+  geom_hline(data = ratio.total.mean,
+             aes(yintercept = P_Estimate), size = 0.45) +
+  geom_rect(data = ratio.total.mean,
+            aes(xmin = -Inf, xmax = Inf,
+                ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
+            alpha = 0.05) +
   geom_point(data = sb_ratio,
              aes(x = Biome_Broad_Hab, y = ratio_seeds_species, #colour = 	"#C0C0C0"
                  colour = Biome_Broad_Hab
@@ -189,7 +189,7 @@ ratio_biome_broad_Fig <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
-   coord_cartesian( ylim = c(0,20)) +
+   coord_cartesian( ylim = c(0,350)) +
   theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
