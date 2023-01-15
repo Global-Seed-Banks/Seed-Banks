@@ -45,7 +45,7 @@ View(sb_density_area %>% select(Biome_Broad_Hab, Seed_density_m2) %>%
        distinct() %>% arrange(Seed_density_m2))
 
 
-setwd(paste0(path2wd, 'Model_Fits/new/'))
+setwd(paste0(path2wd, 'Model_Fits/jan/'))
 # models run on cluster, load in model objects here
 load( 'density_m2.Rdata')
 
@@ -69,10 +69,6 @@ pp_den.biome_broad
 
 # caterpillars/chains
 plot(density_m2)
-
-
-
-
 
 # # check model residuals
 # biome_broad
@@ -147,8 +143,8 @@ density.total.mean <- density.fitted.df %>%
   ungroup() %>%
   #group_by(Seed_density_m2) %>%
   mutate( P_Estimate = mean(.epred),
-          P_Estimate_lower = quantile(.epred, probs=0.025),
-          P_Estimate_upper = quantile(.epred, probs=0.975) ) %>% 
+          P_Estimate_lower = quantile(.epred, probs = 0.025),
+          P_Estimate_upper = quantile(.epred, probs = 0.975) ) %>% 
   select(-.epred) %>% distinct()
 
 head(density.total.mean)
@@ -180,7 +176,7 @@ Density_biome_broad_Fig <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
-   coord_cartesian( ylim = c(0,12000)) +
+   coord_cartesian( ylim = c(0,25000)) +
   theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),

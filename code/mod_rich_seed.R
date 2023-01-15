@@ -132,7 +132,7 @@ load('seed_biome_broad.mod_dat.Rdata')
 head(sb_seed_area_biome_broad)
 
 fig_rich_seed.biome_broad <- ggplot() + 
-  #facet_wrap(~Biome_Broad_Hab, scales="free") +
+  facet_wrap(~Biome_Broad_Hab, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -158,7 +158,7 @@ fig_rich_seed.biome_broad <- ggplot() +
                 ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
               alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_seed_area_biome_broad$Total_Sample_Area_m2), quantile(sb_seed_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
-  coord_cartesian( ylim = c(0,200), xlim = c(0,200000)) +
+  coord_cartesian( ylim = c(0,200), xlim = c(0,50000)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),

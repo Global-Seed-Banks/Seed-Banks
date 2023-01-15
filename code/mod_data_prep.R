@@ -148,6 +148,11 @@ head(sb_mod)
 
 summary(sb_mod)
 
+colnames(sb_mod)
+sb_mod %>% select(Biome_Broad_Hab, Total_Sample_Area_m2, Total_Seeds, Total_Species) %>%
+  filter(Biome_Broad_Hab == "Tundra") %>% distinct() %>% arrange(desc(Total_Species))
+  
+  
 setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_mod,  "sb_prep.csv")
 
