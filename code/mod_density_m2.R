@@ -45,7 +45,7 @@ View(sb_density_area %>% select(Biome_Broad_Hab, Seed_density_m2) %>%
        distinct() %>% arrange(Seed_density_m2))
 
 
-setwd(paste0(path2wd, 'Model_Fits/jan/'))
+setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'density_m2.Rdata')
 

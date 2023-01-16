@@ -55,10 +55,8 @@ nrow(ratio_1)
 
 View(ratio_1)
 
-setwd(paste0(path2wd, 'Data/'))
-write.csv(ratio_1,  "ratio_1.csv")
 
-setwd(paste0(path2wd, 'Model_Fits/jan/'))
+setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'ratio.Rdata')
 
@@ -126,7 +124,7 @@ ratio_conditional_effects <- ratio_df %>%
 head(ratio_conditional_effects)
 
 setwd(paste0(path2wd, 'Tables/'))
-write.csv(ratio_conditional_effects, "table_3.csv")
+write.csv(ratio_conditional_effects, "table_ratio.csv")
 
 
 # predicted average density across all

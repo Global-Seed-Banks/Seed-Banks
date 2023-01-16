@@ -45,7 +45,7 @@ sb_seed_area %>% distinct(biome_broad_WWF, biome_broad_WWF_Broad, Biome_Broad_Ha
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/jan/'))
+setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'rich_seeds.Rdata')
 
@@ -108,8 +108,8 @@ nrow(rich_seeds_biome_broad_fitted)
 
 
 # fixed effect coefficients
-seed_biome_broad_fixef <- fixef(seeds_biome_broad)
-head(seed_biome_broad_fixef)
+rich_seeds_biome_broad_fixef <- fixef(rich_seeds)
+head(rich_seeds_biome_broad_fixef)
 
 # Random effect coefficients
 rich_seeds_biome_broad_coef <- coef(rich_seeds)
@@ -125,7 +125,7 @@ save(rich_seeds_biome_broad_fitted, rich_seeds_biome_broad_fixef, rich_seeds_bio
 # plots
 setwd(paste0(path2wd, 'Data/'))
 #load('seed.area.poisson.mod_dat.Rdata')
-load('seed_biome_broad.mod_dat.Rdata')
+load('rich_seeds_biome_broad.mod_dat.Rdata')
 
 # plot seedness area biome_broad relationship
 
@@ -349,7 +349,7 @@ save(global.rich_seed_biome_broad.p, file = 'global.rich_seed_biome_broad.poster
 
 
 setwd(paste0(path2wd, 'Tables/'))
-write.csv(global.seed_biome_broad.p, "table_2.csv")
+write.csv(global.rich_seed_biome_broad.p, "table_rich_seed.csv")
 
 global.rich_seed_biome_broad.p
 

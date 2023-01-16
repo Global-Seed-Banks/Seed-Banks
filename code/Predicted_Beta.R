@@ -37,7 +37,7 @@ sb_biome_area <- sb_prep %>% # filter(!is.na(Total_Species),
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/new/'))
+setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'rich_m2.Rdata')
 load( 'seed_m2.Rdata')
@@ -139,7 +139,7 @@ write.csv(rich_biome_scales,  "sb_av_div_scales.csv")
 
 rich_biome_scales <- read.csv(paste0(path2wd, 'Data/sb_av_div_scales.csv'))
 
-
+head(rich_biome_scales)
 View(rich_biome_scales %>% filter(Biome_Broad_Hab ==  "Boreal Forests/Taiga"))
 
 
@@ -159,6 +159,7 @@ rich_biome_div <- rich_biome_scales %>%
 
 
 head(rich_biome_div)
+nrow(rich_biome_div)
 View(rich_biome_div)
 
 setwd(paste0(path2wd, 'Data/'))
@@ -166,6 +167,7 @@ write.csv(rich_biome_div,  "sb_av_div_estimates.csv")
 
 rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
+head(rich_biome_div)
 
 predicted_points<- rich_biome_scales %>%  
   group_by(Biome_Broad_Hab) %>%
