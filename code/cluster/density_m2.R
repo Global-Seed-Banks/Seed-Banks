@@ -20,7 +20,7 @@ sb_dat <- sb %>% filter(!is.na(Seed_density_m2),
 
 
 density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab + ( 1 | Method/studyID ),
-                    family = negbinomial(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
+                    family = gamma(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
                     control = list(adapt_delta = 0.999,
                                    max_treedepth = 12)
 )
