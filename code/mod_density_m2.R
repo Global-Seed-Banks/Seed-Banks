@@ -184,4 +184,5 @@ Density_biome_broad_Fig <- ggplot() +
 
 
 Density_biome_broad_Fig
+# Landscape 8.50 X 16
 

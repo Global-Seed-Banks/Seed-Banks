@@ -55,7 +55,7 @@ summary(rich_seeds)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich_seeds <- pp_check(rich_seeds)+ xlab( "Total Seeds") + ylab("Density") +
+pp_rich_seeds <- pp_check(rich_seeds)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 

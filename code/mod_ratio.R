@@ -181,13 +181,14 @@ ratio_biome_broad_Fig <- ggplot() +
                 aes(x =  `WWF Biome`, ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
                 size = 1, width = 0) +
   labs(x = '',
-       y = expression(paste('Ratio')),
+       y = expression(paste('Ratio (Seeds/Species)')),
        subtitle= '') +
  # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
    coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
@@ -195,4 +196,4 @@ ratio_biome_broad_Fig <- ggplot() +
 
 
 ratio_biome_broad_Fig
-
+# Landscape 8.50 X 16
