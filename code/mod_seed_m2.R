@@ -54,7 +54,7 @@ sb_seed_area %>% filter(Total_Seeds == 0)
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/alt/'))
 # models run on cluster, load in model objects here
 load( 'seed_m2.Rdata') # jan folder 
 

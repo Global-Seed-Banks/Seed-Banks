@@ -177,6 +177,7 @@ Density_biome_broad_Fig <- ggplot() +
   scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
    coord_cartesian( ylim = c(0,25000)) +
+  scale_y_continuous(breaks=c(0,1000, 3000,5000,10000,15000,20000,25000))+
   theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),

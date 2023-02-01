@@ -135,7 +135,7 @@ fig_rich.biome_broad <- ggplot() +
                 ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
               alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_rich_area_biome_broad$Total_Sample_Area_m2), quantile(sb_rich_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
-  #coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
+  coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
