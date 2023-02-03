@@ -349,7 +349,7 @@ save(global.rich_seed_biome_broad.p, file = 'global.rich_seed_biome_broad.poster
 
 
 setwd(paste0(path2wd, 'Tables/'))
-write.csv(global.rich_seed_biome_broad.p, "table_rich_seed.csv")
+write.csv(global.rich_seed_biome_broad.p, "table_5.csv")
 
 global.rich_seed_biome_broad.p
 

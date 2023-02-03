@@ -124,7 +124,7 @@ ratio_conditional_effects <- ratio_df %>%
 head(ratio_conditional_effects)
 
 setwd(paste0(path2wd, 'Tables/'))
-write.csv(ratio_conditional_effects, "table_ratio.csv")
+write.csv(ratio_conditional_effects, "table_4.csv")
 
 
 # predicted average density across all
@@ -181,8 +181,8 @@ ratio_biome_broad_Fig <- ggplot() +
                 aes(x =  `WWF Biome`, ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
                 size = 1, width = 0) +
   labs(x = '',
-       y = expression(paste('Ratio (Seeds/Species)')),
-       subtitle= '') +
+       y = expression(paste('Ratio (Seeds/Species)')) ,
+       subtitle=  expression(paste('b) Ratio (Seeds/Species)'))  ) + 
  # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
@@ -197,3 +197,7 @@ ratio_biome_broad_Fig <- ggplot() +
 
 ratio_biome_broad_Fig
 # Landscape 8.50 X 16
+
+
+(Density_biome_broad_Fig / ratio_biome_broad_Fig)
+#landscape 12 X 16
