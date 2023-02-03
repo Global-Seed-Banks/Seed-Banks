@@ -49,12 +49,14 @@ head(sb_seed_area %>% distinct(Seed_density_m2) %>% arrange(Seed_density_m2))
 
 head(sb_seed_area %>% distinct(Total_Seeds, Total_Species, Seed_density_m2) %>% arrange(Seed_density_m2))
 
-sb_seed_area %>% filter(Total_Seeds == 0) 
+nrow(sb_seed_area %>% filter(Total_Seeds == 0) )
+nrow(sb_seed_area %>% filter(Seed_density_m2 == 0) )
 
+nrow(sb_seed_area)
 
+4/2569
 
-
-setwd(paste0(path2wd, 'Model_Fits/alt/'))
+setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'seed_m2.Rdata') # jan folder 
 
