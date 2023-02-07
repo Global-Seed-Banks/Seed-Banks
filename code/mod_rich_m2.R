@@ -38,8 +38,6 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
 head(sb_rich_area)
 
 
-
-
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'rich_m2.Rdata')
@@ -52,7 +50,7 @@ summary(rich_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_rich.biome_broad <- pp_check(rich_m2,)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "") + #xlim(-200,300)+ ylim(0,0.025)+
+  labs(title= "a) Species ~ area") + #xlim(-200,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 
@@ -310,7 +308,7 @@ global.rich_biome_broad.p <- bind_rows(rich.aq.p, rich.arable.p, rich.bor.p, ric
                                  ) %>%
   mutate( Model = "Richness",
           `WWF Biome` = response ,
-           Estimate = round(eff, 2),
+           Estimate = round(eff, 4),
           `Upper CI` = round(eff_upper, 2),
           `Lower CI` = round(eff_lower, 2),
          ) %>% select(-c(eff, eff_lower, eff_upper, response))
