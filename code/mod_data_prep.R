@@ -24,20 +24,20 @@ summary(sb)
 
 
 sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
-                             # log_Total_Species = log(Total_Species),
+                          log_Total_Species = log(Total_Species),
                             #  log10_Total_Seeds = log10(Total_Seeds),
                             #  log10_Total_Species = log10(Total_Species),
-                              ratio_seeds_species = (Total_Seeds / Total_Species),
+                          ratio_seeds_species = (Total_Seeds / Total_Species),
                           #     log_ratio_seeds_species = log(ratio_seeds_species),
                           #     log10_ratio_seeds_species = log10(ratio_seeds_species),
-                          # Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
+                          Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
                           # log_Total_Number_Samples = log(Total_Number_Samples),
                           # log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
                           # log10_Total_Number_Samples = log10(Total_Number_Samples),
                           # log10_Total_Sample_Area_mm2 = log10(Total_Sample_Area_mm2),
                           Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000),
-                         # Calc_Volume_m3 = (Calc_Volume_mm3 / 1000000000),
+                          Total_Sample_Volume_m3 = (Total_Sample_Volume_mm3 / 1000000000),
                           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
                           # log_Calc_Volume_m3 = log(Calc_Volume_m3),
                           # log10_Total_Sample_Area_m2 = log10(Total_Sample_Area_m2),
@@ -56,21 +56,11 @@ sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
 ) 
 
 
-# Centred_log_Total_Sample_Area_m2
-# Centred_log_Calc_Volume_m3
-# Centred_log_Total_Number_Samples
+
 head(sb_calc)
 
 summary(sb_calc)
 
-
-sb_calc %>% distinct(ratio_seeds_species)
-View(sb_calc)
-
-sb_calc %>% distinct(log_Total_Seeds, Total_Seeds)
-
-sb_calc$Biome_WWF_Zone<- as.factor(as.character(sb_calc$Biome_WWF_Zone))
-levels(sb_calc$Biome_WWF_Zone)
 
 sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
                                   `max-Total_Number_Samples` = max(as.numeric(Total_Number_Samples),na.rm = TRUE),
@@ -104,22 +94,13 @@ summary(sb_calc)
 
 sb_calc %>% distinct(Habitat_Broad, Biome_WWF, Biome_WWF_Broad, Biome_WWF_Zone)
 
- sb_mod <- sb_calc %>% #mutate(Biome_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
-#                                          TRUE ~ Biome_WWF)) %>% 
+sb_mod <- sb_calc %>% 
   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
                                                                                              TRUE ~ Biome_WWF_Broad))
 
 
 sb_mod %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 
-sb_mod %>% distinct(Biome_WWF, Biome_WWF_Broad) %>% arrange(Biome_WWF_Broad)
-
-
-head(sb_mod)
-
-summary(sb_mod)
-
-colnames(sb_mod)
 sb_mod %>% select(Biome_Broad_Hab, Total_Sample_Area_m2, Total_Seeds, Total_Species) %>%
   filter(Biome_Broad_Hab == "Tundra") %>% distinct() %>% arrange(desc(Total_Species))
   
