@@ -1,28 +1,24 @@
-sb<-read.csv("gsb_cleaned.csv")
-
-
-names(sb)
-sb<-sb[!is.na(sb$Total_Seeds)  | !is.na(sb$Total_Species) | !is.na(sb$Seed_density_m2),]
+sb<-read.csv("sb_pub.csv")
 
 ############
 # Abstract
 
 nrow(sb) # 3097 data points
 
-length(unique(paste(sb$Lat_Deg), sb$Lon_Deg)) # 1779 locations
+length(unique(paste(sb$Lat_Deg), sb$Lon_Deg)) # 1778 locations
 
-length(unique(sb$studyID)) # 1445 studies
+length(unique(sb$StudyID)) # 1442 studies
  
 range(sb$Year) # 1940 - 2020.
 
 
 ############
 # Intro
-nrow(sb) # 3097 data points
-length(unique(sb$studyID)) # 1445 studies
-sum(sb$Total_Number_Samples, na.rm=TRUE) # 1 082 771
-sum(sb$Number_Sites, na.rm=TRUE) # 18 483 sites 
-length(unique(sb$country)) # 94 countries
+nrow(sb) # 3096 data points
+length(unique(sb$StudyID)) # 1442 studies
+sum(sb$Total_number_samples, na.rm=TRUE) # 1 081 363
+sum(sb$Number_sites, na.rm=TRUE) # 18 477 sites 
+length(unique(sb$Country)) # 94 countries
 
 ######
 ncol(sb)
