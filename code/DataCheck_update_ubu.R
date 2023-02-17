@@ -2,6 +2,8 @@
 ## THE BIG DATA-CHECKING SCRIPT
 #################################
 
+setwd("/home/auff/Desktop/gsbubdate")
+
 # ## Getting the latest version -- temporarily allow access on Google Sheets
 system("curl -o sbtemp.csv https://docs.google.com/spreadsheets/d/10H1CWb5cc2FNEzTjxROdZuT2F6DwXCa-Ng3_DAsZ2K4/gviz/tq?tqx=out:csv&sheet=Data") # download from google
 
@@ -40,11 +42,11 @@ nrow(sb[!nchar(sb$Lat_NS)==0 & nchar(sb$Lon_EW)==0,])
 
 # remove rows that don't have both lat and long at degree resolution (i.e. no data)
 sb<-sb[!is.na(sb$Lon_Deg) & !is.na(sb$Lat_Deg),] 
-nrow(sb) # 3108 rows with coordinates
+nrow(sb) # 3107 rows with coordinates
 
 # Now to split the dataset into those with decimals and those without
 sb.dec<-sb[grepl("\\.", sb$Lat_Deg) | grepl("\\.", sb$Lon_Deg),] 
-nrow(sb.dec) #1314 with decimals
+nrow(sb.dec) #1313 with decimals
 
 sb<-sb[!rownames(sb) %in% rownames(sb.dec),]
 nrow(sb) # 1794 without that need converting
@@ -79,7 +81,7 @@ sb$Lat_Deg<-as.numeric(char2dms(sb_LatConv,"d","m","s"))
 sb$Lon_Deg<-as.numeric(char2dms(sb_LonConv,"d","m","s"))
 
 sb<-rbind(sb,sb.dec) # bind back together
-nrow(sb) # 3108
+nrow(sb) # 3107
 
 sb<-sb[,!names(sb) %in% c("Lat_Min","Lat_Sec", "Lat_NS", "Lon_Min", "Lon_Sec", "Lon_EW" )]
 
@@ -703,11 +705,23 @@ sb.slim<-sb[,slim.cols]
 names(sb.slim)<-c("rowID","studyID", "Year", "Lat_Deg","Lon_Deg","Country", "Temp_mean", "Temp_range", "Prec_tot", "Habitat_Current","Habitat_Target","Habitat_Broad","Habitat_Degraded", "Biome_WWF", "Biome_WWF_Broad", "Biome_WWF_Zone", "Experiment", "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds","Seed_density_m2","Seed_density_litre","Total_Species", "Pos_Species","Neg_Species")
 
 write.csv(sb.slim,"gsb_slim.csv", row.names=FALSE)
-sb<-read.csv("gsb_slim.csv", stringsAsFactors = FALSE)
 
 
+pub.cols<-c("rowID","studyID", "Authors", "Year", "Title", "Journal", "Doi", "URL", "Lat_Deg","Lon_Deg","Location", "country", "t_mean", "t_range", "p_tot", "biome_wwf", "biome_wwf_broad", "biome_wwf_zone", "Habitat","Target_Habitat","Habitat2_Broad","Habitat2_Degraded" , "Sample_Diameter_mm","Sample_Area_mm2","Sample_Depth_mm","Sample_Volume_mm3","Sample_Weight_g","Number_Sites","Samples_Per_Site", "Total_Number_Samples", "Experiment","Method","Method_Volume_mm3","Method_Volume_Fraction","Method_Weight_g",  "Total_Seeds", "Total_Species", "Seed_density_m2","Seed_density_litre", "Pos_Species","Neg_Species")
 
 
+sb.pub<-sb[,pub.cols]
+
+names(sb.pub)<-c("RowID","StudyID", "Authors", "Year", "Title", "Journal", "Doi", "URL", "Lat_Deg","Lon_Deg","Location", "Country", "Temp_mean", "Temp_range", "Prec_tot", "Biome", "Biome_broad", "Biome_zone", "Habitat_current","Target_habitat","Habitat_broad","Habitat_degraded" , "Sample_diameter_mm","Sample_area_mm2","Sample_depth_mm","Sample_volume_mm3","Sample_weight_g","Number_sites","Samples_per_site", "Total_number_samples", "Experiment","Method","Method_volume_mm3","Method_volume_fraction","Method_weight_g",  "Total_seeds", "Total_species", "Seed_density_m2","Seed_density_litre", "Pos_species","Neg_species")
+
+sb.pub<-sb.pub[!is.na(sb.pub$Total_seeds) | !is.na(sb.pub$Total_species) | !is.na(sb.pub$Seed_density_m2) | !is.na(sb.pub$Seed_density_litre),]
 
 
+wos1<-read.csv("savedrecs_ALL_seed-bank.csv", stringsAsFactors = FALSE)
+wos2<-read.csv("savedrecs_ALL_seedbank.csv",stringsAsFactors = FALSE)
+wos<-rbind(wos1[,c("AU","PY","TI","SO","DI","VL","BP","EP")],wos2[,c("AU","PY","TI","SO","DI","VL","BP","EP")])
 
+
+sb.ref<-paste(sb$Authors, sb$Year, sb$Title, sb$Journal)
+
+wos[match(paste(sb$Authors, sb$Year, sb$Title, sb$Journal),paste(wos$AU,wos$PY, wos$TI, wos$SO)),c("BP","EP")]
