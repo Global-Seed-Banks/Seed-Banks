@@ -18,70 +18,41 @@ setwd(path2wd)
 sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
 
 
-nrow(sb)
-
-nrow(sb %>% select(studyID)  %>% distinct())
-
-sb %>% select(Country) %>% distinct() %>% arrange(Country)
-
-nrow( sb %>% select(studyID, Country)  %>%  distinct() %>% filter(!Country == "Russian Federation"))
-
-
 head(sb)
 colnames(sb)
 summary(sb)
-View(sb)
 
-sb_vol <- sb %>% mutate(New_Volume_mm3 = Method_Volume_mm3) %>%
-  mutate(Method_Volume_Fraction_Mod = case_when( is.na(Method_Volume_Fraction) ~ 1 ,
-                                               TRUE ~ Method_Volume_Fraction ) ) %>%
-  mutate(Volume_Calc = (Sample_Volume_mm3 * Method_Volume_Fraction_Mod * Total_Number_Samples)) %>%
-  mutate(Calc_Volume_mm3 = case_when( is.na(New_Volume_mm3) ~ Volume_Calc,
-                     TRUE ~ New_Volume_mm3  ))
 
-summary(sb_vol)
-View(sb_vol)
-head(sb_vol)
-
-# Seed_density_m2
-# Total_Species
-# Total_Seeds
-
-# Total_Seeds / Total_Species 
-# seeds are the x axis and species are the y axis
-#  10 species on 10 seeds is more sp rich than 10 sp on 10,000 seeds
-# how many seeds do i extract from the seedbank to get a new seed?
-
-sb_calc <- sb_vol %>% mutate( log_Total_Seeds = log(Total_Seeds),
-                              log_Total_Species = log(Total_Species),
-                              log10_Total_Seeds = log10(Total_Seeds),
-                              log10_Total_Species = log10(Total_Species),
+sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
+                             # log_Total_Species = log(Total_Species),
+                            #  log10_Total_Seeds = log10(Total_Seeds),
+                            #  log10_Total_Species = log10(Total_Species),
                               ratio_seeds_species = (Total_Seeds / Total_Species),
-                              log_ratio_seeds_species = log(ratio_seeds_species),
-                              log10_ratio_seeds_species = log10(ratio_seeds_species),
-                          Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
+                          #     log_ratio_seeds_species = log(ratio_seeds_species),
+                          #     log10_ratio_seeds_species = log10(ratio_seeds_species),
+                          # Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
-                          log_Total_Number_Samples = log(Total_Number_Samples),
-                          log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
-                          log10_Total_Number_Samples = log10(Total_Number_Samples),
-                          log10_Total_Sample_Area_mm2 = log10(Total_Sample_Area_mm2),
+                          # log_Total_Number_Samples = log(Total_Number_Samples),
+                          # log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
+                          # log10_Total_Number_Samples = log10(Total_Number_Samples),
+                          # log10_Total_Sample_Area_mm2 = log10(Total_Sample_Area_mm2),
                           Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000),
-                          Calc_Volume_m3 = (Calc_Volume_mm3 / 1000000000),
+                         # Calc_Volume_m3 = (Calc_Volume_mm3 / 1000000000),
                           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
-                          log_Calc_Volume_m3 = log(Calc_Volume_m3),
-                          log10_Total_Sample_Area_m2 = log10(Total_Sample_Area_m2),
-                          log10_Calc_Volume_m3 = log10(Calc_Volume_m3),
-                          Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
-                          Centred_Calc_Volume_mm3 = Calc_Volume_mm3 - mean(Calc_Volume_mm3, na.rm = TRUE),
-                          Centred_Calc_Volume_m3 = Calc_Volume_m3 - mean(Calc_Volume_m3, na.rm = TRUE),
-                          Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
-                          Centred_log_Total_Number_Samples = log_Total_Number_Samples - mean(log_Total_Number_Samples, na.rm = TRUE),
-                          Centred_log_Total_Seeds = log_Total_Seeds - mean(log_Total_Seeds, na.rm = TRUE),
-                          Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
-                          Centred_log_Calc_Volume_m3 = log_Calc_Volume_m3 - mean(log_Calc_Volume_m3, na.rm = TRUE),
-                          Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
+                          # log_Calc_Volume_m3 = log(Calc_Volume_m3),
+                          # log10_Total_Sample_Area_m2 = log10(Total_Sample_Area_m2),
+                          # log10_Calc_Volume_m3 = log10(Calc_Volume_m3),
+                          # Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
+                          # Centred_Calc_Volume_mm3 = Calc_Volume_mm3 - mean(Calc_Volume_mm3, na.rm = TRUE),
+                          # Centred_Calc_Volume_m3 = Calc_Volume_m3 - mean(Calc_Volume_m3, na.rm = TRUE),
+                          # Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
+                          # Centred_log_Total_Number_Samples = log_Total_Number_Samples - mean(log_Total_Number_Samples, na.rm = TRUE),
+                          # Centred_log_Total_Seeds = log_Total_Seeds - mean(log_Total_Seeds, na.rm = TRUE),
+                          # Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
+                          # Centred_log_Calc_Volume_m3 = log_Calc_Volume_m3 - mean(log_Calc_Volume_m3, na.rm = TRUE),
+                          # Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE),
-                          Centred_log10_Total_Sample_Area_m2 = log10_Total_Sample_Area_m2 - mean(log10_Total_Sample_Area_m2, na.rm = TRUE)
+                          #Centred_log10_Total_Sample_Area_m2 = log10_Total_Sample_Area_m2 - mean(log10_Total_Sample_Area_m2, na.rm = TRUE)
 ) 
 
 
