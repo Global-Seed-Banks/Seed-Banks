@@ -25,14 +25,14 @@ ncol(sb)
 
 #############
 # Biome table
-table(sb$biome_wwf)
-table(sb$biome_wwf_broad)
-table(sb$biome_wwf_zone)
+table(sb$Biome)
+table(sb$Biome_broad)
+table(sb$Biome_zone)
 
 
 ##############
 # Habitat table
-table(paste(sb$Habitat, sb$Target_Habitat))
+table(paste(sb$Habitat_current, sb$Target_habitat))
 
 
 ###############

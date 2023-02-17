@@ -651,7 +651,7 @@ for(let in LETTERS){ # for each letter
 length(unique(sb$studyID)) # Matches up.
 
 # Oh, and add a location for each row too.
-sb$Location[is.na(sb$Location)]<-sb$country[is.na(sb$Location)]
+sb$Location[sb$Location==""]<-sb$country[sb$Location==""]
  
 biomes<-readOGR("GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
 sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS(proj4string(biomes)))
@@ -716,12 +716,25 @@ names(sb.pub)<-c("RowID","StudyID", "Authors", "Year", "Title", "Journal", "Doi"
 
 sb.pub<-sb.pub[!is.na(sb.pub$Total_seeds) | !is.na(sb.pub$Total_species) | !is.na(sb.pub$Seed_density_m2) | !is.na(sb.pub$Seed_density_litre),]
 
+write.csv(sb.pub, "sb_pub.csv", row.names = FALSE)
+
 
 wos1<-read.csv("savedrecs_ALL_seed-bank.csv", stringsAsFactors = FALSE)
 wos2<-read.csv("savedrecs_ALL_seedbank.csv",stringsAsFactors = FALSE)
 wos<-rbind(wos1[,c("AU","PY","TI","SO","DI","VL","BP","EP")],wos2[,c("AU","PY","TI","SO","DI","VL","BP","EP")])
 
+sb.ref<-cbind(sb.pub, wos[match(paste(sb.pub$Authors, sb.pub$Year, sb.pub$Title, sb.pub$Journal),paste(wos$AU,wos$PY, wos$TI, wos$SO)),c("VL", "BP","EP")])
 
-sb.ref<-paste(sb$Authors, sb$Year, sb$Title, sb$Journal)
+sb.ref$BP[sb.ref$BP==""]<-NA
+sb.ref$EP[sb.ref$EP==""]<-NA
+sb.ref$Doi[sb.ref$Doi==""]<-"None"
 
-wos[match(paste(sb$Authors, sb$Year, sb$Title, sb$Journal),paste(wos$AU,wos$PY, wos$TI, wos$SO)),c("BP","EP")]
+sb.reflist<-unique(paste0(toupper(sb.ref$Authors), ", ", sb.ref$Year, ", ", toupper(sb.ref$Title), ", ",toupper(sb.ref$Journal), " ", sb.ref$VL, ": ", sb.ref$BP,"-",sb.ref$EP, ", doi: ",sb.ref$Doi))
+
+
+sb.reflist.html<-unique(paste0(toupper(sb.ref$Authors), ", ", sb.ref$Year, ", ", toupper(sb.ref$Title), ", <i>",toupper(sb.ref$Journal), "</i> ", sb.ref$VL, ": ", sb.ref$BP,"-",sb.ref$EP, ", doi: ",sb.ref$Doi))
+
+cat(sort(sb.reflist), sep="\n\n", file="component.refs.txt")
+cat(sort(sb.reflist.html), sep="<br><br>", file="component.refs.html")
+
+
