@@ -70,8 +70,7 @@ rich_biome_broad_fitted <- cbind(rich_m2$data,
                           fitted(rich_m2, re_formula = NA
                           )) %>%
   as_tibble() %>% inner_join(sb_rich_area %>% select(Total_Species, 
-                                                          Total_Number_Samples, Total_Sample_Area_mm2,
-                                                          log_Total_Sample_Area_mm2,
+                                                          Total_Number_Samples, 
                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
                                                           Centred_log_Total_Sample_Area_m2,
                                                      Biome_Broad_Hab),

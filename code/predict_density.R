@@ -2,6 +2,7 @@
 #packages
 library(tidyverse)
 library(brms)
+library(tidybayes)
 library(bayesplot)
 library(patchwork)
 library(viridis)
@@ -148,7 +149,7 @@ predicted_density_fig <- ggplot() +
                 aes(x =  `Biome_Broad_Hab`, ymin = `d_Lower.CI`, ymax = `d_Upper.CI`, colour =  `Biome_Broad_Hab`),
                 size = 1, width = 0) +
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+       y = expression(paste('Predicted seed density (',m^2,')')),
        subtitle= '') +
   # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +

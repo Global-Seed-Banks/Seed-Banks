@@ -389,6 +389,6 @@ g_legend <- function(a.gplot){
 # overall legend
 rich_seed_biome_broad_leg <- g_legend(fig_rich_seed.biome_broad)
 
-
+# lnadscape 16 X 20
 (fig_rich_seed.biome_broad + theme(legend.position="none"))/( fig_rich_seed_biome_broad_global)/ (rich_seed_biome_broad_leg) +  plot_layout(ncol=1, nrow=3, heights = c(10,10,1))
 
