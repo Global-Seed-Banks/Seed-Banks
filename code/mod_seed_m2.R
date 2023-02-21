@@ -4,6 +4,7 @@ rm(list = ls())
 
 
 #packages
+library(plyr)
 library(tidyverse)
 library(brms)
 library(bayesplot)
@@ -168,12 +169,23 @@ setwd(paste0(path2wd, 'Data/'))
 #load('seed.area.poisson.mod_dat.Rdata')
 load('seed_biome_broad.mod_dat.Rdata')
 
-# plot seedness area biome_broad relationship
 
-head(sb_seed_area_biome_broad)
+
+# wrap text
+wrapit <- function(text) {
+  wtext <- paste(strwrap(text,width=40),collapse=" \n ")
+  return(wtext)
+}
+
+sb_seed_area$wrapped_text <- llply(sb_seed_area$Biome_Broad_Hab, wrapit)
+sb_seed_area$wrapped_text <- unlist(sb_seed_area$wrapped_text)
+
+seed_biome_broad_fitted$wrapped_text <- llply(seed_biome_broad_fitted$Biome_Broad_Hab, wrapit)
+seed_biome_broad_fitted$wrapped_text <- unlist(seed_biome_broad_fitted$wrapped_text)
+
 
 fig_seed.biome_broad <- ggplot() + 
-  facet_wrap(~Biome_Broad_Hab, scales="free") +
+  facet_wrap(~wrapped_text, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -208,7 +220,7 @@ fig_seed.biome_broad <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="bottom") +
+                                  legend.position="none") +
   labs(y = "Number of seeds in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
        x="",
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) #+
@@ -399,6 +411,11 @@ save(global.seed_biome_broad.p, file = 'global.seed_biome_broad.posteriors.Rdata
 setwd(paste0(path2wd, 'Tables/'))
 write.csv(global.seed_biome_broad.p, "table_2.csv")
 
+# plots
+setwd(paste0(path2wd, 'Data/'))
+#load('rich.area.poisson.mod_dat.Rdata')
+load('global.seed_biome_broad.posteriors.Rdata')
+
 global.seed_biome_broad.p
 
 fig_seed_biome_broad_global <- ggplot() + 
@@ -417,7 +434,7 @@ fig_seed_biome_broad_global <- ggplot() +
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #panel.background = element_rect(fill = "transparent"), # bg of the panel
                                plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
-                               axis.text.x=element_blank(),
+                              # axis.text.x=element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
@@ -426,16 +443,20 @@ fig_seed_biome_broad_global
 
 # extract legend
 # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-g_legend <- function(a.gplot){
-  tmp <- ggplot_gtable(ggplot_build(a.gplot))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)}
+# g_legend <- function(a.gplot){
+#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
+#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+#   legend <- tmp$grobs[[leg]]
+#   return(legend)}
+# 
+# # overall legend
+# seed_biome_broad_leg <- g_legend(fig_seed.biome_broad)
 
-# overall legend
-seed_biome_broad_leg <- g_legend(fig_seed.biome_broad)
+(fig_seed.biome_broad ) / ( fig_seed_biome_broad_global) +  plot_layout(ncol=1, nrow=2, heights = c(12,7))
 
 
+
+#with legend
 # lnadscape 16 X 20
-(fig_seed.biome_broad + theme(legend.position="none") ) / ( fig_seed_biome_broad_global)/ (seed_biome_broad_leg) +  plot_layout(ncol=1, nrow=3, heights = c(12,7,2))
+#(fig_seed.biome_broad + theme(legend.position="none") ) / ( fig_seed_biome_broad_global)/ (seed_biome_broad_leg) +  plot_layout(ncol=1, nrow=3, heights = c(12,7,2))
 
