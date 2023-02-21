@@ -169,6 +169,10 @@ rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
 head(rich_biome_div)
 
+rich_biome_div %>% gather(parameter, value ,a_samp_scale:b_Lower.CI)
+
+
+
 predicted_points<- rich_biome_scales %>%  
   group_by(Biome_Broad_Hab) %>%
 #   filter(a_predicted > quantile(a_predicted, probs=0.025),

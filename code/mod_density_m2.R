@@ -178,10 +178,10 @@ Density_biome_broad_Fig <- ggplot() +
   #ylim(0,100000)+
    coord_cartesian( ylim = c(0,25000)) +
   scale_y_continuous(breaks=c(0,1000, 3000,5000,10000,15000,20000,25000))+
-  theme_bw(base_size=14)+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme_bw(base_size=14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                               plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="none",
+                               plot.title = element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(), legend.position="none",
                                axis.text.x=element_blank()
                                ) #+ 
  # scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
