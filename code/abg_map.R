@@ -1,64 +1,57 @@
+### Make map figure with alpha, gamma and beta diversity
 
-setwd("/Users/arau0001/Dropbox/Global seed banks/Seed-Bank-Map")
+# Libraries
 library(rgdal)
 library(rgeos)
 
+# Add biomes, rename biomes according to broad cats used.
 biomes<-readOGR("GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
 biomes$broad<-biomes$WWF_MHTNAM
 biomes$broad[biomes$broad == "Flooded Grasslands and Savannas"] <- "Tropical and Subtropical Grasslands, Savannas and Shrublands"
 biomes$broad[biomes$broad %in% c("Tropical and Subtropical Dry Broadleaf Forests", "Tropical and Subtropical Moist Broadleaf Forests", "Tropical and Subtropical Coniferous Forests")] <- "Tropical and Subtropical Forests"
 
+# Bring in model estimates and attach to biome data frame
 div.vals<-read.csv("/Users/arau0001/Dropbox/GSB/Data/sb_av_div_estimates.csv")
+dens.vals.pred<-read.csv("/Users/arau0001/Dropbox/GSB/Data/predicted_density.csv")
+dens.vals.tab3<-read.csv("/Users/arau0001/Dropbox/GSB/Tables/table_3.csv")
+
 biomes$alpha<-div.vals$a_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
 biomes$beta<-div.vals$b_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
 biomes$gamma<-div.vals$g_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
+biomes$dens.pred<-dens.vals.pred$d_Estimate[match(biomes$broad,dens.vals.pred$Biome_Broad_Hab)]
+biomes$dens.tab3<-dens.vals.tab3$Estimate[match(biomes$broad,dens.vals.tab3$WWF.Biome)]
 
-# alpha 1-20
-# gamma 25-65
-# beta 2-7 (0.25)
-
-# length(seq(1,20,1))
-# length(seq(26,65,2))
-# length(seq(3,6.8,0.2))
-
-# vir(20)
-
-
-
-# bob<-biomes$alpha
-# min(abs(aseq-bob))
-
-# which.min(abs(aseq-bob[1]))
-
-
-# which.min(abs(x - your.number))
-
-# # 
-# library(viridis)
-# vir<-colorRampPalette(plasma(20))
-# biomes$cola<-vir(20)[as.numeric(cut(biomes$alpha, 20))]
-# biomes$colb<-vir(20)[as.numeric(cut(biomes$beta, 20))]
-# biomes$colg<-vir(20)[as.numeric(cut(biomes$gamma, 20))]
+# Inspect values to find good sequence of 20 values for colour pallette
+fivenum(div.vals$a_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) # 6-20
+length(seq(1,20,1))
+fivenum(div.vals$g_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) #25-60
+length(seq(24,63,2))
+fivenum(div.vals$b_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) # 2.7-6
+length(seq(2,5.8,0.2))
+fivenum(div.vals$a_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) # 6-20
+length(seq(1,20,1))
+fivenum(dens.vals.pred$d_Estimate[!dens.vals.pred$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) #25-60
+length(seq(250,5000,250))
+fivenum(dens.vals.tab3$Estimate[!dens.vals.tab3$WWF.Biome %in% c("Aquatic", "Arable")]) # 2.7-6
+length(seq(250,5000,250))
 
 
-library(viridis)
-vir<-colorRampPalette(plasma(20))
 
+# Assign those sequences and colours
 aseq<-seq(1,20,1)
-gseq<-seq(26,65,2)
-bseq<-seq(3,6.8,0.2)
+gseq<-seq(24,63,2)
+bseq<-seq(2,5.8,0.2)
+denseq<-seq(250,5000,250)
 biomes$cola[!is.na(biomes$alpha)]<-vir(20)[unlist(sapply(biomes$alpha, function(x) which.min(abs(aseq-x))))]
 biomes$colb[!is.na(biomes$beta)]<-vir(20)[unlist(sapply(biomes$beta, function(x) which.min(abs(bseq-x))))]
 biomes$colg[!is.na(biomes$gamma)]<-vir(20)[unlist(sapply(biomes$gamma, function(x) which.min(abs(gseq-x))))]
+biomes$coldenspred[!is.na(biomes$dens.pred)]<-vir(20)[unlist(sapply(biomes$dens.pred, function(x) which.min(abs(denseq-x))))]
+biomes$coldenstab3[!is.na(biomes$dens.tab3)]<-vir(20)[unlist(sapply(biomes$dens.tab3, function(x) which.min(abs(denseq-x))))]
 
-# biomes$cola<-vir(20)[as.numeric(cut(log10(biomes$alpha), 20))]
-# biomes$colb<-vir(20)[as.numeric(cut(log10(biomes$beta), 20))]
-# biomes$colg<-vir(20)[as.numeric(cut(log10(biomes$gamma), 20))]
-
-x11()
+# Make the plot - diversity
 leg.pos<-c(-170,50)
 leg.nums<-rep(NA,20)
-pdf("/Users/arau0001/Dropbox/Global seed banks/map.pdf",width=6, height=10,useDingbats=F)
+pdf("/Users/arau0001/Dropbox/GSB/Figs/abg_map.pdf",width=6, height=10,useDingbats=F)
 par(mfrow=c(3,1))
 plot(biomes, main="Alpha (0.01m²)",col=biomes$cola, border=FALSE)
 leg.nums[c(1,5,10,15,20)]<-rev(aseq[c(1,5,10,15,20)])
@@ -74,43 +67,27 @@ legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp =
 
 dev.off()
 
-plot.new()
-nun<-length(unique(biomes$gamma))
-lgd = rep(NA, nun)
-lgd[c(1,round(nun/2),nun)] = c(1,round(nun/2),nun)
-legend(x = 0.5, y = 0.5,
-        legend = lgd,
-        fill = vir(20),
-        border = NA,
-        y.intersp = 0.5,
-        cex = 2, text.font = 2)
+
+# Make the plot - density
+leg.pos<-c(-170,50)
+leg.nums<-rep(NA,20)
+pdf("/Users/arau0001/Dropbox/GSB/Figs/dens_map.pdf",width=6, height=8,useDingbats=F)
+par(mfrow=c(2,1))
+plot(biomes, main="Density (predicted_density)",col=biomes$coldenspred, border=FALSE)
+leg.nums[c(1,5,10,15,20)]<-rev(denseq[c(1,5,10,15,20)])
+legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
+
+plot(biomes, main="Density (Table 3)",col=biomes$coldenstab3, border=FALSE)
+leg.nums[c(1,5,10,15,20)]<-rev(denseq[c(1,5,10,15,20)])
+legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
+
+
+dev.off()
 
 
 
 
-
-bob<-rep(NA, 20)
-bob[c(1,5,10,15,20)]<-aseq[c(1,5,10,15,20)]
-legend(x = 0.5, y = 1,bob,fill=vir(20),border = NA, y.intersp = 0.5, cex = 2, text.font = 2, bty="n")
-
-
-nun<-length(10)
-lgd = sort
-lgd[c(1,round(nun/2),nun)] = c(1,round(nun/2),nun)
-legend(x = 0.5, y = 0.5,
-        legend = sort(unique(biomes$gamma)),
-        fill = vir(length(unique(biomes$gamma))),
-        border = NA,
-        y.intersp = 0.5,
-        cex = 2, text.font = 2)
-
-
-sort(unique(biomes$gamma))
-unique(biomes$colg[order(biomes$gamma)])
-
-
-
-
+# After plotting look at how biomes swap places depending on alpha or gamma
 
 head(div.vals)
 div.grid<-expand.grid(div.vals$Biome_Broad_Hab,div.vals$Biome_Broad_Hab)
@@ -130,32 +107,32 @@ sum(!sign(div.grid.naterra$adiff) == sign(div.grid.naterra$gdiff)) / nrow(div.gr
 
 
 
-
-
-library(sf)
-
-biomes<-st_read("GIS", "tnc_terr_ecoregions")
-#plot(biomes$geometry)
-biomes$broad<-biomes$WWF_MHTNAM
-biomes$broad[biomes$broad == "Flooded Grasslands and Savannas"] <- "Tropical and Subtropical Grasslands, Savannas and Shrublands"
-biomes$broad[biomes$broad %in% c("Tropical and Subtropical Dry Broadleaf Forests", "Tropical and Subtropical Moist Broadleaf Forests", "Tropical and Subtropical Coniferous Forests")] <- "Tropical and Subtropical Forests"
-
-div.vals<-read.csv("/Users/arau0001/Dropbox/GSB/Data/sb_av_div_estimates.csv")
-biomes$alpha<-div.vals$a_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
-biomes$beta<-div.vals$b_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
-biomes$gamma<-div.vals$g_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
-
-africa<-biomes[biomes$WWF_REALM2=="Afrotropic",]
-#plot(africa$geometry)
-pdf("/Users/arau0001/Dropbox/Global seed banks/map.pdf",width=60, height=10,useDingbats=F)
-par(mfrow=c(1,3))
-plot(biomes["alpha"], breaks="quantile", main="Alpha (0.01m2)", border=0, key.pos=NULL, reset=FALSE)
-plot(biomes["gamma"], breaks="quantile", main="Gamma (15m2)", border=0, key.pos=NULL, reset=FALSE)
-plot(biomes["beta"], breaks="quantile", main="Beta (Gamma/Alpha)", border=0,key.pos=NULL, reset=FALSE)
-dev.off()
-
-pug <- colorRampPalette(c('purple','green'))
-biomes$cola<-pug(20)[as.numeric(cut(biomes$alpha, 20))]
-biomes$colb<-pug(20)[as.numeric(cut(biomes$beta, 20))]
-biomes$colg<-pug(20)[as.numeric(cut(biomes$gamma, 20))]
-
+# #Failed sf attempt
+# 
+# library(sf)
+# 
+# biomes<-st_read("GIS", "tnc_terr_ecoregions")
+# #plot(biomes$geometry)
+# biomes$broad<-biomes$WWF_MHTNAM
+# biomes$broad[biomes$broad == "Flooded Grasslands and Savannas"] <- "Tropical and Subtropical Grasslands, Savannas and Shrublands"
+# biomes$broad[biomes$broad %in% c("Tropical and Subtropical Dry Broadleaf Forests", "Tropical and Subtropical Moist Broadleaf Forests", "Tropical and Subtropical Coniferous Forests")] <- "Tropical and Subtropical Forests"
+# 
+# div.vals<-read.csv("/Users/arau0001/Dropbox/GSB/Data/sb_av_div_estimates.csv")
+# biomes$alpha<-div.vals$a_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
+# biomes$beta<-div.vals$b_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
+# biomes$gamma<-div.vals$g_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
+# 
+# africa<-biomes[biomes$WWF_REALM2=="Afrotropic",]
+# #plot(africa$geometry)
+# pdf("/Users/arau0001/Dropbox/Global seed banks/map.pdf",width=60, height=10,useDingbats=F)
+# par(mfrow=c(1,3))
+# plot(biomes["alpha"], breaks="quantile", main="Alpha (0.01m2)", border=0, key.pos=NULL, reset=FALSE)
+# plot(biomes["gamma"], breaks="quantile", main="Gamma (15m2)", border=0, key.pos=NULL, reset=FALSE)
+# plot(biomes["beta"], breaks="quantile", main="Beta (Gamma/Alpha)", border=0,key.pos=NULL, reset=FALSE)
+# dev.off()
+# 
+# pug <- colorRampPalette(c('purple','green'))
+# biomes$cola<-pug(20)[as.numeric(cut(biomes$alpha, 20))]
+# biomes$colb<-pug(20)[as.numeric(cut(biomes$beta, 20))]
+# biomes$colg<-pug(20)[as.numeric(cut(biomes$gamma, 20))]
+# 
