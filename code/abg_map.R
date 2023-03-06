@@ -35,7 +35,8 @@ length(seq(250,5000,250))
 fivenum(dens.vals.tab3$Estimate[!dens.vals.tab3$WWF.Biome %in% c("Aquatic", "Arable")]) # 2.7-6
 length(seq(250,5000,250))
 
-
+library(viridis)
+vir<-colorRampPalette(plasma(20))
 
 # Assign those sequences and colours
 aseq<-seq(1,20,1)
