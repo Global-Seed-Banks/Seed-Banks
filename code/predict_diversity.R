@@ -195,6 +195,18 @@ predicted_points <- read.csv(paste0(path2wd, 'Data/predicted_samps.csv'))
 
 head(rich_biome_div)
 
+vir<-colorRampPalette(plasma(22))
+
+aseq<-seq(1,20,1)
+gseq<-seq(24,63,2)
+bseq<-seq(2,5.8,0.2)
+denseq<-seq(250,5000,250)
+cola <- rich_biome_div$cola[!is.na(rich_biome_div$a_Estimate)]<-vir(22)[unlist(sapply(rich_biome_div$a_Estimate, function(x) which.min(abs(aseq-x))))]
+colb<-rich_biome_div$colb[!is.na(rich_biome_div$b_Estimate)]<-vir(22)[unlist(sapply(rich_biome_div$b_Estimate, function(x) which.min(abs(bseq-x))))]
+colg<- rich_biome_div$colg[!is.na(rich_biome_div$g_Estimate)]<-vir(22)[unlist(sapply(rich_biome_div$g_Estimate, function(x) which.min(abs(gseq-x))))]
+# biomes$coldenspred[!is.na(biomes$dens.pred)]<-vir(20)[unlist(sapply(biomes$dens.pred, function(x) which.min(abs(denseq-x))))]
+# biomes$coldenstab3[!is.na(biomes$dens.tab3)]<-vir(20)[unlist(sapply(biomes$dens.tab3, function(x) which.min(abs(denseq-x))))]
+
 rich_biome_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   # geom_point(data = predicted_points,
@@ -208,21 +220,19 @@ rich_biome_a <- ggplot() +
                 aes(x = Biome_Broad_Hab , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
-  scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual(values = cola) +
+  #scale_color_viridis(discrete = F, option="D")  +
   # scale_shape_manual(name = "Average total species",
   #                    values = c(16, 17), labels = c("Min area", "Max area") )+ 
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               axis.text.x=element_blank(),
+                               axis.text.x=element_blank(), axis.title.x = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="none") + 
   #scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
    coord_cartesian( ylim = c(0,80)) +
   ggtitle((expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))))+
-  labs(x='',
-       y = 'Average species richness',
-       subtitle = "a)"
-  ) 
+  ylab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) 
 
 
 rich_biome_a
@@ -242,20 +252,19 @@ rich_biome_g <- ggplot() +
                 aes(x = Biome_Broad_Hab , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
-  scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual(values = colg) +
+  #scale_color_viridis(discrete = T, option="D")  +
   # scale_shape_manual(name = "Average total species",
   #                    values = c(16, 17), labels = c("Min area", "Max area") )+ 
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               axis.text.x=element_blank(),
+                               axis.text.x=element_blank(), axis.title.x = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="none") + 
-  #scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
+ # scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
   coord_cartesian( ylim = c(0,80)) +
   ggtitle((expression(paste(italic(gamma), '-scale (15' ,m^2,')', sep = ''))))+
-  labs(x='',
-       y = 'Average species richness',
-       subtitle = "b)") 
+  ylab((expression(paste('Average ', italic(gamma), '-richness ',sep = '')))) 
 
 #(g/' ,m^2, '/year)'
 
@@ -277,22 +286,29 @@ rich_biome_b <- ggplot() +
                 aes(x = Biome_Broad_Hab , ymin = `b_Lower.CI`, ymax =  `b_Upper.CI`, colour = Biome_Broad_Hab),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
-  scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual(values = colb) +
+ # scale_color_viridis(discrete = T, option="D")  +
   # scale_shape_manual(name = "Average total species",
   #                    values = c(16, 17), labels = c("Min area", "Max area") )+ 
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               axis.text.x=element_blank(),
+                               #axis.text.x=element_blank(),
+                               axis.title.x = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(), legend.position="bottom",
+                               strip.background = element_blank(), legend.position="none",
                                legend.title = element_blank() ) + 
-  #scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
    coord_cartesian( ylim = c(0,15)) +
   ggtitle((expression(paste(italic(beta), '-Diversity (', italic(gamma/alpha), ')', sep = '')))) + 
   ylab((expression(paste('Average ', italic(beta), '-Diversity ',sep = '')))) +  labs(x=''
-  ) + guides(col = guide_legend(ncol = 3)) + labs( subtitle= 'c)') 
+  ) + guides(col = guide_legend(ncol = 3)) + labs( #subtitle= 'c)'
+    ) 
+
 
 
 rich_biome_b
 #landscape 10 x 16
 (rich_biome_a + rich_biome_g) / (rich_biome_b)
+
+
+(rich_biome_a)/ (rich_biome_g) / (rich_biome_b)
