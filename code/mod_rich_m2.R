@@ -120,7 +120,7 @@ rich_biome_broad_fitted$wrapped_text <- llply(rich_biome_broad_fitted$Biome_Broa
 rich_biome_broad_fitted$wrapped_text <- unlist(rich_biome_broad_fitted$wrapped_text)
 
 fig_rich.biome_broad <- ggplot() + 
-  facet_wrap(~wrapped_text, scales="free") +
+  #facet_wrap(~wrapped_text, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -150,7 +150,7 @@ fig_rich.biome_broad <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="none") +
+                                  legend.position="bottom") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
        x="",
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) #+

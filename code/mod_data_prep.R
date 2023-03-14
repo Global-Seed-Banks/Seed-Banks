@@ -32,7 +32,8 @@ sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           #     log10_ratio_seeds_species = log10(ratio_seeds_species),
                           Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
-                          # log_Total_Number_Samples = log(Total_Number_Samples),
+                          log_Total_Number_Samples = log(Total_Number_Samples),
+                          log_Number_Sites = log(Number_Sites),
                           # log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
                           # log10_Total_Number_Samples = log10(Total_Number_Samples),
                           # log10_Total_Sample_Area_mm2 = log10(Total_Sample_Area_mm2),
@@ -46,7 +47,10 @@ sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           # Centred_Calc_Volume_mm3 = Calc_Volume_mm3 - mean(Calc_Volume_mm3, na.rm = TRUE),
                           # Centred_Calc_Volume_m3 = Calc_Volume_m3 - mean(Calc_Volume_m3, na.rm = TRUE),
                           # Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
-                          # Centred_log_Total_Number_Samples = log_Total_Number_Samples - mean(log_Total_Number_Samples, na.rm = TRUE),
+                          Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
+                          Centred_Number_Sites = Number_Sites - mean(Number_Sites, na.rm = TRUE),
+                          Centred_log_Total_Number_Samples = log_Total_Number_Samples - mean(log_Total_Number_Samples, na.rm = TRUE),
+                          Centred_log_Number_Sites = log_Number_Sites - mean(log_Number_Sites, na.rm = TRUE),
                           # Centred_log_Total_Seeds = log_Total_Seeds - mean(log_Total_Seeds, na.rm = TRUE),
                           # Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
                           # Centred_log_Calc_Volume_m3 = log_Calc_Volume_m3 - mean(log_Calc_Volume_m3, na.rm = TRUE),
@@ -58,60 +62,59 @@ sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
 
 
 head(sb_calc)
-
 summary(sb_calc)
 
+# check out biome and habitat combos
+sb_calc %>% distinct(Habitat_Broad, Biome_WWF, Biome_WWF_Broad, Biome_WWF_Zone)
 
-sb_deets <- sb_calc %>% summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
-                                  `max-Total_Number_Samples` = max(as.numeric(Total_Number_Samples),na.rm = TRUE),
-                                  `min-Sample_Area_mm2` = min(as.numeric(Sample_Area_mm2),na.rm = TRUE),
-                                  `max-Sample_Area_mm2` = max(as.numeric(Sample_Area_mm2), na.rm = TRUE),
-                                  `max-Total_Sample_Area_mm2` = max(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
-                                  `min-Total_Sample_Area_mm2` = min(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
-                                  `max-Total_Sample_Area_m2` = max(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
-                                  `min-Total_Sample_Area_m2` = min(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
-                                  `max-Centred_log_Total_Sample_Area_m2` = max(as.numeric(Centred_log_Total_Sample_Area_m2), na.rm = TRUE),
-                                  `min-Centred_log_Total_Sample_Area_m2` = min(as.numeric(Centred_log_Total_Sample_Area_m2), na.rm = TRUE),
-                                  `min-Sample_Volume_mm3` = min(as.numeric(Sample_Volume_mm3), na.rm = TRUE),
-                                  `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
-                                  `min-Total_Sample_Volume_mm3` = min(as.numeric(Total_Sample_Volume_mm3), na.rm = TRUE),
-                                  `max-Total_Sample_Volume_mm3`= max(as.numeric(Total_Sample_Volume_mm3),na.rm = TRUE),
-                                  `min-Total_Sample_Volume_m3` = min(as.numeric(Total_Sample_Volume_m3), na.rm = TRUE),
-                                  `max-Total_Sample_Volume_m3` = max(as.numeric(Total_Sample_Volume_m3),na.rm = TRUE),
-                                  `min-Total_Species` = min(as.numeric(Total_Species), na.rm = TRUE),
-                                  `max-Total_Species` = max(as.numeric(Total_Species),na.rm = TRUE),
-                                  `min-Seed_density_m2` = min(as.numeric(Seed_density_m2), na.rm = TRUE),
-                                  `max-Seed_density_m2` = max(as.numeric(Seed_density_m2),na.rm = TRUE),
-                                  `min-Total_Seeds` = min(as.numeric(Total_Seeds), na.rm = TRUE),
-                                  `max-Total_Seeds` = max(as.numeric(Total_Seeds),na.rm = TRUE),
+# write over biomes when habitat is arable or aquatic
+sb_mod <- sb_calc %>% 
+  mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
+                                                                                             TRUE ~ Biome_WWF_Broad))
+# get a summary of min and max values
+sb_deets <- sb_mod %>% group_by(Biome_Broad_Hab) %>%
+summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
+          `max-Total_Number_Samples` = max(as.numeric(Total_Number_Samples),na.rm = TRUE),
+          `min-Number_Sites` = min(as.numeric(Number_Sites), na.rm = TRUE),
+          `max-Number_Sites` = max(as.numeric(Number_Sites),na.rm = TRUE),
+          `min-Sample_Area_mm2` = min(as.numeric(Sample_Area_mm2),na.rm = TRUE),
+          `max-Sample_Area_mm2` = max(as.numeric(Sample_Area_mm2), na.rm = TRUE),
+          # `max-Total_Sample_Area_mm2` = max(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
+          # `min-Total_Sample_Area_mm2` = min(as.numeric(Total_Sample_Area_mm2), na.rm = TRUE),
+          `max-Total_Sample_Area_m2` = max(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
+          `min-Total_Sample_Area_m2` = min(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
+          # `max-Centred_log_Total_Sample_Area_m2` = max(as.numeric(Centred_log_Total_Sample_Area_m2), na.rm = TRUE),
+          # `min-Centred_log_Total_Sample_Area_m2` = min(as.numeric(Centred_log_Total_Sample_Area_m2), na.rm = TRUE),
+          `min-Sample_Volume_mm3` = min(as.numeric(Sample_Volume_mm3), na.rm = TRUE),
+          `max-Sample_Volume_mm3` = max(as.numeric(Sample_Volume_mm3),na.rm = TRUE),
+          # `min-Total_Sample_Volume_mm3` = min(as.numeric(Total_Sample_Volume_mm3), na.rm = TRUE),
+          # `max-Total_Sample_Volume_mm3`= max(as.numeric(Total_Sample_Volume_mm3),na.rm = TRUE),
+          `min-Total_Sample_Volume_m3` = min(as.numeric(Total_Sample_Volume_m3), na.rm = TRUE),
+          `max-Total_Sample_Volume_m3` = max(as.numeric(Total_Sample_Volume_m3),na.rm = TRUE),
+          `min-Total_Species` = min(as.numeric(Total_Species), na.rm = TRUE),
+          `max-Total_Species` = max(as.numeric(Total_Species),na.rm = TRUE),
+          `min-Seed_density_m2` = min(as.numeric(Seed_density_m2), na.rm = TRUE),
+          `max-Seed_density_m2` = max(as.numeric(Seed_density_m2),na.rm = TRUE),
+          `min-Total_Seeds` = min(as.numeric(Total_Seeds), na.rm = TRUE),
+          `max-Total_Seeds` = max(as.numeric(Total_Seeds),na.rm = TRUE),
 ) %>%
   pivot_longer(`min-Total_Number_Samples` : `max-Total_Seeds`) %>%
   separate(name, into = c("minmax", "name"), sep="-") %>% spread(minmax, value)
 
 sb_deets
 
-summary(sb_calc)
+write.csv(sb_deets,  "sb_details_summary.csv")
+write.csv(sb_deets,  "sb_details_biome_summary.csv")
 
-sb_calc %>% distinct(Habitat_Broad, Biome_WWF, Biome_WWF_Broad, Biome_WWF_Zone)
+# sb_mod %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
+# 
+# sb_mod %>% select(Biome_Broad_Hab, Total_Sample_Area_m2, Total_Seeds, Total_Species) %>%
+#   filter(Biome_Broad_Hab == "Tundra") %>% distinct() %>% arrange(desc(Total_Species))
+#   
+# nrow(sb_mod %>% filter(Total_Seeds == 0))
 
-sb_mod <- sb_calc %>% 
-  mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
-                                                                                             TRUE ~ Biome_WWF_Broad))
-
-
-sb_mod %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
-
-sb_mod %>% select(Biome_Broad_Hab, Total_Sample_Area_m2, Total_Seeds, Total_Species) %>%
-  filter(Biome_Broad_Hab == "Tundra") %>% distinct() %>% arrange(desc(Total_Species))
-  
-nrow(sb_mod %>% filter(Total_Seeds == 0))
-
-setwd(paste0(path2wd, 'Data/'))
+#setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_mod,  "sb_prep.csv")
-
-
-
-
 
 
 
