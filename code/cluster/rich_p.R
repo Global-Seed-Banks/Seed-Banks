@@ -10,7 +10,7 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 # model object
 load(paste0(path,'/rich_m2_i.Rdata') )
 
-sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
+sb_rich_area <- sb %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2)) %>%
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
