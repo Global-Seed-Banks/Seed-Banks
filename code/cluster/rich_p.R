@@ -23,7 +23,7 @@ rich.fitted <- sb_rich_area %>%
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab, Centred_log_Number_Sites, Number_Sites) %>% 
   summarise( Centred_log_Total_Sample_Area_m2 = seq( min(Centred_log_Total_Sample_Area_m2), max(Centred_log_Total_Sample_Area_m2),length.out = 1000),
-             Total_Sample_Area_m2 = seq( min(Centred_log_Total_Sample_Area_m2), max(Centred_log_Total_Sample_Area_m2), length.out = 1000),
+             Total_Sample_Area_m2 = seq( min(Centred_log_Total_Sample_Area_m2), max(Centred_log_Total_Sample_Area_m2), length.out = 1000), .groups = 'drop'
   ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
   mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, re_formula =  NA  ))) 
