@@ -8,7 +8,7 @@ path <- '/gpfs1/data/idiv_chase/emmala/Seed-Bank-Map'
 sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.strings=c(""," ","NA","NA ","na"))
 
 # model object
-load(paste0(path,'rich_m2_i.Rdata') )
+load(paste0(path,'/rich_m2_i.Rdata') )
 
 sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2)) %>%
