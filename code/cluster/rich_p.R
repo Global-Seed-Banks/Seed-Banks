@@ -22,8 +22,8 @@ sb_rich_area <- sb %>% filter(!is.na(Total_Species),
 rich.fitted <- sb_rich_area %>% 
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab, Centred_log_Number_Sites, Number_Sites) %>% 
-  summarise( Centred_log_Total_Sample_Area_m2 = seq( (0.01), (15),length.out = 1000),
-             Total_Sample_Area_m2 = seq ( (0.01), (15), length.out = 1000),
+  summarise( Centred_log_Total_Sample_Area_m2 = seq( min(Centred_log_Total_Sample_Area_m2), max(Centred_log_Total_Sample_Area_m2),length.out = 1000),
+             Total_Sample_Area_m2 = seq( min(Centred_log_Total_Sample_Area_m2), max(Centred_log_Total_Sample_Area_m2), length.out = 1000),
   ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
   mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, re_formula =  NA  ))) 
