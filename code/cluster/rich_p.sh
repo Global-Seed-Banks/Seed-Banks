@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -J rich_p
-#SBATCH --time=60:00:00
+#SBATCH --time=2:00:00
 #SBATCH --mem-per-cpu=8G
 #SBATCH --cpus-per-task=4
 
