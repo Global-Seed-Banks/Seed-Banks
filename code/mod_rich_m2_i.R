@@ -84,17 +84,46 @@ rich_ce_df <-
 
 rich_ce_df
 
+n_sites <- sb_rich_area %>% select( Centred_log_Number_Sites, Number_Sites ) %>% 
+  mutate(Number_Sites = as.character(Number_Sites)) %>%
+  group_by(Number_Sites) %>% 
+   mutate(count = n_distinct(Number_Sites),
+          count = sum(count)) %>% distinct() %>%
+  arrange( Centred_log_Number_Sites, count ) 
+
+View(n_sites)
+
+write.csv(n_sites,  "number_of_sites.csv")
+
+quantile(n_sites$Number_Sites, prob = seq(0, 1, length =5), type = 5) 
+
+# quantiles of distinct values
+# 0%    25%    50%    75%   100% 
+# 1.0   18.5   39.5   73.0 2591.0 
+
+# quantiles of all values
+# 0%  25%  50%  75% 100% 
+# 1    1    1    4 2591
+
+# so, low extent is most common
 
 # fitted efects option
+rich.fitted <- sb_rich_area %>% 
+  mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
+  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab, Centred_log_Number_Sites, Number_Sites) %>% 
+  summarise( Centred_log_Total_Sample_Area_m2 = seq( (0.01), (15),length.out = 4),
+             Total_Sample_Area_m2 = seq( (0.01), (15), length.out = 4), .groups = 'drop'
+  ) %>%
+  nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) #%>%
+ # mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, re_formula =  NA  ))) 
+
+View(rich.fitted)
 
 rich.fitted <- sb_rich_area %>% 
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites) %>% 
-  # summarise( Centred_log_Total_Sample_Area_m2 = seq(min(Centred_log_Total_Sample_Area_m2), max(Centred_log_Total_Sample_Area_m2),length.out = 20),
-  #            Total_Sample_Area_m2 = seq(min(Total_Sample_Area_m2), max(Total_Sample_Area_m2),length.out = 20),
-  #             ) %>%
-  summarise( Centred_log_Total_Sample_Area_m2 = seq( (0), (15),length.out = 50),
-             Total_Sample_Area_m2 = seq ( (0), (15), length.out = 50),
+  summarise( Centred_log_Total_Sample_Area_m2 = seq( (0), (15),length.out = 2),
+             Total_Sample_Area_m2 = seq ( (0), (15), length.out = 2),
               ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
   mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, re_formula =  NA  ))) 
@@ -108,17 +137,16 @@ rich.fitted.df  <- rich.fitted %>%
 head(rich.fitted.df)
 summary(rich.fitted.df)
 
-n_sites <- rich.fitted.df %>% ungroup() %>% select(Biome_Broad_Hab, Number_Sites) %>% distinct() 
-quantile(n_sites$Number_Sites, prob = seq(0, 1, length =5), type = 5) 
+
 
 
 rich.fitted.sum <- rich.fitted.df %>%
   ungroup() %>%
   select(-.draw) %>%
-  mutate( extent = ifelse(Number_Sites >= 1 & Number_Sites <= 10, 'low',
-                          ifelse(Number_Sites >= 11 & Number_Sites <= 30,  'mid',
-                                 ifelse(Number_Sites  >= 31 , 'high', 
-                                        'other'))) ) %>%
+  mutate( extent = ifelse(Number_Sites >= 1 & Number_Sites <= 19, 'low',
+                          ifelse(Number_Sites >= 20 & Number_Sites <= 40,  'mid',
+                                 ifelse(Number_Sites  >= 41 & Number_Sites <= 73 , 'high', 
+                                        'very high'))) ) %>%
   group_by(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, extent) %>%
   mutate( P_Estimate = mean(.epred),
           P_Estimate_lower = quantile(.epred, probs = 0.025),
