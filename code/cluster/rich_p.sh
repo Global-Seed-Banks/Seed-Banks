@@ -8,7 +8,7 @@
 # Output files should ideally go to /work instead of /home
 #SBATCH -o /work/%u/%x-%j.out
 
-module load foss/2022b R/4.2.2
+module load foss/2022b R/4.2.2-2
 export OFILE=/work/$USER/Seed-Bank-Map/$SLURM_JOB_NAME-$SLURM_JOB_ID.Rdata
 export LANG=en_US.UTF-8
 Rscript --vanilla /home/ladouceu/projects/Seed-Bank-Map/code/cluster/rich_p.R
