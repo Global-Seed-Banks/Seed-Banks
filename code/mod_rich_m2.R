@@ -42,7 +42,7 @@ head(sb_rich_area)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'rich_m2.Rdata')
+load( 'rich_m2_1.Rdata')
 
 
 summary(rich_m2)
@@ -120,7 +120,7 @@ rich_biome_broad_fitted$wrapped_text <- llply(rich_biome_broad_fitted$Biome_Broa
 rich_biome_broad_fitted$wrapped_text <- unlist(rich_biome_broad_fitted$wrapped_text)
 
 fig_rich.biome_broad <- ggplot() + 
-  #facet_wrap(~wrapped_text, scales="free") +
+  facet_wrap(~wrapped_text, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
