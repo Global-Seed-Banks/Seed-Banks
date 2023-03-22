@@ -8,7 +8,7 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 
 # Total_Species   Seed_density_m2   Total_Seeds
 sb_dat <- sb %>% filter(!is.na(Total_Species),
-                        #!Total_Species == 0,
+                        !Total_Species == 0,
                         !is.na(Centred_log_Total_Sample_Area_m2) #,
                         #Number_Sites == 1 
                         ) %>%
