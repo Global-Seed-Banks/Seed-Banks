@@ -40,6 +40,23 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
 
+
+get_prior(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Centred_log_Number_Sites * Biome_Broad_Hab  + ( 1  | Method/studyID ),
+family = poisson(), data = sb_rich_area)
+
+ # prior = c(prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Number_Sites)),
+
+# Centred_log_Number_Sites  # is the negative parameter
+# Centred_log_Total_Sample_Area_m2
+# Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites 
+
+#i
+# Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabArable
+# Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabMediterraneanForestsWoodlandsandScrub 
+# Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabMontaneGrasslandsandShrublands
+# Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabTundra
+
+
 nrow(sb_rich_area)
 # 2792 rows for total data set
 # 1632 for number sites = 1
