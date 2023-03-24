@@ -64,13 +64,25 @@ sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
 head(sb_calc)
 summary(sb_calc)
 
-# check out biome and habitat combos
-sb_calc %>% distinct(Habitat_Broad, Biome_WWF, Biome_WWF_Broad, Biome_WWF_Zone)
+
 
 # write over biomes when habitat is arable or aquatic
 sb_mod <- sb_calc %>% 
   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
                                                                                              TRUE ~ Biome_WWF_Broad))
+# check out biome and habitat combos
+sb_mod %>% distinct( Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
+
+sb_check <- sb_mod %>% filter(Biome_Broad_Hab %in% c( "Aquatic", "Mediterranean Forests, Woodlands and Scrub", 
+                                          "Montane Grasslands and Shrublands" , "Tundra")) %>%
+  select(Biome_Broad_Hab, Number_Sites, Total_Sample_Area_m2, Total_Species) %>%
+  filter(Total_Sample_Area_m2 <= 1 ,
+         !is.na(Total_Species)) %>%
+  arrange(Biome_Broad_Hab,  Number_Sites, Total_Sample_Area_m2, Total_Species)
+
+View(sb_check)
+
+
 # get a summary of min and max values
 sb_deets <- sb_mod %>% group_by(Biome_Broad_Hab) %>%
 summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),

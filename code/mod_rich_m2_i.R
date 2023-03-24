@@ -1,6 +1,6 @@
 
 
-rm(list = ls())
+
 
 
 #packages
@@ -30,7 +30,9 @@ head(sb_prep)
 
 # remove NA values 
 sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
-                                   !is.na(Total_Sample_Area_mm2)) %>%
+                                   !is.na(Total_Sample_Area_mm2),
+                                   # Number_Sites == 1 
+                                   ) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
@@ -38,6 +40,9 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
           studyID = as.factor(studyID),
           rowID = as.factor(rowID))
 
+nrow(sb_rich_area)
+# 2792 rows for total data set
+# 1632 for number sites = 1
 head(sb_rich_area)
 
 
@@ -65,24 +70,7 @@ pp_rich.biome_broad
 plot(rich_m2)
 
 
-
 head(sb_rich_area_zone)
-
-# conditional effects option
-# doesnt work well because keep high number of sites high at low area so gives wacky-ass results
-
-int_conditions <- list(
-  Centred_log_Number_Sites = setNames(c(-1, 0, 1), c("b", "c", "a"))
-)
-conditions <- make_conditions(rich_m2, "Biome_Broad_Hab")
-
-rich_ce <- conditional_effects(rich_m2, "Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites", conditions = conditions,
-                    int_conditions = list(Centred_log_Number_Sites = quantile) )
-
-rich_ce_df <-
-  as.data.frame(rich_ce$"Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites")  
-
-rich_ce_df
 
 n_sites <- sb_rich_area %>% select( Centred_log_Number_Sites, Number_Sites ) %>% 
   mutate(Number_Sites = as.character(Number_Sites)) %>%
@@ -105,86 +93,92 @@ quantile(n_sites$Number_Sites, prob = seq(0, 1, length =5), type = 5)
 # 0%  25%  50%  75% 100% 
 # 1    1    1    4 2591
 
-# so, low extent is most common
+# so, 1 site is most common
+sb_rich_area %>% select(Centred_log_Number_Sites, Number_Sites)%>%
+  filter(Number_Sites %in% c(1,20,100)) %>% distinct() 
 
-# fitted efects option
-rich.fitted <- sb_rich_area %>% 
+sb_rich_area %>% select(Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2)%>%
+  filter(min(Total_Sample_Area_m2)) %>% # 15
+  distinct()%>% arrange(Total_Sample_Area_m2)
+
+rich.fitted <- tidyr::crossing( #sb_rich_area %>% select(Biome_Broad_Hab) %>% distinct(),
+                Number_Sites = c(1, 20, 100),
+                sb_rich_area %>% group_by(Biome_Broad_Hab) %>%
+                  summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
+               )  %>%
+    mutate( log_Number_Sites = log(Number_Sites),
+            log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
+            Centred_log_Number_Sites = log_Number_Sites - mean(log_Number_Sites, na.rm = TRUE),
+            Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_Number_Sites, log_Total_Sample_Area_m2 ) ) %>%
+  arrange( Total_Sample_Area_m2, Number_Sites ) %>%
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
-  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab, Centred_log_Number_Sites, Number_Sites) %>% 
-  summarise( Centred_log_Total_Sample_Area_m2 = seq( (0.01), (15),length.out = 4),
-             Total_Sample_Area_m2 = seq( (0.01), (15), length.out = 4), .groups = 'drop'
-  ) %>%
-  nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) #%>%
- # mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, re_formula =  NA  ))) 
+  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab ) %>%
+  nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
+  mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x, re_formula =  NA  ))) 
+ # mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, ndraws = 5000, re_formula =  NA  ))) 
+
 
 View(rich.fitted)
 
-rich.fitted <- sb_rich_area %>% 
-  mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
-  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites) %>% 
-  summarise( Centred_log_Total_Sample_Area_m2 = seq( (0), (15),length.out = 2),
-             Total_Sample_Area_m2 = seq ( (0), (15), length.out = 2),
-              ) %>%
-  nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
-  mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, re_formula =  NA  ))) 
-
-head(rich.fitted)
-
 rich.fitted.df  <- rich.fitted %>% 
-  unnest(cols = c(fitted)) %>% select(-data) %>%
-  select(-c(.row, .chain, .iteration)) 
+  unnest(cols = c(fitted, data)) %>% 
+  ungroup() %>% select(-Biome_Broad_Hab_group) %>%
+  #select(-c(.row, .chain, .iteration)) 
+  arrange(Biome_Broad_Hab, Total_Sample_Area_m2, Number_Sites)
 
 head(rich.fitted.df)
-summary(rich.fitted.df)
+print(rich.fitted.df, n= 500)
+View(rich.fitted.df)
+
+setwd(paste0(path2wd, 'Data/'))
+# # # save data objects to avoid doing this every time
+save(rich.fitted.df,   file = 'rich.fitted.df.Rdata')
+
+rm(list = ls())
+
+setwd(paste0(path2wd, 'Data/'))
+#load('rich.area.poisson.mod_dat.Rdata')
+load('rich.fitted.df.Rdata')
 
 
-
-
-rich.fitted.sum <- rich.fitted.df %>%
+rich.fitted.p <- rich.fitted.df %>%
   ungroup() %>%
-  select(-.draw) %>%
-  mutate( extent = ifelse(Number_Sites >= 1 & Number_Sites <= 19, 'low',
-                          ifelse(Number_Sites >= 20 & Number_Sites <= 40,  'mid',
-                                 ifelse(Number_Sites  >= 41 & Number_Sites <= 73 , 'high', 
-                                        'very high'))) ) %>%
-  group_by(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, extent) %>%
-  mutate( P_Estimate = mean(.epred),
-          P_Estimate_lower = quantile(.epred, probs = 0.025),
-          P_Estimate_upper = quantile(.epred, probs = 0.975) ) %>%
-  select(-.epred) %>% distinct()
+ # select(-.draw) %>%
+  group_by(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Number_Sites, Centred_log_Number_Sites) %>%
+  mutate( P_Estimate = mean(fitted[,1]),
+          P_Estimate_lower = quantile(fitted[,1], probs = 0.0015),
+          P_Estimate_upper = quantile(fitted[,1], probs = 0.985) )  %>% #.025 and .975 = 95% cis
+  select( Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Number_Sites, Centred_log_Number_Sites,
+          P_Estimate, P_Estimate_lower, P_Estimate_upper
+          ) %>% distinct()
 
-
-print( rich.fitted.sum %>% select(Number_Sites, extent) %>% distinct(), n = 50) 
-print(rich.fitted.sum, n=50)
-head(rich.fitted.sum)
-View(rich.fitted.sum)
-
+print(rich.fitted.p, n=50)
 
 # fixed effect coefficients
-rich_biome_broad_fixef <- fixef(rich_m2)
-head(rich_biome_broad_fixef)
-
-# Random effect coefficients
-rich_biome_broad_coef <- coef(rich_m2)
-rich_biome_broad_coef # dont really need this
-
+# rich_biome_broad_fixef <- fixef(rich_m2)
+# head(rich_biome_broad_fixef)
+# 
+# # Random effect coefficients
+# rich_biome_broad_coef <- coef(rich_m2)
+# rich_biome_broad_coef # dont really need this
 
 
 setwd(paste0(path2wd, 'Data/'))
 # # # save data objects to avoid doing this every time
-save(rich_biome_broad_fitted, rich_biome_broad_fixef, rich_biome_broad_coef, file = 'rich_biome_broad.mod_dat.Rdata')
+save(rich.fitted.p,  file = 'rich.fitted.p.Rdata')
 
 
 # plots
 setwd(paste0(path2wd, 'Data/'))
 #load('rich.area.poisson.mod_dat.Rdata')
-load('rich_biome_broad.mod_dat.Rdata')
+load('rich.fitted.p.Rdata')
 
 # plot richness area biome_broad relationship
 
-head(sb_rich_area_biome_broad)
+head(rich.fitted.p)
 
-# wrap text
+# wrap text function for facet wrap
 wrapit <- function(text) {
   wtext <- paste(strwrap(text,width=40),collapse=" \n ")
   return(wtext)
@@ -193,57 +187,33 @@ wrapit <- function(text) {
 sb_rich_area$wrapped_text <- llply(sb_rich_area$Biome_Broad_Hab, wrapit)
 sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 
-rich_ce_df$wrapped_text <- llply(rich_ce_df$Biome_Broad_Hab, wrapit)
-rich_ce_df$wrapped_text <- unlist(rich_ce_df$wrapped_text)
+rich.fitted.p$wrapped_text <- llply(rich.fitted.p$Biome_Broad_Hab, wrapit)
+rich.fitted.p$wrapped_text <- unlist(rich.fitted.p$wrapped_text)
 
-#rich.fitted.sum
-rich.fitted.sum$wrapped_text <- llply(rich.fitted.sum$Biome_Broad_Hab, wrapit)
-rich.fitted.sum$wrapped_text <- unlist(rich.fitted.sum$wrapped_text)
 
 fig_rich.biome_broad <- ggplot() + 
-  facet_wrap(~wrapped_text, scales="free") +
+  facet_wrap(~Biome_Broad_Hab, scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_rich_area ,
-             aes(#x = (Total_Sample_Area_mm2/1000000),
-               # x = Total_Sample_Area_mm2,
-               x = Total_Sample_Area_m2,
-               y = Total_Species, colour = Biome_Broad_Hab,
-             ), 
-             size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  # fixed effect
-  # geom_line(data = rich_biome_broad_fitted,
-  #           aes(#x = (Total_Sample_Area_mm2/1000000), 
-  #             # x = Total_Sample_Area_mm2,
-  #             x = Total_Sample_Area_m2,
-  #             y = Estimate, colour = Biome_Broad_Hab, group = Centred_log_Number_Sites ),
-  #           size = 1) +
-  # # uncertainy in fixed effect
-  # geom_ribbon(data = rich_biome_broad_fitted,
-  #             aes( #x =  (Total_Sample_Area_mm2/1000000),
-  #               #x =  Total_Sample_Area_mm2,
-  #               x = Total_Sample_Area_m2,
-  #               ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab, group = Centred_log_Number_Sites),
-  #             alpha = 0.1 ) +
-# geom_line(data = rich_ce_df,
-#           aes(#x = (Total_Sample_Area_mm2/1000000),
-#             # x = Total_Sample_Area_mm2,
-#             x = exp( Centred_log_Total_Sample_Area_m2 + mean(Centred_log_Total_Sample_Area_m2) ),
-#             y = estimate__ , colour = Biome_Broad_Hab, group = Centred_log_Number_Sites , linetype= as.character(Centred_log_Number_Sites ) ),
-#           size = 1) +
-  geom_line(data = rich.fitted.sum,
-            aes(#x = (Total_Sample_Area_mm2/1000000),
-              # x = Total_Sample_Area_mm2,
-              x = Total_Sample_Area_m2,
-              y = P_Estimate , colour = Biome_Broad_Hab, group = extent , linetype= as.character(extent) ),
+  # geom_point(data = rich.fitted.df %>% filter(Number_Sites == 1 ) ,
+  #            aes( x = Total_Sample_Area_m2,
+  #              y = fitted[,1], colour = Biome_Broad_Hab,
+  #            ),
+  #            size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
+  # geom_point(data = sb_rich_area ,
+  #            aes( x = Total_Sample_Area_m2,
+  #              y = Total_Species, colour = Biome_Broad_Hab,
+  #            ), 
+  #            size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
+  geom_line(data = rich.fitted.df,
+            aes( x = Total_Sample_Area_m2,
+              y = fitted[,1] , colour = Biome_Broad_Hab, group = as.character(Number_Sites) , linetype= as.character(Number_Sites) ),
             size = 1) +
-  # uncertainy in fixed effect
-  # geom_ribbon(data = rich_biome_broad_fitted,
-  #             aes( #x =  (Total_Sample_Area_mm2/1000000),
-  #               #x =  Total_Sample_Area_mm2,
-  #               x = Total_Sample_Area_m2,
-  #               ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab, group = Centred_log_Number_Sites),
+  # # uncertainy in fixed effect
+  # geom_ribbon(data = rich.fitted.df,
+  #             aes(  x = Total_Sample_Area_m2,
+  #               ymin = P_Estimate_lower, ymax = P_Estimate_upper, fill = Biome_Broad_Hab, group = as.character(Number_Sites)  ),
   #             alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_rich_area_biome_broad$Total_Sample_Area_m2), quantile(sb_rich_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +

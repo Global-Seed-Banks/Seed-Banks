@@ -29,7 +29,9 @@ head(sb_prep)
 
 # remove NA values 
 sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
-                                   !is.na(Total_Sample_Area_mm2)) %>%
+                                   !is.na(Total_Sample_Area_mm2),
+                                   Number_Sites == 1 
+                                   ) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
           Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
