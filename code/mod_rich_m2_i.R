@@ -44,7 +44,8 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
 get_prior(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Centred_log_Number_Sites * Biome_Broad_Hab  + ( 1  | Method/studyID ),
 family = poisson(), data = sb_rich_area)
 
- # prior = c(prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Number_Sites)),
+# prior = c(prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Number_Sites),
+# ),
 
 # Centred_log_Number_Sites  # is the negative parameter
 # Centred_log_Total_Sample_Area_m2
@@ -65,7 +66,7 @@ head(sb_rich_area)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'rich_m2_i.Rdata')
+load( 'rich_m2_i_p.Rdata')
 
 
 summary(rich_m2)
@@ -133,7 +134,7 @@ rich.fitted <- tidyr::crossing( #sb_rich_area %>% select(Biome_Broad_Hab) %>% di
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
   mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x, re_formula =  NA  ))) 
- # mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, ndraws = 5000, re_formula =  NA  ))) 
+# mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, ndraws = 5000, re_formula =  NA  )))
 
 
 View(rich.fitted)
