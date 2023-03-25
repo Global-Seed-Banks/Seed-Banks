@@ -41,16 +41,7 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
 rich_m2 <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Centred_log_Number_Sites * Biome_Broad_Hab  + ( 1  | Method/studyID ),
                family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                prior = c( 
-                 prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Number_Sites),
-                 prior( student_t(1, 0.01, 0.001) , class = b, coef = Biome_Broad_HabTundra  ),
-                 prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Number_Sites:Biome_Broad_HabMediterraneanForestsWoodlandsandScrub  ),
-               prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabArable  ),
-               prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabBorealForestsDTaiga ),
-               prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabDesertsandXericShrublands  ),
-               prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabTemperateBroadleafandMixedForests),
-               prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabTemperateGrasslandsSavannasandShrublands  ),
-               prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabTropicalandSubtropicalForests    ),
-               prior(student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2:Centred_log_Number_Sites:Biome_Broad_HabTundra    ) ),
+                 prior( student_t(1, 0.05, 0.001) , class = b, coef = Centred_log_Number_Sites) ),
                control = list(adapt_delta = 0.999,
                               max_treedepth = 13
                ))
