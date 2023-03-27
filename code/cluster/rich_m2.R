@@ -42,7 +42,7 @@ rich_m2 <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Centred_log_Nu
                family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                prior = c( 
                  prior( student_t(1, 0.05, 0.001) , class = b, coef = Centred_log_Number_Sites),
-                 prior( student_t(1, 0.05, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2),
+                 prior( student_t(1, 0.05, 0.001) , class = b, coef = Centred_log_Total_Sample_Area_m2)
                  ),
                control = list(adapt_delta = 0.999,
                               max_treedepth = 13
