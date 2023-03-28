@@ -44,7 +44,7 @@ head(sb_rich_area)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'rich_m2_1.Rdata')
+load( 'rich_m2_plus.Rdata')
 
 
 summary(rich_m2)
@@ -67,7 +67,8 @@ plot(rich_m2)
 
 
 
-head(sb_rich_area_zone)
+head(sb_rich_area)
+View(rich_m2$data)
 # WWF biome_broadS model
 # # for plotting fixed effects
 rich_biome_broad_fitted <- cbind(rich_m2$data,
@@ -77,13 +78,38 @@ rich_biome_broad_fitted <- cbind(rich_m2$data,
                                                           Total_Number_Samples, 
                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
                                                           Centred_log_Total_Sample_Area_m2,
+                                                     Centred_log_Number_Sites, Number_Sites,
                                                      Biome_Broad_Hab),
                              #  by= c("Total_Species2","Biome_Broad_Hab","Habitat_Broad","studyID", "rowID")
   )
 
-
+View(rich_biome_broad_fitted)
 head(rich_biome_broad_fitted)
 nrow(rich_biome_broad_fitted)
+
+
+rich.fitted <- tidyr::crossing( #sb_rich_area %>% select(Biome_Broad_Hab) %>% distinct(),
+  Number_Sites = c(1, 20, 100),
+  sb_rich_area %>% group_by(Biome_Broad_Hab) %>%
+    summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
+)  %>%
+  mutate( log_Number_Sites = log(Number_Sites),
+          log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
+          Centred_log_Number_Sites = log_Number_Sites - mean(log_Number_Sites, na.rm = TRUE),
+          Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_Number_Sites, log_Total_Sample_Area_m2 ) ) %>%
+  arrange( Total_Sample_Area_m2, Number_Sites ) %>%
+  mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
+  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab ) %>%
+  nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
+  mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x, re_formula =  NA  ))) 
+# mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, ndraws = 5000, re_formula =  NA  )))
+
+rich.fitted.df  <- rich.fitted %>% 
+  unnest(cols = c(fitted, data)) %>% 
+  ungroup() %>% select(-Biome_Broad_Hab_group) %>%
+  #select(-c(.row, .chain, .iteration)) 
+  arrange(Biome_Broad_Hab, Total_Sample_Area_m2, Number_Sites)
 
 # fixed effect coefficients
 rich_biome_broad_fixef <- fixef(rich_m2)
