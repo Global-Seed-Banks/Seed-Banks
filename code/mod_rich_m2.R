@@ -102,14 +102,19 @@ rich.fitted <- tidyr::crossing( #sb_rich_area %>% select(Biome_Broad_Hab) %>% di
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
-  mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x, re_formula =  NA  ))) 
+  mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x,  re_formula =  NA  ))) 
 # mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, ndraws = 5000, re_formula =  NA  )))
+
+
+View(rich.fitted)
 
 rich.fitted.df  <- rich.fitted %>% 
   unnest(cols = c(fitted, data)) %>% 
   ungroup() %>% select(-Biome_Broad_Hab_group) %>%
   #select(-c(.row, .chain, .iteration)) 
   arrange(Biome_Broad_Hab, Total_Sample_Area_m2, Number_Sites)
+
+View(rich.fitted.df)
 
 # fixed effect coefficients
 rich_biome_broad_fixef <- fixef(rich_m2)
@@ -147,6 +152,10 @@ sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 rich_biome_broad_fitted$wrapped_text <- llply(rich_biome_broad_fitted$Biome_Broad_Hab, wrapit)
 rich_biome_broad_fitted$wrapped_text <- unlist(rich_biome_broad_fitted$wrapped_text)
 
+rich.fitted.df$wrapped_text <- llply(rich.fitted.df$Biome_Broad_Hab, wrapit)
+rich.fitted.df$wrapped_text <- unlist(rich.fitted.df$wrapped_text)
+
+
 fig_rich.biome_broad <- ggplot() + 
   facet_wrap(~wrapped_text, scales="free") +
   # horizontal zero line
@@ -160,19 +169,28 @@ fig_rich.biome_broad <- ggplot() +
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
-  geom_line(data = rich_biome_broad_fitted,
-            aes(#x = (Total_Sample_Area_mm2/1000000), 
-              # x = Total_Sample_Area_mm2,
-              x = Total_Sample_Area_m2,
-              y = Estimate, colour = Biome_Broad_Hab),
-            size = 1) +
-  # uncertainy in fixed effect
-  geom_ribbon(data = rich_biome_broad_fitted,
-              aes( #x =  (Total_Sample_Area_mm2/1000000), 
-                #x =  Total_Sample_Area_mm2, 
+  # geom_line(data = rich_biome_broad_fitted,
+  #           aes(
+  #             # x = Total_Sample_Area_mm2,
+  #             x = Total_Sample_Area_m2,
+  #             y = Estimate, colour = Biome_Broad_Hab),
+  #           size = 1) +
+  # # uncertainy in fixed effect
+  # geom_ribbon(data = rich_biome_broad_fitted,
+  #             aes(
+  #               #x =  Total_Sample_Area_mm2,
+  #               x = Total_Sample_Area_m2,
+  #               ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
+  #             alpha = 0.1 ) +
+geom_line(data = rich.fitted.df,
+          aes( x = Total_Sample_Area_m2,
+               y = fitted[,1] , colour = Biome_Broad_Hab, group = as.character(Number_Sites) , linetype= as.character(Number_Sites) ),
+          size = 1) +
+  geom_ribbon(data = rich.fitted.df ,
+              aes(
                 x = Total_Sample_Area_m2,
-                ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
-              alpha = 0.1 ) +
+                ymin = fitted[,3], ymax = fitted[,4], fill = Biome_Broad_Hab),
+              alpha = 0.3) +
   #coord_cartesian(xlim = c(min(sb_rich_area_biome_broad$Total_Sample_Area_m2), quantile(sb_rich_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -189,17 +207,21 @@ fig_rich.biome_broad
 
 
 
-rich_biome_broad.fixed.p <- as_draws_df(rich_m2, subset = floor(runif(n = 1000, 1, max = 2000)))
+rich_biome_broad.fixed.p <- as_draws_df(rich_m2, subset = floor(runif(n = 1000, 1, max = 2000))) %>%
+  select(contains("b_"))
+
 
 rich_biome_broad.fixed.p
 nrow(rich_biome_broad.fixed.p)
 head(rich_biome_broad.fixed.p)
 colnames(rich_biome_broad.fixed.p)
 
+
 # select columns of interests and give meaningful names
 rich_biome_broad_global_posterior <-  rich_biome_broad.fixed.p %>% 
   as_tibble() %>%
-  mutate(rich.aq.global = (`b_Centred_log_Total_Sample_Area_m2` ),
+  mutate( 
+        rich.aq.global = (`b_Centred_log_Total_Sample_Area_m2` ),
          rich.arable.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabArable` ),
          rich.bor.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabBorealForestsDTaiga` ),
          rich.des.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabDesertsandXericShrublands`),
