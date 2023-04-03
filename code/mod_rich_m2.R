@@ -1,15 +1,12 @@
 
-
 rm(list = ls())
 
-
-#packages
+# packages
 library(tidyverse)
 library(brms)
 library(bayesplot)
 library(patchwork)
 library(viridis)
-
 
 user <- Sys.info()["user"]
 
@@ -18,15 +15,12 @@ path2wd <- switch(user,
                   # " " = " " # Petr puts his computer username and file path here
 )
 
-
 setwd(path2wd)
-
 sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
 nrow(sb_prep)
 head(sb_prep)
-
-# remove NA values 
+# data
 sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
                                    !is.na(Total_Sample_Area_mm2),
                                    Number_Sites == 1 
@@ -40,15 +34,12 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
 
 head(sb_rich_area)
 
-
+# model
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'rich_m2.Rdata')
 
-
 summary(rich_m2)
-
-
 
 # posterior predictive check
 color_scheme_set("darkgray")
@@ -56,20 +47,12 @@ pp_rich.biome_broad <- pp_check(rich_m2,)+ xlab( "Total Species") + ylab("Densit
   labs(title= "a) Species ~ area") + #xlim(-200,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-
 pp_rich.biome_broad 
 
-
-
-# caterpillars/chains
+# chains
 plot(rich_m2)
 
-
-
-head(sb_rich_area)
-View(rich_m2$data)
-# WWF biome_broadS model
-# # for plotting fixed effects
+# fixed effects
 rich_biome_broad_fitted <- cbind(rich_m2$data,
                           fitted(rich_m2, re_formula = NA
                           )) %>%
@@ -86,7 +69,7 @@ View(rich_biome_broad_fitted)
 head(rich_biome_broad_fitted)
 nrow(rich_biome_broad_fitted)
 
-
+# make sure plyr isnt loaded
 rich.fitted <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab) %>%
                                     summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
                                 Number_Sites = c(1, 20, 100),
@@ -100,15 +83,10 @@ rich.fitted <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab
   group_by(Biome_Broad_Hab_group ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
   mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x,  re_formula =  NA  ))) 
-# mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, ndraws = 5000, re_formula =  NA  )))
-
-
-#View(rich.fitted)
 
 rich.fitted.df  <- rich.fitted %>% 
   unnest(cols = c(fitted, data)) %>% 
   ungroup() %>% select(-Biome_Broad_Hab_group) %>%
-  #select(-c(.row, .chain, .iteration)) 
   arrange(Biome_Broad_Hab, Total_Sample_Area_m2, Number_Sites)
 
 head(rich.fitted.df)
@@ -131,9 +109,6 @@ setwd(paste0(path2wd, 'Data/'))
 #load('rich.area.poisson.mod_dat.Rdata')
 load('rich_biome_broad.mod_dat.Rdata')
 
-# plot richness area biome_broad relationship
-
-head(sb_rich_area_biome_broad)
 
 # wrap text
 wrapit <- function(text) {
@@ -151,10 +126,11 @@ sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 rich.fitted.df$wrapped_text <- llply(rich.fitted.df$Biome_Broad_Hab, wrapit)
 rich.fitted.df$wrapped_text <- unlist(rich.fitted.df$wrapped_text)
 
+# relevel number of sites as a factor
 rich.fitted.df <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
-  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
+  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) 
 
-rich.fitted.df
+View(rich.fitted.df)
 
 fig_rich.biome_broad <- ggplot() + 
   facet_wrap(~wrapped_text, scales="free") +
@@ -162,9 +138,7 @@ fig_rich.biome_broad <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_rich_area ,
-             aes(#x = (Total_Sample_Area_mm2/1000000),
-               # x = Total_Sample_Area_mm2,
-               x = Total_Sample_Area_m2,
+             aes(x = Total_Sample_Area_m2,
                y = Total_Species, colour = Biome_Broad_Hab,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
@@ -184,14 +158,13 @@ fig_rich.biome_broad <- ggplot() +
   #             alpha = 0.1 ) +
 geom_line(data = rich.fitted.df,
           aes( x = Total_Sample_Area_m2,
-               y = fitted[,1] , colour = Biome_Broad_Hab, group = Number_Sites , linetype= Number_Sites ),
-          size = 1) +
+               y = fitted[,1] , colour = Biome_Broad_Hab, group = Number_Sites , linetype = Number_Sites ),
+          size = 1 ) +
   geom_ribbon(data = rich.fitted.df ,
               aes(
                 x = Total_Sample_Area_m2,
                 ymin = fitted[,3], ymax = fitted[,4], fill = Biome_Broad_Hab),
               alpha = 0.3) +
-  #coord_cartesian(xlim = c(min(sb_rich_area_biome_broad$Total_Sample_Area_m2), quantile(sb_rich_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
@@ -199,18 +172,13 @@ geom_line(data = rich.fitted.df,
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
        x="",
-       color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) #+
-#xlim(0,800)+ ylim(0,200)+
-#scale_x_log10() + scale_y_log10() 
+       color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) 
 
 fig_rich.biome_broad
 
 # custom legend
-
 legend.data <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
   mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
-
-legend.data
 
 fixed.leg <- ggplot() +
   geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
@@ -221,20 +189,14 @@ fixed.leg <- ggplot() +
                aes(x = 0,
                    xend = 15,
                    y = 0,
-                   yend = 15,  linetype= Number_Sites ), 
-               size = 1.5, #linetype=2,
-               arrow=arrow(type="closed",length=unit(0.1,"cm"))) +
+                   yend = 15,  linetype = Number_Sites ), 
+               size = 1.5, alpha= 0.5 )  +
   scale_color_viridis(discrete = T, option="D")  +
-  # scale_color_manual(name='Number of Sites',
-  #                    breaks=c("Losses","Gains","Persistent Sp."),
-  #                    values=c("Losses"="#B40F20","Gains"="#3B9AB2","Persistent Sp."="#F98400")
-  #                    )+
   theme(legend.key.width = unit(2,"cm")) +  guides(linetype=guide_legend(title="Number of sites"))
 
 fixed.leg
 
-
-# extract legends
+# extract legend
 # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
 g_legend<-function(a.gplot){
   tmp <- ggplot_gtable(ggplot_build(a.gplot))
@@ -242,19 +204,16 @@ g_legend<-function(a.gplot){
   legend <- tmp$grobs[[leg]]
   return(legend)}
 
-# fixed effect for controls
+# fixed effect legend
 rich_legend_l <- g_legend(fixed.leg)
-
 
 rich_biome_broad.fixed.p <- as_draws_df(rich_m2, subset = floor(runif(n = 1000, 1, max = 2000))) %>%
   select(contains("b_"))
-
 
 rich_biome_broad.fixed.p
 nrow(rich_biome_broad.fixed.p)
 head(rich_biome_broad.fixed.p)
 colnames(rich_biome_broad.fixed.p)
-
 
 # select columns of interests and give meaningful names
 rich_biome_broad_global_posterior <-  rich_biome_broad.fixed.p %>% 
@@ -280,13 +239,8 @@ rich_biome_broad_global_posterior <-  rich_biome_broad.fixed.p %>%
                   rich.tund.global
                   ))
 
-View(rich_biome_broad_global_posterior)
+#View(rich_biome_broad_global_posterior)
 head(rich_biome_broad_global_posterior)
-
-
-sb_rich_area_zone$biome_broad_WWF<- as.factor(sb_rich_area_zone$biome_broad_WWF)
-levels(sb_rich_area_zone$biome_broad_WWF)
-
 
 rich.aq.p <-  rich_biome_broad_global_posterior %>% 
   mutate( response = "Aquatic", eff = mean(rich.aq.global),
@@ -382,14 +336,12 @@ save(global.rich_biome_broad.p, file = 'global.rich_biome_broad.posteriors.Rdata
  setwd(paste0(path2wd, 'Tables/'))
  write.csv(global.rich_biome_broad.p, "table_1.csv")
 
- 
- # plots
  setwd(paste0(path2wd, 'Data/'))
- #load('rich.area.poisson.mod_dat.Rdata')
  load('global.rich_biome_broad.posteriors.Rdata')
  
 head(global.rich_biome_broad.p)
 
+#slopes
 fig_rich_biome_broad_global <- ggplot() + 
   geom_point(data = global.rich_biome_broad.p, aes(x = `WWF Biome`, y = Estimate, color=`WWF Biome`),size = 2) +
   geom_errorbar(data = global.rich_biome_broad.p, aes(x = `WWF Biome`, ymin = `Lower CI`,
@@ -412,14 +364,11 @@ fig_rich_biome_broad_global <- ggplot() +
 
 fig_rich_biome_broad_global
 
-
-
-# lnadscape 16 X 20
-( (fig_rich.biome_broad) / (rich_legend_l) / ( fig_rich_biome_broad_global) )  +
+# put together with patchwork
+figure_3 <- ( (fig_rich.biome_broad) / (rich_legend_l) / ( fig_rich_biome_broad_global) )  +
   plot_layout(ncol = 1, nrow = 3, heights = c(12, 2, 7) )
 
-
-
-
+# lnadscape 16 X 20
+figure_3
 
 
