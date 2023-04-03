@@ -151,6 +151,10 @@ sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 rich.fitted.df$wrapped_text <- llply(rich.fitted.df$Biome_Broad_Hab, wrapit)
 rich.fitted.df$wrapped_text <- unlist(rich.fitted.df$wrapped_text)
 
+rich.fitted.df <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
+  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
+
+rich.fitted.df
 
 fig_rich.biome_broad <- ggplot() + 
   facet_wrap(~wrapped_text, scales="free") +
@@ -180,7 +184,7 @@ fig_rich.biome_broad <- ggplot() +
   #             alpha = 0.1 ) +
 geom_line(data = rich.fitted.df,
           aes( x = Total_Sample_Area_m2,
-               y = fitted[,1] , colour = Biome_Broad_Hab, group = as.character(Number_Sites) , linetype= as.character(Number_Sites) ),
+               y = fitted[,1] , colour = Biome_Broad_Hab, group = Number_Sites , linetype= Number_Sites ),
           size = 1) +
   geom_ribbon(data = rich.fitted.df ,
               aes(
@@ -203,10 +207,7 @@ fig_rich.biome_broad
 
 # custom legend
 
-legend.data <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab) %>%
-                                  summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
-                                Number_Sites = c(1, 20, 100),
-) %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
+legend.data <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
   mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
 
 legend.data
@@ -216,7 +217,7 @@ fixed.leg <- ggplot() +
   theme_classic(base_size=14 )+theme(panel.grid.major = element_blank(), 
                                      panel.grid.minor = element_blank(), 
                                      strip.background = element_rect(colour="black", fill="white"),legend.position="bottom")+
-  geom_segment(data = legend.data %>% distinct(Number_Sites),
+  geom_segment(data = legend.data %>% select(Number_Sites) %>% distinct(Number_Sites),
                aes(x = 0,
                    xend = 15,
                    y = 0,
