@@ -41,7 +41,7 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
           rowID = as.factor(rowID))
 
 
-get_prior(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Centred_log_Number_Sites * Biome_Broad_Hab  + ( 1  | Method/studyID ),
+get_prior(Total_Species ~ Centred_log_Total_Sample_Area_m2 *  Biome_Broad_Hab + Centred_log_Number_Sites   + ( 1  | Method/studyID ),
 family = poisson(), data = sb_rich_area)
 
 # prior = c(prior( student_t(1, 0.01, 0.001) , class = b, coef = Centred_log_Number_Sites),

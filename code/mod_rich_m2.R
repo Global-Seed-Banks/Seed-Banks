@@ -4,7 +4,6 @@ rm(list = ls())
 
 
 #packages
-library(plyr)
 library(tidyverse)
 library(brms)
 library(bayesplot)
@@ -44,7 +43,7 @@ head(sb_rich_area)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'rich_m2_plus.Rdata')
+load( 'rich_m2.Rdata')
 
 
 summary(rich_m2)
@@ -88,25 +87,23 @@ head(rich_biome_broad_fitted)
 nrow(rich_biome_broad_fitted)
 
 
-rich.fitted <- tidyr::crossing( #sb_rich_area %>% select(Biome_Broad_Hab) %>% distinct(),
-  Number_Sites = c(1, 20, 100),
-  sb_rich_area %>% group_by(Biome_Broad_Hab) %>%
-    summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
-)  %>%
-  mutate( log_Number_Sites = log(Number_Sites),
+rich.fitted <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab) %>%
+                                    summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
+                                Number_Sites = c(1, 20, 100),
+)  %>% mutate( log_Number_Sites = log(Number_Sites),
           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
           Centred_log_Number_Sites = log_Number_Sites - mean(log_Number_Sites, na.rm = TRUE),
           Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE) ) %>%
   select(-c( log_Number_Sites, log_Total_Sample_Area_m2 ) ) %>%
   arrange( Total_Sample_Area_m2, Number_Sites ) %>%
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
-  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab ) %>%
+  group_by(Biome_Broad_Hab_group ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
   mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x,  re_formula =  NA  ))) 
 # mutate(fitted = map(data, ~epred_draws(rich_m2, newdata= .x, ndraws = 5000, re_formula =  NA  )))
 
 
-View(rich.fitted)
+#View(rich.fitted)
 
 rich.fitted.df  <- rich.fitted %>% 
   unnest(cols = c(fitted, data)) %>% 
@@ -114,7 +111,7 @@ rich.fitted.df  <- rich.fitted %>%
   #select(-c(.row, .chain, .iteration)) 
   arrange(Biome_Broad_Hab, Total_Sample_Area_m2, Number_Sites)
 
-View(rich.fitted.df)
+head(rich.fitted.df)
 
 # fixed effect coefficients
 rich_biome_broad_fixef <- fixef(rich_m2)
@@ -124,11 +121,9 @@ head(rich_biome_broad_fixef)
 rich_biome_broad_coef <- coef(rich_m2)
 rich_biome_broad_coef # dont really need this
 
-
-
 setwd(paste0(path2wd, 'Data/'))
 # # # save data objects to avoid doing this every time
-save(rich_biome_broad_fitted, rich_biome_broad_fixef, rich_biome_broad_coef, file = 'rich_biome_broad.mod_dat.Rdata')
+save(rich_biome_broad_fitted, rich.fitted.df, rich_biome_broad_fixef, rich_biome_broad_coef, file = 'rich_biome_broad.mod_dat.Rdata')
 
 
 # plots
@@ -146,11 +141,12 @@ wrapit <- function(text) {
   return(wtext)
 }
 
+library(plyr)
 sb_rich_area$wrapped_text <- llply(sb_rich_area$Biome_Broad_Hab, wrapit)
 sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 
-rich_biome_broad_fitted$wrapped_text <- llply(rich_biome_broad_fitted$Biome_Broad_Hab, wrapit)
-rich_biome_broad_fitted$wrapped_text <- unlist(rich_biome_broad_fitted$wrapped_text)
+# rich_biome_broad_fitted$wrapped_text <- llply(rich_biome_broad_fitted$Biome_Broad_Hab, wrapit)
+# rich_biome_broad_fitted$wrapped_text <- unlist(rich_biome_broad_fitted$wrapped_text)
 
 rich.fitted.df$wrapped_text <- llply(rich.fitted.df$Biome_Broad_Hab, wrapit)
 rich.fitted.df$wrapped_text <- unlist(rich.fitted.df$wrapped_text)
@@ -196,7 +192,7 @@ geom_line(data = rich.fitted.df,
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
-                                  legend.position="bottom") +
+                                  legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
        x="",
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) #+
@@ -205,6 +201,48 @@ geom_line(data = rich.fitted.df,
 
 fig_rich.biome_broad
 
+# custom legend
+
+legend.data <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab) %>%
+                                  summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
+                                Number_Sites = c(1, 20, 100),
+) %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
+  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
+
+legend.data
+
+fixed.leg <- ggplot() +
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
+  theme_classic(base_size=14 )+theme(panel.grid.major = element_blank(), 
+                                     panel.grid.minor = element_blank(), 
+                                     strip.background = element_rect(colour="black", fill="white"),legend.position="bottom")+
+  geom_segment(data = legend.data %>% distinct(Number_Sites),
+               aes(x = 0,
+                   xend = 15,
+                   y = 0,
+                   yend = 15,  linetype= Number_Sites ), 
+               size = 1.5, #linetype=2,
+               arrow=arrow(type="closed",length=unit(0.1,"cm"))) +
+  scale_color_viridis(discrete = T, option="D")  +
+  # scale_color_manual(name='Number of Sites',
+  #                    breaks=c("Losses","Gains","Persistent Sp."),
+  #                    values=c("Losses"="#B40F20","Gains"="#3B9AB2","Persistent Sp."="#F98400")
+  #                    )+
+  theme(legend.key.width = unit(2,"cm")) +  guides(linetype=guide_legend(title="Number of sites"))
+
+fixed.leg
+
+
+# extract legends
+# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+# fixed effect for controls
+rich_legend_l <- g_legend(fixed.leg)
 
 
 rich_biome_broad.fixed.p <- as_draws_df(rich_m2, subset = floor(runif(n = 1000, 1, max = 2000))) %>%
@@ -225,24 +263,18 @@ rich_biome_broad_global_posterior <-  rich_biome_broad.fixed.p %>%
          rich.arable.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabArable` ),
          rich.bor.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabBorealForestsDTaiga` ),
          rich.des.global = (`b_Centred_log_Total_Sample_Area_m2` + `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabDesertsandXericShrublands`),
-        # rich.fgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabFloodedGrasslandsandSavannas`),
-         #rich.mang.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMangroves`),
          rich.medfs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMediterraneanForestsWoodlandsandScrub`),
          rich.mongs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabMontaneGrasslandsandShrublands`),
          rich.tempbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateBroadleafandMixedForests`),
          rich.tempcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateConiferForests`),
          rich.tempgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTemperateGrasslandsSavannasandShrublands`),
         rich.tropf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalForests`),
-        # rich.tropcf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalConiferousForests`),
-         #rich.tropdbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalDryBroadleafForests`),
          rich.tropgs.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalGrasslandsSavannasandShrublands`),
-         #rich.tropmbf.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTropicalandSubtropicalMoistBroadleafForests`),
          rich.tund.global = (`b_Centred_log_Total_Sample_Area_m2`+ `b_Centred_log_Total_Sample_Area_m2:Biome_Broad_HabTundra`),
   ) %>%
-  dplyr::select(c(rich.aq.global, rich.arable.global, rich.bor.global, rich.des.global, #rich.fgs.global, rich.mang.global, 
+  dplyr::select(c(rich.aq.global, rich.arable.global, rich.bor.global, rich.des.global, 
                   rich.medfs.global,
-                  rich.mongs.global, rich.tempbf.global, rich.tempcf.global, rich.tempgs.global, #rich.tropcf.global,
-                 # rich.tropdbf.global, rich.tropmbf.global,
+                  rich.mongs.global, rich.tempbf.global, rich.tempcf.global, rich.tempgs.global, 
                  rich.tropf.global,  rich.tropgs.global, 
                   rich.tund.global
                   ))
@@ -254,10 +286,7 @@ head(rich_biome_broad_global_posterior)
 sb_rich_area_zone$biome_broad_WWF<- as.factor(sb_rich_area_zone$biome_broad_WWF)
 levels(sb_rich_area_zone$biome_broad_WWF)
 
-# rich.bor.global, rich.des.global, rich.fgs.global, rich.mang.global, rich.medfs.global,
-# rich.mongs.global, rich.tempbf.global, rich.tempcf.global, rich.tempgs.global, rich.tropcf.global,
-# rich.tropdbf.global, rich.tropgs.global, rich.tropmbf.global,
-# rich.tund.global
+
 rich.aq.p <-  rich_biome_broad_global_posterior %>% 
   mutate( response = "Aquatic", eff = mean(rich.aq.global),
           eff_lower = quantile(rich.aq.global, probs=0.025),
@@ -281,18 +310,6 @@ rich.des.p <-  rich_biome_broad_global_posterior %>%
           eff_lower = quantile(rich.des.global, probs=0.025),
           eff_upper = quantile(rich.des.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-
-# rich.fgs.p <-  rich_biome_broad_global_posterior %>% 
-#   mutate( response = "Flooded Grasslands and Savannas", eff = mean(rich.fgs.global),
-#           eff_lower = quantile(rich.fgs.global, probs=0.025),
-#           eff_upper = quantile(rich.fgs.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-# 
-# rich.mang.p <-  rich_biome_broad_global_posterior %>% 
-#   mutate( response = "Mangroves", eff = mean(rich.mang.global),
-#           eff_lower = quantile(rich.mang.global, probs=0.025),
-#           eff_upper = quantile(rich.mang.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
 rich.medfs.p <-  rich_biome_broad_global_posterior %>% 
   mutate( response = "Mediterranean Forests, Woodlands and Scrub", eff = mean(rich.medfs.global),
@@ -324,19 +341,6 @@ rich.tempgs.p <-  rich_biome_broad_global_posterior %>%
           eff_upper = quantile(rich.tempgs.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
-# rich.tropcf.p <-  rich_biome_broad_global_posterior %>% 
-#   mutate( response = "Tropical and Subtropical Coniferous Forests", eff = mean(rich.tropcf.global),
-#           eff_lower = quantile(rich.tropcf.global, probs=0.025),
-#           eff_upper = quantile(rich.tropcf.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-# 
-# rich.tropdbf.p <-  rich_biome_broad_global_posterior %>% 
-#   mutate( response = "Tropical and Subtropical Dry Broadleaf Forests", eff = mean(rich.tropdbf.global),
-#           eff_lower = quantile(rich.tropdbf.global, probs=0.025),
-#           eff_upper = quantile(rich.tropdbf.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-# Tropical and Subtropical Forests
-#rich.tropf.global
 rich.tropf.p <-  rich_biome_broad_global_posterior %>% 
   mutate( response = "Tropical and Subtropical Forests", eff = mean(rich.tropf.global),
           eff_lower = quantile(rich.tropf.global, probs=0.025),
@@ -349,12 +353,6 @@ rich.tropgs.p <-  rich_biome_broad_global_posterior %>%
           eff_upper = quantile(rich.tropgs.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
-# rich.tropmbf.p <-  rich_biome_broad_global_posterior %>% 
-#   mutate( response = "Tropical and Subtropical Moist Broadleaf Forests", eff = mean(rich.tropmbf.global),
-#           eff_lower = quantile(rich.tropmbf.global, probs=0.025),
-#           eff_upper = quantile(rich.tropmbf.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-
 rich.tund.p <-  rich_biome_broad_global_posterior %>% 
   mutate( response = "Tundra", eff = mean(rich.tund.global),
           eff_lower = quantile(rich.tund.global, probs=0.025),
@@ -363,9 +361,7 @@ rich.tund.p <-  rich_biome_broad_global_posterior %>%
 
 
 global.rich_biome_broad.p <- bind_rows(rich.aq.p, rich.arable.p, rich.bor.p, rich.des.p,
-                                # rich.fgs.p, rich.mang.p,
-                                 rich.medfs.p, rich.mongs.p, rich.tempbf.p, rich.tempcf.p, rich.tempgs.p, #rich.tropcf.p,
-                                 #rich.tropdbf.p, rich.tropmbf.p,
+                                 rich.medfs.p, rich.mongs.p, rich.tempbf.p, rich.tempcf.p, rich.tempgs.p, 
                                 rich.tropf.p,  rich.tropgs.p, 
                                  rich.tund.p
                                  ) %>%
@@ -403,7 +399,7 @@ fig_rich_biome_broad_global <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   scale_color_viridis(discrete = T, option="D")  +
-  labs(y = "Slope", # x = expression(paste('Total Sample Area ' , m^2)),
+  labs(y = "Slope", 
        x="",
        color = "WWF Biome", subtitle= "b)") + 
   theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -416,29 +412,10 @@ fig_rich_biome_broad_global <- ggplot() +
 fig_rich_biome_broad_global
 
 
-# extract legend
-# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-# g_legend <- function(a.gplot){
-#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
-#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-#   legend <- tmp$grobs[[leg]]
-#   return(legend)}
-
-# overall legend
-#rich_biome_broad_leg <- g_legend(fig_rich.biome_broad)
-
 
 # lnadscape 16 X 20
-(fig_rich.biome_broad / ( fig_rich_biome_broad_global) )  +
-  plot_layout(ncol = 1, nrow = 2, heights = c(12,7) )
-
-  # with legend
-# lnadscape 16 X 20
-# (fig_rich.biome_broad + theme(legend.position="none") )/ ( fig_rich_biome_broad_global) / (rich_biome_broad_leg) + 
-#   # plot_annotation(title = "Species richness in the \n global soil seedbank",
-#   #        theme = theme(plot.title = element_text(hjust = 0.5, size= 18))) + 
-#   plot_layout(ncol=1, nrow=3, heights = c(12,7,2))
-
+( (fig_rich.biome_broad) / (rich_legend_l) / ( fig_rich_biome_broad_global) )  +
+  plot_layout(ncol = 1, nrow = 3, heights = c(12, 2, 7) )
 
 
 
