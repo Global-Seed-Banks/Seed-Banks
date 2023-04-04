@@ -10,7 +10,7 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 # Total_Species   Seed_density_m2   Total_Seeds
 sb_dat <- sb %>% filter(#!is.na(log_Total_Seeds),
                         !is.na(Total_Seeds),
-                        !Total_Seeds == 0,
+                        !Total_Seeds == 0, # gamma distribution no 0's
                         !is.na(Centred_log_Total_Sample_Area_m2)) %>%
   # treat all random effects as factors
   mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
@@ -22,14 +22,21 @@ sb_dat <- sb %>% filter(#!is.na(log_Total_Seeds),
 
 
 
-seeds_m2 <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + ( 1  | Method/studyID ),
-                   # family = negbinomial(),
-                family = Gamma(link="log"),
-                #family= lognormal(),
-                data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
-                     control = list(adapt_delta = 0.999999, max_treedepth = 13)
-)
+# seeds_m2 <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + ( 1  | Method/studyID ),
+#                    # family = negbinomial(),
+#                 family = Gamma(link="log"),
+#                 #family= lognormal(),
+#                 data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
+#                      control = list(adapt_delta = 0.999999, max_treedepth = 13)
+# )
 
+
+seeds_m2 <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + Centred_log_Number_Sites + ( 1  | Method/studyID ),
+               family = Gamma(link="log"), data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000,
+               prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
+               control = list(adapt_delta = 0.99999,
+                              max_treedepth = 13)
+)
 
 save(seeds_m2,
      file=Sys.getenv('OFILE'))

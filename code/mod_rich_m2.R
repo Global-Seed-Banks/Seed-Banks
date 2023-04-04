@@ -65,8 +65,8 @@ rich_biome_broad_fitted <- cbind(rich_m2$data,
                              #  by= c("Total_Species2","Biome_Broad_Hab","Habitat_Broad","studyID", "rowID")
   )
 
-View(rich_biome_broad_fitted)
-head(rich_biome_broad_fitted)
+
+print(rich_biome_broad_fitted, n=20)
 nrow(rich_biome_broad_fitted)
 
 # make sure plyr isnt loaded
@@ -90,6 +90,7 @@ rich.fitted.df  <- rich.fitted %>%
   arrange(Biome_Broad_Hab, Total_Sample_Area_m2, Number_Sites)
 
 head(rich.fitted.df)
+nrow(rich.fitted.df)
 
 # fixed effect coefficients
 rich_biome_broad_fixef <- fixef(rich_m2)
