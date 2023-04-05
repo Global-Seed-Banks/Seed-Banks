@@ -72,11 +72,13 @@ summary(ratio)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_ratio <- pp_check(ratio)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "d) Ratio") + xlim(0,400)+ #ylim(0,0.025)+
+  labs(title= "e) Ratio") + xlim(0,400)+ #ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_ratio 
 
+#6X11
+(pp_rich.biome_broad + pp_den.biome_broad + pp_ratio)/(pp_den.biome_broad + pp_ratio)
 
 # caterpillars/chains
 plot(ratio)
@@ -128,27 +130,25 @@ write.csv(ratio_conditional_effects, "table_4.csv")
 
 
 # predicted average density across all
-ratio.fitted <- sb_ratio %>%
+ratio.predicted <- sb_ratio %>%
+  select(Biome_Broad_Hab, ratio_seeds_species) %>%
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>%
-  summarise(ratio_seeds_species =  mean(ratio_seeds_species)) %>%
   nest(data = c(Biome_Broad_Hab, ratio_seeds_species) ) %>%
-  mutate(fitted = map(data, ~epred_draws(ratio, newdata= .x, re_formula = ~(Seed_ratio_m2 * Biome_Broad_Hab) )))
+  mutate(predicted = map(data, ~epred_draws(ratio, newdata= .x, re_formula = NA )))
 
+head(ratio.predicted)
 
-head(ratio.fitted)
-
-
-ratio.fitted.df  <- ratio.fitted %>%
-  unnest(cols = c(fitted)) %>% select(-data) %>%
+ratio.predicted.df  <- ratio.predicted %>%
+  unnest(cols = c(predicted)) %>% select(-data) %>%
   select(-c(.row, .chain, .iteration))  %>%
 select(-c(Biome_Broad_Hab_group, Biome_Broad_Hab)) %>%
   ungroup()
 
-head(ratio.fitted.df)
+head(ratio.predicted.df)
 
 
-ratio.total.mean <- ratio.fitted.df %>%
+ratio.total.mean <- ratio.predicted.df %>%
   select(-.draw) %>%
   select(-c(Biome_Broad_Hab_group, ratio_seeds_species)) %>%
   ungroup() %>%
@@ -159,7 +159,6 @@ ratio.total.mean <- ratio.fitted.df %>%
   select(-.epred) %>% distinct()
 
 head(ratio.total.mean)
-
 
 
 ratio_biome_broad_Fig <- ggplot() + 
@@ -182,7 +181,8 @@ ratio_biome_broad_Fig <- ggplot() +
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Ratio (Seeds/Species)')) ,
-       subtitle=  expression(paste('b) Ratio (Seeds/Species)'))  ) + 
+       #subtitle=  expression(paste('Ratio (Seeds/Species)'))  
+       ) + 
  # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
@@ -199,5 +199,5 @@ ratio_biome_broad_Fig
 # Landscape 8.50 X 16
 
 
-(Density_biome_broad_Fig / ratio_biome_broad_Fig)
+#(Density_biome_broad_Fig / ratio_biome_broad_Fig)
 #landscape 12 X 16

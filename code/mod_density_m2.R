@@ -61,7 +61,7 @@ summary(density_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_den.biome_broad <- pp_check(density_m2)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
-  labs(title= expression(paste('c) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
+  labs(title= expression(paste('d) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_den.biome_broad 
@@ -115,40 +115,35 @@ head(density_conditional_effects)
 setwd(paste0(path2wd, 'Tables/'))
 write.csv(density_conditional_effects, "table_3.csv")
 
-
 # predicted average density across all
-density.fitted <- sb_density_area %>% 
-  mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
-  group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>% 
-  summarise(Seed_density_m2 =  mean(Seed_density_m2)) %>%
-  nest(data = c(Biome_Broad_Hab, Seed_density_m2) ) %>%
-  mutate(fitted = map(data, ~epred_draws(density_m2, newdata= .x, re_formula = ~(Seed_density_m2 * Biome_Broad_Hab) ))) 
+density.predicted <- sb_density_area %>% 
+  select(Biome_Broad_Hab, Seed_density_m2) %>%
+   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
+   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>% 
+   nest(data = c(  Biome_Broad_Hab, Seed_density_m2) ) %>%
+  mutate(predicted = map(data, ~epred_draws(density_m2, newdata= .x, re_formula = NA))) 
 
+head(density.predicted)
 
-head(density.fitted)
-
-
-density.fitted.df  <- density.fitted %>% 
-  unnest(cols = c(fitted)) %>% select(-data) %>%
+density.predicted.df  <- density.predicted %>% 
+  unnest(cols = c(predicted)) %>% select(-data) %>%
   select(-c(.row, .chain, .iteration))  %>%
 select(-c(Biome_Broad_Hab_group, Biome_Broad_Hab)) %>%
   ungroup() 
 
-head(density.fitted.df)
+head(density.predicted.df)
 
-
-density.total.mean <- density.fitted.df %>%
+density.total.mean <- density.predicted.df %>%
   select(-.draw) %>%
   select(-c(Biome_Broad_Hab_group, Seed_density_m2)) %>%
   ungroup() %>%
-  #group_by(Seed_density_m2) %>%
   mutate( P_Estimate = mean(.epred),
           P_Estimate_lower = quantile(.epred, probs = 0.025),
           P_Estimate_upper = quantile(.epred, probs = 0.975) ) %>% 
   select(-.epred) %>% distinct()
 
 head(density.total.mean)
-
+View(head(density.total.mean))
 
 
 Density_biome_broad_Fig <- ggplot() + 
@@ -171,7 +166,8 @@ Density_biome_broad_Fig <- ggplot() +
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  expression(paste('a ) Seed density (',m^2,')')),) +
+      # subtitle=  expression(paste('Seed density (',m^2,')')),
+       ) +
  # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
@@ -182,9 +178,9 @@ Density_biome_broad_Fig <- ggplot() +
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title = element_text(size=18, hjust=0.5),
                                strip.background = element_blank(), legend.position="none",
-                               axis.text.x=element_blank()
-                               ) #+ 
- # scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
+                               #axis.text.x=element_blank()
+                               ) + 
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
 Density_biome_broad_Fig

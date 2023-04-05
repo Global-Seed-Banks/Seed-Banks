@@ -5,6 +5,7 @@ rm(list = ls())
 library(tidyverse)
 library(brms)
 library(bayesplot)
+library(tidybayes)
 library(patchwork)
 library(viridis)
 
@@ -68,10 +69,12 @@ rich_biome_broad_fitted <- cbind(rich_m2$data,
 
 print(rich_biome_broad_fitted, n=20)
 nrow(rich_biome_broad_fitted)
+View(rich_biome_broad_fitted)
+
 
 # make sure plyr isnt loaded
 rich.fitted <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab) %>%
-                                    summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 2000) ) ), 
+                                    dplyr::summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 100) ) ), 
                                 Number_Sites = c(1, 20, 100),
 )  %>% mutate( log_Number_Sites = log(Number_Sites),
           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
@@ -83,6 +86,7 @@ rich.fitted <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab
   group_by(Biome_Broad_Hab_group ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
   mutate(fitted = map(data, ~fitted(rich_m2, newdata= .x,  re_formula =  NA  ))) 
+
 
 rich.fitted.df  <- rich.fitted %>% 
   unnest(cols = c(fitted, data)) %>% 
@@ -118,6 +122,7 @@ wrapit <- function(text) {
 }
 
 library(plyr)
+
 sb_rich_area$wrapped_text <- llply(sb_rich_area$Biome_Broad_Hab, wrapit)
 sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 
@@ -164,8 +169,8 @@ geom_line(data = rich.fitted.df,
   geom_ribbon(data = rich.fitted.df ,
               aes(
                 x = Total_Sample_Area_m2,
-                ymin = fitted[,3], ymax = fitted[,4], fill = Biome_Broad_Hab),
-              alpha = 0.3) +
+                ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = Biome_Broad_Hab),
+              alpha = 0.2) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +

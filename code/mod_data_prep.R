@@ -130,6 +130,29 @@ write.csv(sb_mod,  "sb_prep.csv")
 
 
 
+#reload new dat
+sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
+
+
+head(sb_prep)
+
+sb_count <- sb_prep %>% select(Biome_Broad_Hab,  Total_Species) %>%
+  dplyr::group_by(Biome_Broad_Hab) %>%
+  count() 
+
+sb_count
+
+
+
+
+
+
+
+
+
+
+
+
 sb_n_hz <- sb_calc %>%  filter(!is.na(Total_Species)) %>%
           group_by(Biome_WWF_Zone, Habitat_Broad ) %>%
   summarise(n_dat = n_distinct(rowID))
