@@ -61,7 +61,7 @@ summary(density_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_den.biome_broad <- pp_check(density_m2)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
-  labs(title= expression(paste('d) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
+  labs(title= expression(paste('b) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_den.biome_broad 

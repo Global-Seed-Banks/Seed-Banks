@@ -93,10 +93,19 @@ View(sb_check)
 write.csv(sb_mod,  "sb_prep.csv")
 
 
+# reload new dat and get some summaries
+sb_prep <- read.csv(paste0(path2wd, 'sb_prep.csv'))
 
-#reload new dat and get some summaries
-sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
+sb_clean <- read.csv(paste0(path2wd, 'gsb_cleaned.csv'))
 
+head(sb_clean)
+
+study_refs <- sb_clean %>% 
+  select( studyID, Authors, Year, Title, Journal, Doi, URL, studylong) %>%
+  distinct()
+
+head(study_refs)
+nrow(study_refs)
 
 head(sb_prep)
 
@@ -145,8 +154,10 @@ sb_deets <- sb_prep %>% group_by(Biome_Broad_Hab, Country, studyID) %>%
   separate(name, into = c("minmax", "name"), sep="-") %>% 
   #spread(minmax, value) %>%
   ungroup() %>%
-  filter(#value > 0,
+  filter(# value > 0,
          !is.infinite(value) ) 
+
+View(sb_deets)
 
 sb_zero <- sb_deets %>%
   filter(minmax == "min") %>%
@@ -155,11 +166,13 @@ sb_zero <- sb_deets %>%
 sb_zero
 
 
-sb_minmax <-  bind_rows( 
+sb_minmax <-  bind_rows(
+  
   sb_max <- sb_deets %>%
-  filter(minmax == "max") %>%
+    filter(minmax == "max") %>%
   group_by(name) %>%
   filter(value == max(value)),
+  
    sb_min <- sb_deets %>%
     filter(minmax == "min") %>%
     filter(value > 0) %>%
@@ -177,7 +190,19 @@ sb_minmax <-  bind_rows(
 
  min_max <- sb_minmax %>% filter(!n > 1)
   
- View(min_max)
+ print(min_max)
+ 
+colnames(sb_prep)
+
+responses <- min_max %>% #filter(name %in% c( "Seed_density_m2", "Total_Seeds", "Total_Species", "ratio_seeds_species") ) %>%
+  left_join(sb_prep) %>% select(
+    Biome_Broad_Hab, Country, studyID, name, minmax, value, n,
+    Total_Species, Seed_density_m2, Total_Seeds, ratio_seeds_species,
+    Total_Number_Samples, Number_Sites, Total_Sample_Area_m2, Total_Sample_Volume_m3, )
+
+
+colnames(responses)
+View(responses)
 
 studies_mmin_multi <- sb_minmax %>% filter(n > 1)
  View(studies_mmin_multi)
@@ -185,6 +210,7 @@ studies_mmin_multi <- sb_minmax %>% filter(n > 1)
 min_max_count <- sb_minmax %>% filter(n > 1) %>% 
    select( minmax, value, n) %>%
    distinct()
+
 View(min_max_count)
 
 write.csv(sb_deets,  "sb_details_summary.csv")
