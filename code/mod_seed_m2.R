@@ -68,7 +68,7 @@ conditional_effects(seeds_m2)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_seed.biome_broad <- pp_check(seeds_m2) + xlab( "Total Seeds") + ylab("Density") +
-  labs(title= "a) Seeds ~ area") + xlim(0,8500)+ ylim(0,0.0006)+
+  labs(title= "d) Seeds ~ area") + xlim(0,8500)+ ylim(0,0.0006)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_seed.biome_broad 

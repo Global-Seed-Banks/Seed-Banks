@@ -72,7 +72,7 @@ summary(ratio)
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_ratio <- pp_check(ratio)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "e) Ratio") + xlim(0,400)+ #ylim(0,0.025)+
+  labs(title= "c) Ratio") + xlim(0,400)+ #ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_ratio 

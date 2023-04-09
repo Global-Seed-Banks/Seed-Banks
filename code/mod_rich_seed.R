@@ -54,17 +54,19 @@ load( 'rich_seeds.Rdata')
 summary(rich_seeds)
 
 
+exp(-0.031)
+
 # posterior predictive check
 color_scheme_set("darkgray")
 pp_rich_seeds <- pp_check(rich_seeds)+ xlab( "Total Species") + ylab("Density") +
-  labs(title= "b) Species ~ seeds") + xlim(0,300)+ ylim(0,0.025)+
+  labs(title= "e) Species ~ seeds") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
 pp_rich_seeds
 
 (pp_seed.biome_broad + pp_rich_seeds)
 
-( pp_rich.biome_broad + pp_seed.biome_broad + pp_den.biome_broad) / (pp_ratio + pp_rich_seeds)
+( pp_rich.biome_broad +  pp_den.biome_broad + pp_ratio) / ( pp_seed.biome_broad +  pp_rich_seeds)
 
 
 # caterpillars/chains
