@@ -117,21 +117,68 @@ biome_count
 
 head(sb_prep)
 
-sites_count <- sb_prep %>% select(rowID, studyID, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2) %>%
+sb_gathered <- sb_prep %>% select(rowID, studyID, Centred_log_Total_Sample_Area_m2, Biome_Broad_Hab, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2) %>%
   gather(metric, response, Total_Seeds:Seed_density_m2) %>%
   filter(!is.na(response),
        # !response == 0 
-       ) %>%
+       ) 
+
+head(sb_gathered)
+nrow(sb_gathered) # Total data points = 8087
+
+sites_count <- sb_gathered %>%
   select(Number_Sites) %>%
   dplyr::group_by(Number_Sites) %>%
   count() 
 
-head(sites_count)
+head(sites_count) # of data points within number of sites
+# 4763 data points within 1 site
 
-sites_count %>% ungroup() %>% select(n) %>%
-  mutate(total_n = sum(n)) %>% select(total_n) %>%
-  distinct()
+biome_count <- sb_gathered %>% # number of data points within every biome
+  select(Biome_Broad_Hab) %>%
+  dplyr::group_by(Biome_Broad_Hab) %>%
+  count() 
 
+print(biome_count, n = Inf)
+
+# of data points within every model
+nrow( sb_gathered %>% filter(metric == "Total_Species",
+                             !is.na(Centred_log_Total_Sample_Area_m2) ) )
+
+nrow( sb_gathered %>% filter(metric == "Total_Seeds",
+                             !is.na(Centred_log_Total_Sample_Area_m2)) )
+
+nrow( sb_gathered %>%  filter( !response == 0 ) %>% filter(metric == "Seed_density_m2") )
+
+nrow( sb_prep %>% select(rowID, studyID, Biome_Broad_Hab, ratio_seeds_species) %>%
+  filter(!is.na(ratio_seeds_species),
+         !ratio_seeds_species == 0 ) )
+
+nrow( sb_gathered %>% select() %>% filter(metric == "Total_Species",
+                             !is.na(Total_Sample_Area_m2) ) )
+
+sb_gathered %>% filter(metric == "Total_Species",
+                       !is.na(Centred_log_Total_Sample_Area_m2) ) %>%
+  mutate( N_site_cats = 
+                        case_when( (Number_Sites == 1) ~ "1 site",
+                                  (Number_Sites >= 2 & Number_Sites <= 20) ~ "2-20 sites",
+                                  (Number_Sites >= 21 & Number_Sites <= 100) ~ "21-100 sites",
+                                  TRUE ~ "> 100 sites" ) ) %>%
+  select(N_site_cats) %>%
+  dplyr::group_by(N_site_cats) %>%
+  count() 
+                       
+
+sb_gathered %>% filter(metric == "Total_Seeds",
+                       !is.na(Centred_log_Total_Sample_Area_m2) ) %>%
+  mutate( N_site_cats = 
+            case_when( (Number_Sites == 1) ~ "1 site",
+                       (Number_Sites >= 2 & Number_Sites <= 20) ~ "2-20 sites",
+                       (Number_Sites >= 21 & Number_Sites <= 100) ~ "21-100 sites",
+                       TRUE ~ "> 100 sites" ) ) %>%
+  select(N_site_cats) %>%
+  dplyr::group_by(N_site_cats) %>%
+  count() 
 
 options( scipen = 999 )
 
