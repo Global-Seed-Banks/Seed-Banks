@@ -14,7 +14,7 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
