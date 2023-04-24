@@ -8,7 +8,7 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/Data/",
+                  "el50nico" = "~/Dropbox/GSB/Data/",
                   # " " = " " # Ali puts his computer username and file path here
 )
 
@@ -115,13 +115,25 @@ biome_count <- sb_prep %>% select(Biome_Broad_Hab,  Total_Species) %>%
 
 biome_count
 
-sites_count <- sb_prep %>% select(Number_Sites) %>%
+head(sb_prep)
+
+sites_count <- sb_prep %>% select(rowID, studyID, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2) %>%
+  gather(metric, response, Total_Seeds:Seed_density_m2) %>%
+  filter(!is.na(response),
+       # !response == 0 
+       ) %>%
+  select(Number_Sites) %>%
   dplyr::group_by(Number_Sites) %>%
   count() 
 
-View(sites_count)
+head(sites_count)
 
-options(scipen = 999)
+sites_count %>% ungroup() %>% select(n) %>%
+  mutate(total_n = sum(n)) %>% select(total_n) %>%
+  distinct()
+
+
+options( scipen = 999 )
 
 colnames(sb_prep)
 
