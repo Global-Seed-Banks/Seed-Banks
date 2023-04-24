@@ -5,85 +5,102 @@ library(rgdal)
 library(rgeos)
 
 # Add biomes, rename biomes according to broad cats used.
-biomes<-readOGR("GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
+biomes<-readOGR("/Users/arau0001/Library/CloudStorage/Dropbox/Global seed banks/Seed-Bank-Map/GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
 biomes$broad<-biomes$WWF_MHTNAM
 biomes$broad[biomes$broad == "Flooded Grasslands and Savannas"] <- "Tropical and Subtropical Grasslands, Savannas and Shrublands"
 biomes$broad[biomes$broad %in% c("Tropical and Subtropical Dry Broadleaf Forests", "Tropical and Subtropical Moist Broadleaf Forests", "Tropical and Subtropical Coniferous Forests")] <- "Tropical and Subtropical Forests"
 
 # Bring in model estimates and attach to biome data frame
-div.vals<-read.csv("/Users/arau0001/Dropbox/GSB/Data/sb_av_div_estimates.csv")
-dens.vals.pred<-read.csv("/Users/arau0001/Dropbox/GSB/Data/predicted_density.csv")
-dens.vals.tab3<-read.csv("/Users/arau0001/Dropbox/GSB/Tables/table_3.csv")
+div.vals<-read.csv("/Users/arau0001/Dropbox/GSB/Tables/Table_6.csv")
+div.vals<-div.vals[div.vals$Number_Sites==1,]
+#dens.vals.pred<-read.csv("/Users/arau0001/Dropbox/GSB/Data/predicted_density.csv")
+#ens.vals.tab3<-read.csv("/Users/arau0001/Dropbox/GSB/Tables/table_3.csv")
 
 biomes$alpha<-div.vals$a_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
-biomes$beta<-div.vals$b_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
+#biomes$beta<-div.vals$b_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
 biomes$gamma<-div.vals$g_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
-biomes$dens.pred<-dens.vals.pred$d_Estimate[match(biomes$broad,dens.vals.pred$Biome_Broad_Hab)]
-biomes$dens.tab3<-dens.vals.tab3$Estimate[match(biomes$broad,dens.vals.tab3$WWF.Biome)]
+# biomes$dens.pred<-dens.vals.pred$d_Estimate[match(biomes$broad,dens.vals.pred$Biome_Broad_Hab)]
+# biomes$dens.tab3<-dens.vals.tab3$Estimate[match(biomes$broad,dens.vals.tab3$WWF.Biome)]
 
 # Inspect values to find good sequence of 20 values for colour pallette
 fivenum(div.vals$a_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) # 6-20
-length(seq(1,20,1))
-fivenum(div.vals$g_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) #25-60
-length(seq(24,63,2))
-fivenum(div.vals$b_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) # 2.7-6
-length(seq(2,5.8,0.2))
-fivenum(div.vals$a_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) # 6-20
-length(seq(1,20,1))
-fivenum(dens.vals.pred$d_Estimate[!dens.vals.pred$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) #25-60
-length(seq(250,5000,250))
-fivenum(dens.vals.tab3$Estimate[!dens.vals.tab3$WWF.Biome %in% c("Aquatic", "Arable")]) # 2.7-6
-length(seq(250,5000,250))
+length(seq(6,20,1))
+fivenum(div.vals$g_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) #18-39
+length(seq(15,43,2))
+#fivenum(div.vals$b_Estimate[!div.vals$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) # 2.7-6
+# length(seq(2,5.8,0.2))
 
-library(viridis)
-vir<-colorRampPalette(plasma(20))
+# fivenum(dens.vals.pred$d_Estimate[!dens.vals.pred$Biome_Broad_Hab %in% c("Aquatic", "Arable")]) #25-60
+# length(seq(250,5000,250))
+# fivenum(dens.vals.tab3$Estimate[!dens.vals.tab3$WWF.Biome %in% c("Aquatic", "Arable")]) # 2.7-6
+# length(seq(250,5000,250))
+
 
 # Assign those sequences and colours
-aseq<-seq(1,20,1)
-gseq<-seq(24,63,2)
-bseq<-seq(2,5.8,0.2)
-denseq<-seq(250,5000,250)
-biomes$cola[!is.na(biomes$alpha)]<-vir(20)[unlist(sapply(biomes$alpha, function(x) which.min(abs(aseq-x))))]
-biomes$colb[!is.na(biomes$beta)]<-vir(20)[unlist(sapply(biomes$beta, function(x) which.min(abs(bseq-x))))]
-biomes$colg[!is.na(biomes$gamma)]<-vir(20)[unlist(sapply(biomes$gamma, function(x) which.min(abs(gseq-x))))]
-biomes$coldenspred[!is.na(biomes$dens.pred)]<-vir(20)[unlist(sapply(biomes$dens.pred, function(x) which.min(abs(denseq-x))))]
-biomes$coldenstab3[!is.na(biomes$dens.tab3)]<-vir(20)[unlist(sapply(biomes$dens.tab3, function(x) which.min(abs(denseq-x))))]
+library(viridis)
+vir<-colorRampPalette(plasma(15))
+
+aseq<-seq(6,20,1)
+gseq<-seq(15,43,2)
+# bseq<-seq(2,5.8,0.2)
+# denseq<-seq(250,5000,250)
+biomes$cola[!is.na(biomes$alpha)]<-vir(15)[unlist(sapply(biomes$alpha, function(x) which.min(abs(aseq-x))))]
+# biomes$colb[!is.na(biomes$beta)]<-vir(20)[unlist(sapply(biomes$beta, function(x) which.min(abs(bseq-x))))]
+biomes$colg[!is.na(biomes$gamma)]<-vir(15)[unlist(sapply(biomes$gamma, function(x) which.min(abs(gseq-x))))]
+# biomes$coldenspred[!is.na(biomes$dens.pred)]<-vir(20)[unlist(sapply(biomes$dens.pred, function(x) which.min(abs(denseq-x))))]
+# biomes$coldenstab3[!is.na(biomes$dens.tab3)]<-vir(20)[unlist(sapply(biomes$dens.tab3, function(x) which.min(abs(denseq-x))))]
+
+
+# subset biomes to polygons only containing points
+sb<-read.csv("/Users/arau0001/Library/CloudStorage/Dropbox/GSB/Data/gsb_slim.csv")
+sb<-sb[!sb$Habitat_Current %in% c("Arable", "Aquatic"),]
+sb.shp<-SpatialPointsDataFrame(cbind(sb$Lon_Deg,sb$Lat_Deg),data=sb, proj4string=CRS(proj4string(biomes)))
+biomes.sb<-biomes[sb.shp,]
+
+world<-readOGR("/Users/arau0001/Library/CloudStorage/Dropbox/Global seed banks/Seed-Bank-Map/GIS","CNTR_RG_20M_2020_4326") # import world map
+
+# plot(world, col="lightgrey", border="lightgrey")
+# plot(biomes.sb,add=TRUE, usePolypath=FALSE)
+
 
 # Make the plot - diversity
-leg.pos<-c(-170,50)
-leg.nums<-rep(NA,20)
-pdf("/Users/arau0001/Dropbox/GSB/Figs/abg_map.pdf",width=6, height=10,useDingbats=F)
-par(mfrow=c(3,1))
-plot(biomes, main="Alpha (0.01m²)",col=biomes$cola, border=FALSE)
-leg.nums[c(1,5,10,15,20)]<-rev(aseq[c(1,5,10,15,20)])
-legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
+leg.pos<-c(-170,20)
+leg.nums<-rep(NA,15)
+pdf("/Users/arau0001/Dropbox/GSB/Figs/ab_map.pdf",width=12, height=4,useDingbats=F)
+par(mfrow=c(1,2))
 
-plot(biomes, main="Gamma (15m²)",col=biomes$colg, border=FALSE)
-leg.nums[c(1,5,10,15,20)]<-rev(gseq[c(1,5,10,15,20)])
-legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
+plot(world, main="Alpha (0.01m²)", col="lightgrey", border="lightgrey", lwd=0.1)
+plot(biomes.sb,col=biomes.sb$cola, border=biomes.sb$cola, lwd=0.1, add=TRUE)
+leg.nums[c(1,5,10,15)]<-rev(aseq[c(1,5,10,15)])
+legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(15)),border = NA, y.intersp = 0.5, cex = 0.75, text.font = 2, bty="n")
 
-plot(biomes, main="Beta (Gamma/Alpha)",col=biomes$colb, border=FALSE)
-leg.nums[c(1,5,10,15,20)]<-rev(bseq[c(1,5,10,15,20)])
-legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
+plot(world, main="Gamma (15m²)", col="lightgrey", border="lightgrey", lwd=0.1)
+plot(biomes.sb,col=biomes.sb$colg, border=biomes.sb$colg, lwd=0.1, add=TRUE)
+leg.nums[c(1,5,10,15)]<-rev(gseq[c(1,5,10,15)])
+legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(15)),border = NA, y.intersp = 0.5, cex = 0.75, text.font = 2, bty="n")
 
-dev.off()
-
-
-# Make the plot - density
-leg.pos<-c(-170,50)
-leg.nums<-rep(NA,20)
-pdf("/Users/arau0001/Dropbox/GSB/Figs/dens_map.pdf",width=6, height=8,useDingbats=F)
-par(mfrow=c(2,1))
-plot(biomes, main="Density (predicted_density)",col=biomes$coldenspred, border=FALSE)
-leg.nums[c(1,5,10,15,20)]<-rev(denseq[c(1,5,10,15,20)])
-legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
-
-plot(biomes, main="Density (Table 3)",col=biomes$coldenstab3, border=FALSE)
-leg.nums[c(1,5,10,15,20)]<-rev(denseq[c(1,5,10,15,20)])
-legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
-
+# plot(biomes, main="Beta (Gamma/Alpha)",col=biomes$colb, border=FALSE)
+# leg.nums[c(1,5,10,15,20)]<-rev(bseq[c(1,5,10,15,20)])
+# legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
 
 dev.off()
+
+
+# # Make the plot - density
+# leg.pos<-c(-170,50)
+# leg.nums<-rep(NA,20)
+# pdf("/Users/arau0001/Dropbox/GSB/Figs/dens_map.pdf",width=6, height=8,useDingbats=F)
+# par(mfrow=c(2,1))
+# plot(biomes, main="Density (predicted_density)",col=biomes$coldenspred, border=FALSE)
+# leg.nums[c(1,5,10,15,20)]<-rev(denseq[c(1,5,10,15,20)])
+# legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
+
+# plot(biomes, main="Density (Table 3)",col=biomes$coldenstab3, border=FALSE)
+# leg.nums[c(1,5,10,15,20)]<-rev(denseq[c(1,5,10,15,20)])
+# legend(leg.pos[1],leg.pos[2],leg.nums,fill=rev(vir(20)),border = NA, y.intersp = 0.5, cex = 1, text.font = 2, bty="n")
+
+
+# dev.off()
 
 
 
