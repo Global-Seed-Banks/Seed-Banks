@@ -14,7 +14,7 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -86,7 +86,7 @@ rich_m2_predict_df <- rich_m2_predict  %>%
 head(rich_m2_predict_df)
 nrow(rich_m2_predict_df)
 
-# density m2
+# density m2- lazy version here- i should probs copy what i did for richness
 head(sb_density_area)
 
 density_predict <- sb_density_area %>% 
