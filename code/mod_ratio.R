@@ -13,7 +13,7 @@ library(tidybayes)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -129,6 +129,11 @@ setwd(paste0(path2wd, 'Tables/'))
 write.csv(ratio_conditional_effects, "table_4.csv")
 
 
+r_e <- ratio_conditional_effects %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+
+sb_ratio <- sb_ratio %>% left_join(r_e)
+
+
 # predicted average density across all
 ratio.predicted <- sb_ratio %>%
   select(Biome_Broad_Hab, ratio_seeds_species) %>%
@@ -170,14 +175,14 @@ ratio_biome_broad_Fig <- ggplot() +
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
             alpha = 0.05) +
   geom_point(data = sb_ratio,
-             aes(x = Biome_Broad_Hab, y = ratio_seeds_species, #colour = 	"#C0C0C0"
+             aes(x = reorder(Biome_Broad_Hab, Estimate), y = ratio_seeds_species, #colour = 	"#C0C0C0"
                  colour = Biome_Broad_Hab
                  ), 
              size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
   geom_point(data = ratio_conditional_effects,
-             aes(x =  `WWF Biome`, y = Estimate, colour =  `WWF Biome`), size = 3) +
+             aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`), size = 3) +
   geom_errorbar(data = ratio_conditional_effects,
-                aes(x =  `WWF Biome`, ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
+                aes(x =  reorder(`WWF Biome`, Estimate), ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Ratio (Seeds/Species)')) ,
@@ -189,15 +194,12 @@ ratio_biome_broad_Fig <- ggplot() +
   #ylim(0,100000)+
    coord_cartesian( ylim = c(0,350)) +
   scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
-  theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme_bw(base_size=20)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 
 ratio_biome_broad_Fig
-# Landscape 8.50 X 16
+# Landscape 8.50 X 18
 
-
-#(Density_biome_broad_Fig / ratio_biome_broad_Fig)
-#landscape 12 X 16

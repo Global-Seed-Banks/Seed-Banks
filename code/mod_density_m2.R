@@ -15,7 +15,7 @@ library(ggplot2)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -112,6 +112,11 @@ density_conditional_effects <- density_biome_broad_df %>%
 
 head(density_conditional_effects)
 
+
+d_e <- density_conditional_effects %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+
+sb_density_area <- sb_density_area %>% left_join(d_e)
+
 setwd(paste0(path2wd, 'Tables/'))
 write.csv(density_conditional_effects, "table_3.csv")
 
@@ -155,14 +160,14 @@ Density_biome_broad_Fig <- ggplot() +
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
             alpha = 0.05) +
   geom_point(data = sb_density_area,
-             aes(x = Biome_Broad_Hab, y = Seed_density_m2, #colour = 	"#C0C0C0"
+             aes(x = reorder(Biome_Broad_Hab, Estimate), y = Seed_density_m2, #colour = 	"#C0C0C0"
                  colour = Biome_Broad_Hab
                  ), 
              size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
   geom_point(data = density_conditional_effects,
-             aes(x =  `WWF Biome`, y = Estimate, colour =  `WWF Biome`), size = 3) +
+             aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`), size = 3) +
   geom_errorbar(data = density_conditional_effects,
-                aes(x =  `WWF Biome`, ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
+                aes(x =   reorder(`WWF Biome`, Estimate), ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Seed density (',m^2,')')),
@@ -174,7 +179,7 @@ Density_biome_broad_Fig <- ggplot() +
   #ylim(0,100000)+
    coord_cartesian( ylim = c(0,25000)) +
   scale_y_continuous(breaks=c(0,1000, 3000,5000,10000,15000,20000,25000))+
-  theme_bw(base_size=14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme_bw(base_size=20) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title = element_text(size=18, hjust=0.5),
                                strip.background = element_blank(), legend.position="none",
@@ -184,5 +189,5 @@ Density_biome_broad_Fig <- ggplot() +
 
 
 Density_biome_broad_Fig
-# Landscape 8.50 X 16
+# Landscape 8.50 X 18
 

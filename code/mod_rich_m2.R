@@ -12,7 +12,7 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -113,6 +113,7 @@ save(rich_biome_broad_fitted, rich.fitted.df, rich_biome_broad_fixef, rich_biome
 setwd(paste0(path2wd, 'Data/'))
 #load('rich.area.poisson.mod_dat.Rdata')
 load('rich_biome_broad.mod_dat.Rdata')
+load('global.rich_biome_broad.posteriors.Rdata')
 
 
 # wrap text
@@ -132,36 +133,32 @@ sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 rich.fitted.df$wrapped_text <- llply(rich.fitted.df$Biome_Broad_Hab, wrapit)
 rich.fitted.df$wrapped_text <- unlist(rich.fitted.df$wrapped_text)
 
-# relevel number of sites as a factor
-rich.fitted.df <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
-  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) 
+head(rich.fitted.df)
 
-View(rich.fitted.df)
+
+p_e <- global.rich_biome_broad.p %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+
+# relevel number of sites as a factor and reorder
+rich.fitted.df <- rich.fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
+  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
+  left_join(p_e)
+
+sb_rich_area <- sb_rich_area %>% left_join(p_e)
+
+head(rich.fitted.df)
+
+
+head(sb_rich_area)
 
 fig_rich.biome_broad <- ggplot() + 
-  facet_wrap(~wrapped_text, scales="free") +
+  facet_wrap(~reorder(wrapped_text, Estimate)  , scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_rich_area ,
              aes(x = Total_Sample_Area_m2,
                y = Total_Species, colour = Biome_Broad_Hab,
-             ), 
-             size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  # fixed effect
-  # geom_line(data = rich_biome_broad_fitted,
-  #           aes(
-  #             # x = Total_Sample_Area_mm2,
-  #             x = Total_Sample_Area_m2,
-  #             y = Estimate, colour = Biome_Broad_Hab),
-  #           size = 1) +
-  # # uncertainy in fixed effect
-  # geom_ribbon(data = rich_biome_broad_fitted,
-  #             aes(
-  #               #x =  Total_Sample_Area_mm2,
-  #               x = Total_Sample_Area_m2,
-  #               ymin = Q2.5, ymax = Q97.5, fill = Biome_Broad_Hab),
-  #             alpha = 0.1 ) +
+             ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
 geom_line(data = rich.fitted.df,
           aes( x = Total_Sample_Area_m2,
                y = fitted[,1] , colour = Biome_Broad_Hab, group = Number_Sites , linetype = Number_Sites ),
@@ -174,7 +171,7 @@ geom_line(data = rich.fitted.df,
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
-  theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+  theme_bw(base_size=20 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
        x="",
@@ -188,7 +185,7 @@ legend.data <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) 
 
 fixed.leg <- ggplot() +
   geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
-  theme_classic(base_size=14 )+theme(panel.grid.major = element_blank(), 
+  theme_classic(base_size=20 )+theme(panel.grid.major = element_blank(), 
                                      panel.grid.minor = element_blank(), 
                                      strip.background = element_rect(colour="black", fill="white"),legend.position="bottom")+
   geom_segment(data = legend.data %>% select(Number_Sites) %>% distinct(Number_Sites),
@@ -349,8 +346,8 @@ head(global.rich_biome_broad.p)
 
 #slopes
 fig_rich_biome_broad_global <- ggplot() + 
-  geom_point(data = global.rich_biome_broad.p, aes(x = `WWF Biome`, y = Estimate, color=`WWF Biome`),size = 2) +
-  geom_errorbar(data = global.rich_biome_broad.p, aes(x = `WWF Biome`, ymin = `Lower CI`,
+  geom_point(data = global.rich_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ) , y = Estimate, color=`WWF Biome`),size = 2) +
+  geom_errorbar(data = global.rich_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ), ymin = `Lower CI`,
                                                ymax =  `Upper CI`, color = `WWF Biome`),
                 width = 0, size = 0.7) +
   labs(x = '',
@@ -361,7 +358,7 @@ fig_rich_biome_broad_global <- ggplot() +
   labs(y = "Slope", 
        x="",
        color = "WWF Biome", subtitle= "b)") + 
-  theme_bw(base_size=12)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme_bw(base_size=20)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #panel.background = element_rect(fill = "transparent"), # bg of the panel
                                plot.background = element_rect(fill = "transparent", color = NA), # bg of the plot
                                #axis.text.x=element_blank(),

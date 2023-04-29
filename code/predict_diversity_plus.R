@@ -14,7 +14,7 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -169,22 +169,32 @@ rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
   # mutate(Number_Sites = factor(Number_Sites)) %>%
   # mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
 
+
+ library(viridis)
+ vir<-colorRampPalette(plasma(15))
+ 
+ aseq<-seq(6,20,1)
+ gseq<-seq(15,43,2)
+ rich_biome_div$cola[!is.na(rich_biome_div$a_Estimate)]<-vir(15)[unlist(sapply(rich_biome_div$a_Estimate, function(x) which.min(abs(aseq-x))))]
+ rich_biome_div$colg[!is.na(rich_biome_div$g_Estimate)]<-vir(15)[unlist(sapply(rich_biome_div$g_Estimate, function(x) which.min(abs(gseq-x))))]
+ 
 View(rich_biome_div)
 
 rich_biome_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
-             aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = Biome_Broad_Hab,
+             aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = cola,
                #  group = Number_Sites,  shape = Number_Sites
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, colour = Biome_Broad_Hab,
+                aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, colour = cola,
                     group = Number_Sites
                     ),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
-  scale_color_viridis(discrete = T, option="D")  +
+#  scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual(values = rich_biome_div$cola)+
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -204,17 +214,18 @@ rich_biome_a
 rich_biome_g <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
-             aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , y = g_Estimate, colour = Biome_Broad_Hab,
-                 group = Number_Sites,  shape = Number_Sites
+             aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , y = g_Estimate, colour = colg,
+                 group = Number_Sites,  
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = Biome_Broad_Hab,
+                aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = colg,
                    # group = Number_Sites
                     ),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
-  scale_color_viridis(discrete = T, option="D")  +
+  #scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual(values = rich_biome_div$colg)+
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -294,6 +305,8 @@ rich_legend_o <- g_legend(rich_legend)
 
 (rich_biome_a)/ (rich_biome_g) 
 
+
+(rich_biome_a) + (rich_biome_g) 
 
 
 rich_joint <- ggplot()+
