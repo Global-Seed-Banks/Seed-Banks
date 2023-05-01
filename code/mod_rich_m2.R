@@ -326,9 +326,10 @@ global.rich_biome_broad.p <- bind_rows(rich.aq.p, rich.arable.p, rich.bor.p, ric
   mutate( Model = "Richness",
           `WWF Biome` = response ,
            Estimate = round(eff, 4),
-          `Upper CI` = round(eff_upper, 2),
           `Lower CI` = round(eff_lower, 2),
-         ) %>% select(-c(eff, eff_lower, eff_upper, response))
+          `Upper CI` = round(eff_upper, 2),
+         ) %>% select(-c(eff, eff_lower, eff_upper, response)) %>%
+  arrange(Estimate)
 
 head(global.rich_biome_broad.p)
 

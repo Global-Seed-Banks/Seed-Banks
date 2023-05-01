@@ -365,9 +365,9 @@ global.rich_seed_biome_broad.p <- bind_rows(seed.aq.p, seed.arable.p,
   mutate(  Model = "Richness and seeds",
          `WWF Biome` = response ,
            Estimate = round(eff, 2),
+         `Lower CI` = round(eff_lower, 2),
          `Upper CI` = round(eff_upper, 2),
-           `Lower CI` = round(eff_lower, 2),
-  ) %>% select(-c(eff, eff_lower, eff_upper, response))
+  ) %>% select(-c(eff, eff_lower, eff_upper, response)) %>% arrange(Estimate)
 
 head(global.rich_seed_biome_broad.p)
 

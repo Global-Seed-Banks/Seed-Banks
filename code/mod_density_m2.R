@@ -106,9 +106,9 @@ density_conditional_effects <- density_biome_broad_df %>%
   mutate( Model = "Density",
           `WWF Biome`= Biome_Broad_Hab,
           Estimate = round(estimate__ , 2),
+          `Lower CI` = round(lower__ , 2),
          `Upper CI` = round(upper__ , 2),
-         `Lower CI` = round(lower__ , 2),
-         ) %>% select(Model, `WWF Biome`, Estimate, `Upper CI`, `Lower CI`)
+         ) %>% select(Model, `WWF Biome`, Estimate, `Upper CI`, `Lower CI`) %>% arrange(Estimate)
 
 head(density_conditional_effects)
 

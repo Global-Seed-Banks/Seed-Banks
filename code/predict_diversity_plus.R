@@ -161,8 +161,47 @@ View(rich_biome_div)
 setwd(paste0(path2wd, 'Data/'))
 write.csv(rich_biome_div,  "sb_av_div_estimates.csv")
 
+
+
 rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
+View(rich_biome_div)
+
+table_prep <- rich_biome_div %>% mutate(g_Lower.CI = round(g_Lower.CI, 0)) %>%
+  unite("a_CI", a_Lower.CI:a_Upper.CI, sep=",") %>%
+  unite("g_CI", g_Lower.CI:g_Upper.CI, sep=",") %>%
+  mutate(a_CI = paste0("(", a_CI, ")"),
+         g_CI = paste0("(", g_CI, ")"), ) %>%
+  unite("a_scale", a_Estimate:a_CI, sep=" ") %>%
+  unite("g_scale", g_Estimate:g_CI, sep=" ")
+
+a_table <- table_prep %>% select(-g_scale) %>%
+  spread(Number_Sites, a_scale)  %>%
+  mutate( "a_1" = `1`, "a_20" = `20`, "a_100" = `100`) %>% select(-c("1","20","100"))
+
+a_table
+
+g_table <- table_prep %>% select(-a_scale) %>%
+  spread(Number_Sites, g_scale) %>%
+  mutate( "g_1" = `1`, "g_20" = `20`, "g_100" = `100`)%>% select(-c("1","20","100"))
+
+g_table
+
+
+table_6 <- a_table %>% left_join( g_table) %>%
+  separate(a_1, c("a_estimate", "a_CI"), sep=" ", remove=F) %>% 
+  separate(g_1, c("g_estimate", "g_CI"), sep=" ", remove=F) %>% 
+  mutate(a_estimate = as.numeric(a_estimate),
+         g_estimate = as.numeric(g_estimate)  ) %>%
+  arrange(a_estimate, g_estimate, Biome_Broad_Hab) %>%
+  select(-c(a_estimate, g_estimate, a_CI, g_CI))
+
+head(table_6)
+
+setwd(paste0(path2wd, 'Tables/'))
+write.csv(table_6, "table_6.csv")
+
+rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
  rich_biome_div <- rich_biome_div %>% #left_join(cols) %>% 
    filter( Number_Sites == "1") # turn off for Fgure S6
@@ -334,5 +373,63 @@ rich_joint <- ggplot()+
 
 # 8.50 X 14
 rich_joint
+
+
+# what about joint richness ratio
+
+rich_ratio<- rich_biome_div %>% mutate(`WWF Biome` = Biome_Broad_Hab) %>%
+  left_join(ratio_conditional_effects) 
+
+head(rich_ratio)
+
+# a diversity first
+ratio_rich_a_joint <- ggplot()+
+  geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
+  # overall effects
+  geom_point(data = rich_ratio,
+             aes(x = a_Estimate, y = Estimate, colour = Biome_Broad_Hab
+             ), size = 3) +
+  geom_errorbar(data = rich_ratio,
+                aes(x = a_Estimate , ymin = `Lower CI`, ymax =  `Upper CI`,  colour = Biome_Broad_Hab )) +
+  geom_errorbarh(data = rich_ratio,
+                 aes(y = Estimate , xmin = `a_Lower.CI`, xmax =  `a_Upper.CI`,  colour = Biome_Broad_Hab )) +
+  scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25)) +
+ # scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  ylab("Average Ratio") +
+  xlab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) +
+  theme_classic(base_size=16) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
+  guides(color=guide_legend(title="Biome", ncol = 3))
+
+# 8.50 X 14
+ratio_rich_a_joint
+
+
+ratio_rich_g_joint <- ggplot()+
+  geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
+  # overall effects
+  geom_point(data = rich_ratio,
+             aes(x = g_Estimate, y = Estimate, colour = Biome_Broad_Hab
+             ), size = 3) +
+  geom_errorbar(data = rich_ratio,
+                aes(x = g_Estimate , ymin = `Lower CI`, ymax =  `Upper CI`,  colour = Biome_Broad_Hab )) +
+  geom_errorbarh(data = rich_ratio,
+                 aes(y = Estimate , xmin = `g_Lower.CI`, xmax =  `g_Upper.CI`,  colour = Biome_Broad_Hab )) +
+  #scale_y_continuous(breaks=c(0, 5, 10, 15, 20, 25)) +
+   scale_x_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60)) +
+  scale_color_viridis(discrete = T, option="D")  +
+  ylab("Average Ratio") +
+  xlab((expression(paste('Average ', italic(gamma), '-richness ',sep = '')))) +
+  theme_classic(base_size=16) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
+  guides(color=guide_legend(title="Biome", ncol = 3))
+
+# 8.50 X 14
+ratio_rich_g_joint
+
+(ratio_rich_a_joint + ratio_rich_g_joint)
 
 
