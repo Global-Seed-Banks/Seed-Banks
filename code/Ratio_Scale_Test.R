@@ -158,23 +158,24 @@ ratio_biome_broad_Fig <- ggplot() +
   #            ),
   #            size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
   geom_point(data = ratio_m2,
-             aes(x =  Biome_Broad_Hab, y = ratio_Estimate, colour =  Biome_Broad_Hab), size = 3) +
+             aes(x =  reorder(Biome_Broad_Hab, ratio_Estimate), y = ratio_Estimate, colour =  Biome_Broad_Hab), size = 3) +
   geom_errorbar(data = ratio_m2,
                 aes(x =  Biome_Broad_Hab, ymin = `ratio_Lower CI`, ymax = `ratio_Upper CI`, colour =  Biome_Broad_Hab),
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Ratio (Seeds/Species)')) ,
-       subtitle=  expression(paste('b) Ratio (Seeds/Species)'))  ) + 
+       subtitle=  expression(paste('Predicted ratio (seeds/species)'))  ) + 
   # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
   scale_color_viridis(discrete = T, option="D")  +
   scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
   coord_cartesian( ylim = c(0,1000)) +
-  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
-  theme_bw(base_size=14)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300,500, 800, 1000))+
+  theme_bw(base_size=20)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 
 ratio_biome_broad_Fig
+#8.50X18

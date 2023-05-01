@@ -133,6 +133,7 @@ save(rich_seeds_biome_broad_fitted, rich_seeds_biome_broad_fixef, rich_seeds_bio
 setwd(paste0(path2wd, 'Data/'))
 #load('seed.area.poisson.mod_dat.Rdata')
 load('rich_seeds_biome_broad.mod_dat.Rdata')
+load('global.rich_seed_biome_broad.posteriors.Rdata')
 
 # plot seedness area biome_broad relationship
 
@@ -150,9 +151,18 @@ sb_rich_seed$wrapped_text <- unlist(sb_rich_seed$wrapped_text)
 rich_seeds_biome_broad_fitted$wrapped_text <- llply(rich_seeds_biome_broad_fitted$Biome_Broad_Hab, wrapit)
 rich_seeds_biome_broad_fitted$wrapped_text <- unlist(rich_seeds_biome_broad_fitted$wrapped_text)
 
+p_e <- global.rich_seed_biome_broad.p %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+
+# relevel number of sites as a factor and reorder
+seed.fitted.df <- seed.fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
+  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
+  left_join(p_e)
+
+sb_rich_seed <- sb_rich_seed %>% left_join(p_e)
+
 
 fig_rich_seed.biome_broad <- ggplot() + 
-  facet_wrap(~wrapped_text, scales="free") +
+  facet_wrap(~reorder(wrapped_text, Estimate), scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -190,8 +200,6 @@ fig_rich_seed.biome_broad <- ggplot() +
 #scale_x_log10() + scale_y_log10() 
 
 fig_rich_seed.biome_broad
-
-
 
 
 
@@ -380,7 +388,7 @@ load('global.rich_seed_biome_broad.posteriors.Rdata')
 global.rich_seed_biome_broad.p
 
 fig_rich_seed_biome_broad_global <- ggplot() + 
-  geom_point(data = global.rich_seed_biome_broad.p, aes(x = `WWF Biome`, y = Estimate, color=`WWF Biome`),size = 2) +
+  geom_point(data = global.rich_seed_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate), y = Estimate, color=`WWF Biome`),size = 2) +
   geom_errorbar(data = global.rich_seed_biome_broad.p, aes(x = `WWF Biome`,ymin = `Lower CI`,
                                                ymax = `Upper CI`, color = `WWF Biome`),
                 width = 0, size = 0.7) +

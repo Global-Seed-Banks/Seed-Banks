@@ -165,27 +165,30 @@ rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
 
  rich_biome_div <- rich_biome_div %>% #left_join(cols) %>% 
-   filter( Number_Sites == "1") 
-  # mutate(Number_Sites = factor(Number_Sites)) %>%
-  # mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
+   filter( Number_Sites == "1") # turn off for Fgure S6
+   # mutate(Number_Sites = factor(Number_Sites)) %>% # turn this line and next on for Figure S6
+   # mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
 
  head(rich_biome_div)
 
 rich_biome_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
-             aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = a_Estimate,
-               #  group = Number_Sites,  shape = Number_Sites
+             aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = Biome_Broad_Hab,#a_Estimate,
+                group = Number_Sites,  shape = Number_Sites
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, colour = a_Estimate,
-                   # group = Number_Sites
+                aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
+                    olour =  
+                      a_Estimate, #turn off for figure s6
+                      #Biome_Broad_Hab, # turn on for figure s6
+                    group = Number_Sites
                     ),
                 position = position_dodge(width = 0.75),
                 linewidth = 0.75, width = 0) +
-#  scale_color_viridis(discrete = T, option="D")  +
-  scale_color_viridis(discrete = F, option="plasma", limits = c(0, 20) )  +
+ scale_color_viridis(discrete = T, option="D")  +
+ # scale_color_viridis(discrete = F, option="plasma", limits = c(0, 20) )  +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -206,18 +209,20 @@ rich_biome_a
 rich_biome_g <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
-             aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , y = g_Estimate, colour = g_Estimate,
-                # group = Number_Sites,  
+             aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , y = g_Estimate, 
+                 colour = #Biome_Broad_Hab,  # turn on for figure s6
+                   g_Estimate, # turn off for figure s6
+                 group = Number_Sites,   shape = Number_Sites
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = g_Estimate,
-                   # group = Number_Sites
+                aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = Biome_Broad_Hab, #g_Estimate,
+                    group = Number_Sites
                     ),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
-  #scale_color_viridis(discrete = T, option="D")  +
-  scale_color_viridis(discrete = F, option="plasma", limits = c(10, 40) )  +
+  scale_color_viridis(discrete = T, option="D")  +
+  #scale_color_viridis(discrete = F, option="plasma", limits = c(10, 40) )  +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -237,6 +242,7 @@ rich_biome_g
 # map objects created in abg_map.R
 # LANDSCAPES 16 X 32
 (rich_biome_a + rich_biome_g) / (a_map + g_map) + plot_layout(heights = c(10, 10))
+
 
 
 

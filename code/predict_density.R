@@ -10,7 +10,7 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox//GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -144,9 +144,9 @@ predicted_density_fig <- ggplot() +
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
             alpha = 0.05) +
   geom_point(data = predicted_density,
-             aes(x =  `Biome_Broad_Hab`, y = d_Estimate, colour =  `Biome_Broad_Hab`), size = 3) +
+             aes(x =  reorder(`Biome_Broad_Hab`, d_Estimate), y = d_Estimate, colour =  `Biome_Broad_Hab`), size = 3) +
   geom_errorbar(data = predicted_density,
-                aes(x =  `Biome_Broad_Hab`, ymin = `d_Lower.CI`, ymax = `d_Upper.CI`, colour =  `Biome_Broad_Hab`),
+                aes(x = reorder(`Biome_Broad_Hab`, d_Estimate), ymin = `d_Lower.CI`, ymax = `d_Upper.CI`, colour =  `Biome_Broad_Hab`),
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Predicted seed density (',m^2,')')),

@@ -14,7 +14,7 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
+                  "el50nico" = "~/Dropbox//GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -59,7 +59,7 @@ nrow(sb_seed_area)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'seed_m2_extent.Rdata') # jan folder 
+load( 'seed_m2.Rdata') # jan folder 
 
 summary(seeds_m2)
 
@@ -158,9 +158,8 @@ save(seed_biome_broad_fitted, seed_biome_broad_fixef, seed.fitted.df, seed_biome
 
 # plots
 setwd(paste0(path2wd, 'Data/'))
-#load('seed.area.poisson.mod_dat.Rdata')
 load('seed_biome_broad.mod_dat.Rdata')
-
+load('global.seed_biome_broad.posteriors.Rdata')
 
 library(plyr)
 # wrap text
@@ -179,9 +178,20 @@ seed.fitted.df <- seed.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites
   mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) 
 
 head(seed.fitted.df)
+head(global.seed_biome_broad.p)
+
+p_e <- global.seed_biome_broad.p %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+
+# relevel number of sites as a factor and reorder
+seed.fitted.df <- seed.fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
+  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
+  left_join(p_e)
+
+sb_seed_area <- sb_seed_area %>% left_join(p_e)
+
 
 fig_seed.biome_broad <- ggplot() + 
-  facet_wrap(~wrapped_text, scales="free") +
+  facet_wrap(~reorder(wrapped_text, Estimate), scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -392,8 +402,8 @@ load('global.seed_biome_broad.posteriors.Rdata')
 global.seed_biome_broad.p
 
 fig_seed_biome_broad_global <- ggplot() + 
-  geom_point(data = global.seed_biome_broad.p, aes(x = `WWF Biome`, y = Estimate, color=`WWF Biome`),size = 2) +
-  geom_errorbar(data = global.seed_biome_broad.p, aes(x = `WWF Biome`,ymin = `Lower CI`,
+  geom_point(data = global.seed_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ), y = Estimate, color=`WWF Biome`),size = 2) +
+  geom_errorbar(data = global.seed_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ),ymin = `Lower CI`,
                                                ymax = `Upper CI`, color = `WWF Biome`),
                 width = 0, size = 0.7) +
   labs(x = '',
