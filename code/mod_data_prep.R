@@ -113,7 +113,7 @@ sb_clean <- read.csv(paste0(path2wd, 'gsb_cleaned.csv'))
 head(sb_clean)
 
 study_refs <- sb_clean %>% 
-  select( studyID, Authors, Year, Title, Journal, Doi, URL, studylong) %>%
+  select( studyID, URL, Title, Journal) %>%
   distinct()
 
 head(study_refs)
@@ -138,6 +138,10 @@ sb_gathered <- sb_prep %>% select(rowID, studyID, Centred_log_Total_Sample_Area_
 head(sb_gathered)
 nrow(sb_gathered) # Total data points = 8087
 
+# % 0's 15/8087
+
+ round( ((15/8087)* 100) , 2)
+
 sites_count <- sb_gathered %>%
   select(Number_Sites) %>%
   dplyr::group_by(Number_Sites) %>%
@@ -159,6 +163,14 @@ nrow( sb_gathered %>% filter(metric == "Total_Species",
 
 nrow( sb_gathered %>% filter(metric == "Total_Seeds",
                              !is.na(Centred_log_Total_Sample_Area_m2)) )
+
+head(sb_gathered)
+nrow( 
+  sb_gathered %>% filter(metric == "Total_Seeds",
+                       !is.na(Centred_log_Total_Sample_Area_m2)) %>%
+  select(studyID) %>% distinct() )
+  #summarise( sum_seeds = sum( as.numeric(response)) ) # total number of seeds
+
 
 nrow( sb_gathered %>%  filter( !response == 0 ) %>% filter(metric == "Seed_density_m2") )
 
@@ -183,11 +195,16 @@ sb_gathered %>% filter(metric == "Total_Species",
 
 sb_gathered %>% filter(metric == "Total_Seeds",
                        !is.na(Centred_log_Total_Sample_Area_m2) ) %>%
+  # mutate( N_site_cats = 
+  #           case_when( (Number_Sites == 1) ~ "1 site",
+  #                      (Number_Sites >= 2 & Number_Sites <= 20) ~ "2-20 sites",
+  #                      (Number_Sites >= 21 & Number_Sites <= 100) ~ "21-100 sites",
+  #                      TRUE ~ "> 100 sites" ) ) %>%
   mutate( N_site_cats = 
-            case_when( (Number_Sites == 1) ~ "1 site",
-                       (Number_Sites >= 2 & Number_Sites <= 20) ~ "2-20 sites",
-                       (Number_Sites >= 21 & Number_Sites <= 100) ~ "21-100 sites",
-                       TRUE ~ "> 100 sites" ) ) %>%
+            case_when( (Number_Sites >= 1 & Number_Sites <= 19) ~ "1-20 site",
+                       (Number_Sites >= 20 & Number_Sites <= 99 ) ~ "20-99 sites",
+                       (Number_Sites >= 100 ) ~ "100 and more sites",
+                       TRUE ~ "Other" ) ) %>%
   select(N_site_cats) %>%
   dplyr::group_by(N_site_cats) %>%
   count() 
@@ -199,7 +216,7 @@ colnames(sb_prep)
 # get a summary of min and max values
 # keep country and study details so we can cite them as examples
 
-sb_deets <- sb_prep %>% group_by(Biome_Broad_Hab, Country, studyID) %>%
+sb_deets <- sb_prep %>% group_by(Biome_Broad_Hab, Country, studyID, rowID) %>%
   summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
             `max-Total_Number_Samples` = max(as.numeric(Total_Number_Samples),na.rm = TRUE),
             `min-Number_Sites` = min(as.numeric(Number_Sites), na.rm = TRUE),
@@ -223,19 +240,23 @@ sb_deets <- sb_prep %>% group_by(Biome_Broad_Hab, Country, studyID) %>%
   ) %>%
   pivot_longer(`min-Total_Number_Samples` : `max-Total_Seeds`) %>%
   separate(name, into = c("minmax", "name"), sep="-") %>% 
-  #spread(minmax, value) %>%
   ungroup() %>%
   filter(# value > 0,
-         !is.infinite(value) ) 
+         !is.infinite(value) )  #%>% 
+ # spread(minmax, value) %>%
+  # left_join(study_refs)
+
 
 View(sb_deets)
 
 sb_zero <- sb_deets %>%
   filter(minmax == "min") %>%
-  filter(value == 0)
+  filter(value == 0) %>% left_join(study_refs)
 
 sb_zero
-
+nrow(sb_zero)
+View(sb_zero)
+# 15 rows, data points
 
 sb_minmax <-  bind_rows(
   
@@ -259,30 +280,42 @@ sb_minmax <-  bind_rows(
       count() 
   ) ) 
 
- min_max <- sb_minmax %>% filter(!n > 1)
+View(sb_minmax)
+
+ min_max <- sb_minmax #%>% filter(!n > 1)
   
- print(min_max)
- 
+print(min_max)
+
+View(min_max)
+ head(min_max)
 colnames(sb_prep)
 
-responses <- min_max %>% #filter(name %in% c( "Seed_density_m2", "Total_Seeds", "Total_Species", "ratio_seeds_species") ) %>%
+min_max %>% select(name) %>% distinct()
+
+responses <- min_max %>% filter(name %in% c( "Seed_density_m2", "Total_Seeds", "Total_Species",
+                                             "ratio_seeds_species", "Total_Sample_Area_m2" ,
+                                             "Total_Number_Samples", "Number_Sites"
+                                             ) ) %>%
   left_join(sb_prep) %>% select(
-    Biome_Broad_Hab, Country, studyID, name, minmax, value, n,
+    Biome_Broad_Hab, Country, studyID, rowID, name, minmax, value, n,
     Total_Species, Seed_density_m2, Total_Seeds, ratio_seeds_species,
-    Total_Number_Samples, Number_Sites, Total_Sample_Area_m2, Total_Sample_Volume_m3, )
+    Total_Number_Samples, Number_Sites, Total_Sample_Area_m2, Total_Sample_Volume_m3, ) %>% left_join(study_refs)
 
 
 colnames(responses)
 View(responses)
 
-studies_mmin_multi <- sb_minmax %>% filter(n > 1)
+studies_mmin_multi <- responses %>% filter(n > 1)
  View(studies_mmin_multi)
 
-min_max_count <- sb_minmax %>% filter(n > 1) %>% 
-   select( minmax, value, n) %>%
-   distinct()
+min_max_count <- responses %>% filter(n == 1) #%>% 
+   # select( minmax, value, n) %>%
+   # distinct()
 
 View(min_max_count)
+
+View(sb_prep %>% filter(studyID == #"G084",
+                        "H059" ))
 
 write.csv(sb_deets,  "sb_details_summary.csv")
 write.csv(sb_deets,  "sb_details_biome_summary.csv")
