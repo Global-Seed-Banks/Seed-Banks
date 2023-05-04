@@ -53,6 +53,9 @@ rich_m2 <- brm(Total_Species ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Ha
                                    max_treedepth = 13)
 )
 
+
+
+
 save(rich_m2,
      file=Sys.getenv('OFILE'))
 

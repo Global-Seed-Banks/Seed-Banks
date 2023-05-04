@@ -66,9 +66,21 @@ summary(sb_calc)
 
 
 # write over biomes when habitat is arable or aquatic
+# simplify  latitude to polar, temperate or tropical realms
 sb_mod <- sb_calc %>% 
   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
-                                                                                             TRUE ~ Biome_WWF_Broad))
+                                    TRUE ~ Biome_WWF_Broad)) %>%
+  mutate(Lat_Deg_abs = abs(Lat_Deg)) %>%
+  mutate( Realm = case_when(Lat_Deg_abs >= 60 ~ "Polar",
+                            Lat_Deg_abs > 23.5 & Lat_Deg < 60 ~ "Temperate",
+                            Lat_Deg_abs <= 23.5 ~ "Tropical",
+                            TRUE ~ "Other" ) )
+  
+
+sb_mod %>% distinct(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>% arrange(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>%
+  filter(Biome_Broad_Hab == "Tropical and Subtropical Forests")
+  
+
 # check out biome and habitat combos
 sb_mod %>% distinct( Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 
@@ -93,7 +105,7 @@ View(sb_check)
 write.csv(sb_mod,  "sb_prep.csv")
 
 
-# reload new dat and get some summaries
+# reload new dat and get some summaries for methods/ tables etc whatever
 sb_prep <- read.csv(paste0(path2wd, 'sb_prep.csv'))
 
 sb_clean <- read.csv(paste0(path2wd, 'gsb_cleaned.csv'))
