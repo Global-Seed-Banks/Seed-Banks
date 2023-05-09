@@ -74,7 +74,10 @@ View(rich_biome_broad_fitted)
 
 # make sure plyr isnt loaded
 rich.fitted <- tidyr::crossing( sb_rich_area %>% dplyr::group_by(Biome_Broad_Hab) %>%
-                                    dplyr::summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 100) ) ), 
+                                    dplyr::summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), 
+                                                                                    length.out = n()
+                                                                                    #length.out = 100
+                                                                                    ) ) ), 
                                 Number_Sites = c(1, 20, 100),
 )  %>% mutate( log_Number_Sites = log(Number_Sites),
           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
@@ -95,6 +98,7 @@ rich.fitted.df  <- rich.fitted %>%
 
 head(rich.fitted.df)
 nrow(rich.fitted.df)
+View(rich.fitted.df)
 
 # fixed effect coefficients
 rich_biome_broad_fixef <- fixef(rich_m2)
@@ -135,38 +139,44 @@ rich.fitted.df$wrapped_text <- unlist(rich.fitted.df$wrapped_text)
 
 head(rich.fitted.df)
 
-
+View(global.rich_biome_broad.p)
 p_e <- global.rich_biome_broad.p %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+
 
 # relevel number of sites as a factor and reorder
 rich.fitted.df <- rich.fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
   mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
-  left_join(p_e)
+  left_join(p_e) %>% distinct()
 
 sb_rich_area <- sb_rich_area %>% left_join(p_e)
 
 head(rich.fitted.df)
-
-
 head(sb_rich_area)
 
+rich.fitted.df %>% select(Biome_Broad_Hab) %>% distinct()
+
+View( rich.fitted.df %>% filter( Biome_Broad_Hab == "Tundra"))
+
 fig_rich.biome_broad <- ggplot() + 
-  facet_wrap(~reorder(wrapped_text, Estimate)  , scales="free") +
+  facet_wrap(~ reorder(wrapped_text, Estimate),
+             #  wrapped_text,
+             scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
-  geom_point(data = sb_rich_area ,
+  geom_point(data = sb_rich_area,
              aes(x = Total_Sample_Area_m2,
-               y = Total_Species, colour = Biome_Broad_Hab,
+               y = Total_Species, colour = wrapped_text,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-geom_line(data = rich.fitted.df,
+geom_line(data = rich.fitted.df, 
           aes( x = Total_Sample_Area_m2,
-               y = fitted[,1] , colour = Biome_Broad_Hab, group = Number_Sites , linetype = Number_Sites ),
-          size = 1 ) +
+               y = fitted[,1] , colour = wrapped_text, group = Number_Sites , linetype = Number_Sites  ),
+          size = 1 
+          ) +
   geom_ribbon(data = rich.fitted.df ,
               aes(
                 x = Total_Sample_Area_m2,
-                ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = Biome_Broad_Hab),
+                ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = wrapped_text),
               alpha = 0.2) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
   scale_color_viridis(discrete = T, option="D")  +
@@ -193,7 +203,7 @@ fixed.leg <- ggplot() +
                    xend = 15,
                    y = 0,
                    yend = 15,  linetype = Number_Sites ), 
-               size = 1.5, alpha= 0.5 )  +
+               size = 1.5, alpha= 0.5  )  +
   scale_color_viridis(discrete = T, option="D")  +
   theme(legend.key.width = unit(2,"cm")) +  guides(linetype=guide_legend(title="Number of sites"))
 

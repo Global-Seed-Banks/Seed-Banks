@@ -121,7 +121,10 @@ nrow(seed_biome_broad_fitted)
 
 
 seed.fitted <- tidyr::crossing( sb_seed_area %>% dplyr::group_by(Biome_Broad_Hab) %>%
-                                  dplyr::summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2), length.out = 100) ) ), 
+                                  dplyr::summarise(Total_Sample_Area_m2 = c( seq( min(Total_Sample_Area_m2), max(Total_Sample_Area_m2),
+                                                                                  length.out = n()
+                                                                                  #length.out = 100
+                                                                                  ) ) ), 
                                 Number_Sites = c(1, 20, 100),
 )  %>% mutate( log_Number_Sites = log(Number_Sites),
                log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),

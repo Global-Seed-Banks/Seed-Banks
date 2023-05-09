@@ -135,21 +135,22 @@ write.csv(rich_biome_scales,  "sb_av_div_scales.csv")
 rich_biome_scales <- read.csv(paste0(path2wd, 'Data/sb_av_div_scales.csv'))
 
 head(rich_biome_scales)
-View(rich_biome_scales)
+summary(rich_biome_scales)
 
 rich_biome_div <- rich_biome_scales %>%
   ungroup() %>%
   select(-c(.draw)) %>%
+  filter(!is.infinite(b_predicted)) %>%
   dplyr::group_by(Biome_Broad_Hab, Number_Sites) %>%
-  mutate( a_Estimate = mean(a_predicted, na.rm =TRUE ),
+  mutate( a_Estimate = round( mean(a_predicted, na.rm =TRUE ) ,0),
           `a_Upper CI` = quantile(a_predicted, probs=0.975, na.rm =TRUE ),
           `a_Lower CI` = quantile(a_predicted, probs=0.025, na.rm =TRUE ),
-           g_Estimate = mean(g_predicted, na.rm =TRUE ),
+           g_Estimate = round( mean(g_predicted, na.rm =TRUE ) , 0 ),
           `g_Upper CI` = quantile(g_predicted, probs=0.975, na.rm =TRUE ),
-          `g_Lower CI` = quantile(g_predicted, probs=0.025, na.rm =TRUE ),
-           b_Estimate = mean(b_predicted, na.rm =TRUE ),
-          `b_Upper CI` = quantile(b_predicted, probs=0.975, na.rm =TRUE ),
-          `b_Lower CI` = quantile(b_predicted, probs=0.025, na.rm =TRUE ),
+          `g_Lower CI` = round( quantile(g_predicted, probs=0.025, na.rm =TRUE ), 0),
+           b_Estimate = round( mean(b_predicted, na.rm =TRUE ) , 0 ),
+          `b_Upper CI` = round( quantile(b_predicted, probs=0.975, na.rm =TRUE ) ,0),
+          `b_Lower CI` = round( quantile(b_predicted, probs=0.025, na.rm =TRUE ), 0),
   ) %>% 
   select(-c(X, a_predicted, g_predicted, b_predicted)) %>% distinct() %>% ungroup()
 
@@ -165,9 +166,9 @@ write.csv(rich_biome_div,  "sb_av_div_estimates.csv")
 
 rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
-View(rich_biome_div)
+head(rich_biome_div)
 
-table_prep <- rich_biome_div %>% mutate(g_Lower.CI = round(g_Lower.CI, 0)) %>%
+table_prep <- rich_biome_div %>% #mutate(g_Lower.CI = round(g_Lower.CI, 0)) %>%
   unite("a_CI", a_Lower.CI:a_Upper.CI, sep=",") %>%
   unite("g_CI", g_Lower.CI:g_Upper.CI, sep=",") %>%
   mutate(a_CI = paste0("(", a_CI, ")"),
@@ -213,21 +214,21 @@ rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 rich_biome_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
-             aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = Biome_Broad_Hab,#a_Estimate,
-                group = Number_Sites,  shape = Number_Sites
+             aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
+                group = Number_Sites,  #shape = Number_Sites
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
                 aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
-                    olour =  
+                    colour =  
                       a_Estimate, #turn off for figure s6
                       #Biome_Broad_Hab, # turn on for figure s6
                     group = Number_Sites
                     ),
                 position = position_dodge(width = 0.75),
                 linewidth = 0.75, width = 0) +
- scale_color_viridis(discrete = T, option="D")  +
- # scale_color_viridis(discrete = F, option="plasma", limits = c(0, 20) )  +
+ #scale_color_viridis(discrete = T, option="D")  +
+  scale_color_viridis(discrete = F, option="plasma", limits = c(0, 20) )  +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -251,17 +252,17 @@ rich_biome_g <- ggplot() +
              aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , y = g_Estimate, 
                  colour = #Biome_Broad_Hab,  # turn on for figure s6
                    g_Estimate, # turn off for figure s6
-                 group = Number_Sites,   shape = Number_Sites
+                 group = Number_Sites,   #shape = Number_Sites
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
-                aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = Biome_Broad_Hab, #g_Estimate,
+                aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = g_Estimate,  #Biome_Broad_Hab, 
                     group = Number_Sites
                     ),
                 position = position_dodge(width = 0.75),
                 size = 0.75, width = 0) +
-  scale_color_viridis(discrete = T, option="D")  +
-  #scale_color_viridis(discrete = F, option="plasma", limits = c(10, 40) )  +
+  #scale_color_viridis(discrete = T, option="D")  +
+  scale_color_viridis(discrete = F, option="plasma", limits = c(10, 40) )  +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -284,33 +285,6 @@ rich_biome_g
 
 
 
-
-# rich_biome_b <- ggplot() + 
-#   geom_hline(yintercept = 0,linetype="longdash") +
-#   geom_point(data = rich_biome_div %>% filter(Number_Sites == 1),
-#              aes(x = Biome_Broad_Hab , y = b_Estimate, colour = Biome_Broad_Hab, group= Number_Sites, shape= Number_Sites ), 
-#              position = position_dodge(width = 0.75), size = 3) +
-#   geom_errorbar(data = rich_biome_div  %>% filter(Number_Sites == 1),
-#                 aes(x = Biome_Broad_Hab , ymin = `b_Lower.CI`, ymax =  `b_Upper.CI`, colour = Biome_Broad_Hab, group= Number_Sites),
-#                 position = position_dodge(width = 0.75),
-#                 size = 0.75, width = 0) +
-#   scale_color_manual(values = colb) +
-#   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-#                                #axis.text.x=element_blank(),
-#                                axis.title.x = element_blank(),
-#                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-#                                plot.title=element_text(size=18, hjust=0.5),
-#                                strip.background = element_blank(), legend.position="none",
-#                                legend.title = element_blank() ) + 
-#   scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
-#    coord_cartesian( ylim = c(0,15)) +
-#   ggtitle((expression(paste(italic(beta), '-diversity (', italic(gamma/alpha), ')', sep = '')))) + 
-#   ylab((expression(paste('Average ', italic(beta), '-Diversity ',sep = '')))) +  labs(x=''
-#   ) + guides(col = guide_legend(ncol = 3)) + labs( #subtitle= 'c)'
-#     ) 
-# 
-# 
-# rich_biome_b
 
 
 rich_legend <- ggplot() + 
@@ -350,6 +324,41 @@ rich_legend_o <- g_legend(rich_legend)
 
 (rich_biome_a) + (rich_biome_g) 
 
+head(rich_biome_div)
+
+rich_biome_b <- ggplot() + 
+  geom_hline(yintercept = 0,linetype="longdash") +
+  geom_point(data = rich_biome_div,
+             aes(x = reorder(Biome_Broad_Hab, b_Estimate ) , y = b_Estimate, 
+                 colour = Biome_Broad_Hab,  # turn on for figure s6
+                 # b_Estimate, # turn off for figure s6
+                 group = Number_Sites,   #shape = Number_Sites
+             ), 
+             position = position_dodge(width = 0.75), size = 3) +
+  geom_errorbar(data = rich_biome_div,
+                aes(x = reorder(Biome_Broad_Hab, b_Estimate ) , ymin = `b_Lower.CI`, ymax =  `b_Upper.CI`,  colour = Biome_Broad_Hab, #g_Estimate,
+                    group = Number_Sites
+                ),
+                position = position_dodge(width = 0.75),
+                size = 0.75, width = 0) +
+  scale_color_viridis(discrete = T, option="D")  +
+  #scale_color_viridis(discrete = F, option="plasma", limits = c(10, 40) )  +
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") + 
+  coord_cartesian( ylim = c(0,15)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
+  #ggtitle((expression(paste(italic(gamma), '-scale (15' ,m^2,')', sep = ''))))+
+  ylab((expression(paste('Average ', italic(beta), '-diversity ',sep = '')))) +
+  labs(subtitle= "b)" )+
+  guides(col = guide_legend(ncol = 3))
+
+
+rich_biome_b
+
 
 rich_joint <- ggplot()+
   geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
@@ -366,14 +375,16 @@ rich_joint <- ggplot()+
   scale_color_viridis(discrete = T, option="D")  +
   ylab((expression(paste('Average ', italic(gamma), '-richness ',sep = '')))) +
   xlab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) +
-  theme_classic(base_size=16) +
+  theme_classic(base_size=18) +
+  labs(subtitle= "a)" )+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
-  guides(color=guide_legend(title="Biome", ncol = 3))
+  guides(color=guide_legend(title="", ncol = 3))
 
 # 8.50 X 14
 rich_joint
 
+(rich_joint / rich_biome_b)
 
 # what about joint richness ratio
 
