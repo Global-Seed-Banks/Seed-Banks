@@ -37,6 +37,7 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
           rowID = as.factor(rowID))
 
 head(sb_rich_area)
+sb_rich_area %>% select(Method) %>% distinct()
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
@@ -384,7 +385,8 @@ rich_joint <- ggplot()+
 # 8.50 X 14
 rich_joint
 
-(rich_joint / rich_biome_b)
+# 12 X 14
+(rich_joint / rich_biome_b) + plot_layout(heights = c(10, 10))
 
 # what about joint richness ratio
 
