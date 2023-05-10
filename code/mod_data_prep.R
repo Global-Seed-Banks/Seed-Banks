@@ -66,7 +66,7 @@ summary(sb_calc)
 
 
 # write over biomes when habitat is arable or aquatic
-# simplify  latitude to polar, temperate or tropical realms
+# test Blowes et al biome method fopr comparison
 sb_mod <- sb_calc %>% 
   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
                                     TRUE ~ Biome_WWF_Broad)) %>%
@@ -75,11 +75,11 @@ sb_mod <- sb_calc %>%
                             Lat_Deg_abs > 23.5 & Lat_Deg < 60 ~ "Temperate",
                             Lat_Deg_abs <= 23.5 ~ "Tropical",
                             TRUE ~ "Other" ) )
-  
 
+
+# conclusion: ours is better for our purposes
 sb_mod %>% distinct(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>% arrange(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>%
   filter(Biome_Broad_Hab == "Tropical and Subtropical Forests")
-  
 
 # check out biome and habitat combos
 sb_mod %>% distinct( Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
@@ -128,19 +128,31 @@ biome_count <- sb_prep %>% select(Biome_Broad_Hab,  Total_Species) %>%
 biome_count
 
 head(sb_prep)
+nrow(sb_prep)
+# 3071 rows but these can have varying numbers of observations/responses
 
-sb_gathered <- sb_prep %>% select(rowID, studyID, Centred_log_Total_Sample_Area_m2, Biome_Broad_Hab, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2) %>%
+sb_gathered <- sb_prep %>% select(
+  rowID, 
+  studyID,
+  Centred_log_Total_Sample_Area_m2, 
+  Biome_Broad_Hab, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2) %>%
   gather(metric, response, Total_Seeds:Seed_density_m2) %>%
   filter(!is.na(response),
-       # !response == 0 
+       # !response == 0 ,
+       # response == 0 
        ) 
-
 head(sb_gathered)
-nrow(sb_gathered) # Total data points = 8087
+nrow(sb_gathered) # Total data points = 8087 including 0's
 
 # % 0's 15/8087
+round( ((15/8087)* 100) , 2) # 0.19 % of data are zeros
 
- round( ((15/8087)* 100) , 2)
+nrow( sb_prep %>% select(
+  studyID,
+  #Lat_Deg ,  Lon_Deg
+) %>% distinct() )
+# 1451 study id's
+# 1935 locations
 
 sites_count <- sb_gathered %>%
   select(Number_Sites) %>%
@@ -158,9 +170,10 @@ biome_count <- sb_gathered %>% # number of data points within every biome
 print(biome_count, n = Inf)
 
 # of data points within every model
+#richness
 nrow( sb_gathered %>% filter(metric == "Total_Species",
                              !is.na(Centred_log_Total_Sample_Area_m2) ) )
-
+#seeds
 nrow( sb_gathered %>% filter(metric == "Total_Seeds",
                              !is.na(Centred_log_Total_Sample_Area_m2)) )
 
@@ -171,7 +184,7 @@ nrow(
   select(studyID) %>% distinct() )
   #summarise( sum_seeds = sum( as.numeric(response)) ) # total number of seeds
 
-
+# density
 nrow( sb_gathered %>%  filter( !response == 0 ) %>% filter(metric == "Seed_density_m2") )
 
 nrow( sb_prep %>% select(rowID, studyID, Biome_Broad_Hab, ratio_seeds_species) %>%
