@@ -13,7 +13,7 @@ library(patchwork)
 # Ali file path
 biomes<-readOGR("/Users/arau0001/Library/CloudStorage/Dropbox/Global seed banks/Seed-Bank-Map/GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
 # Emma file path
-biomes<-readOGR("./GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
+biomes<-sf::st_read("./GIS/tnc_terr_ecoregions.shp", stringsAsFactors = FALSE)
 
 biomes$broad<-biomes$WWF_MHTNAM
 biomes$broad[biomes$broad == "Flooded Grasslands and Savannas"] <- "Tropical and Subtropical Grasslands, Savannas and Shrublands"

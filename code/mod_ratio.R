@@ -178,7 +178,7 @@ ratio_biome_broad_Fig <- ggplot() +
              aes(x = reorder(Biome_Broad_Hab, Estimate), y = ratio_seeds_species, #colour = 	"#C0C0C0"
                  colour = Biome_Broad_Hab
                  ), 
-             size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
+             size = 0.75, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
   geom_point(data = ratio_conditional_effects,
              aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`), size = 3) +
   geom_errorbar(data = ratio_conditional_effects,

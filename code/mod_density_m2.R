@@ -154,7 +154,7 @@ View(head(density.total.mean))
 Density_biome_broad_Fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_hline(data = density.total.mean,
-             aes(yintercept = P_Estimate), size = 0.45) +
+             aes(yintercept = P_Estimate), size = 0.5) +
   geom_rect(data = density.total.mean,
             aes(xmin = -Inf, xmax = Inf,
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
@@ -163,7 +163,7 @@ Density_biome_broad_Fig <- ggplot() +
              aes(x = reorder(Biome_Broad_Hab, Estimate), y = Seed_density_m2, #colour = 	"#C0C0C0"
                  colour = Biome_Broad_Hab
                  ), 
-             size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
+             size = 0.75, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
   geom_point(data = density_conditional_effects,
              aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`), size = 3) +
   geom_errorbar(data = density_conditional_effects,
@@ -191,3 +191,4 @@ Density_biome_broad_Fig <- ggplot() +
 Density_biome_broad_Fig
 # Landscape 8.50 X 18
 
+(Density_biome_broad_Fig/ratio_biome_broad_Fig)
