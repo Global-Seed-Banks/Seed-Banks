@@ -373,7 +373,11 @@ fig_rich_biome_broad_global <- ggplot() +
        y='Slope', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
   scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
-  scale_color_viridis(discrete = T, option="D")  +
+  #scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  ))+
   labs(y = "Slope", 
        x="",
        color = "WWF Biome", subtitle= "b)") + 
@@ -393,4 +397,48 @@ figure_3 <- ( (fig_rich.biome_broad) / (rich_legend_l) / ( fig_rich_biome_broad_
 # lnadscape 16 X 20
 figure_3
 
+
+
+# log scale
+head(rich.fitted.df)
+
+# fig_rich.biome_broad <- ggplot() + 
+#   facet_wrap(~ reorder(wrapped_text, Estimate),
+#              #  wrapped_text,
+#              scales="free") +
+#   # horizontal zero line
+#   geom_hline(yintercept = 0, lty = 2) +
+#   # raw data points
+#   # geom_point(data = sb_rich_area,
+#   #            aes(x = Total_Sample_Area_m2,
+#   #                y = Total_Species, colour = wrapped_text,
+#   #            ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
+#   geom_line(data = rich.fitted.df, 
+#             aes( x = Total_Sample_Area_m2,
+#                  y = exp( fitted[,1] ), colour = wrapped_text, group = Number_Sites , linetype = Number_Sites  ),
+#             size = 1 
+#   ) +
+#   geom_ribbon(data = rich.fitted.df ,
+#               aes(
+#                 x = Total_Sample_Area_m2,
+#                 ymin = exp( fitted[,3] ), ymax = exp( fitted[,4] ), group = Number_Sites , fill = wrapped_text),
+#               alpha = 0.2) +
+#   coord_cartesian( ylim = c(0,100000), xlim = c(0,15)) +
+#   scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+#                                  "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+#                                  "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+#   ))+
+#   scale_fill_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+#                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+#                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+#   ))+
+#   # scale_color_viridis(discrete = T, option="D")  +
+#   # scale_fill_viridis(discrete = T, option="D")  +
+#   theme_bw(base_size=20 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+#                                   legend.position="none") +
+#   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
+#        x="",
+#        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) 
+# 
+# fig_rich.biome_broad
 

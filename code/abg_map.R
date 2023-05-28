@@ -124,10 +124,35 @@ class(tidy_biomes.sb)
 head(tidy_biomes.sb)
 colnames(tidy_biomes.sb)
 
-a_map <- ggplot() + 
+
+# put colors on same gradient by using one scale across all values ?
+tidy_sb_biomes<- tidy_biomes.sb %>% gather( key= "scale", value="richness", alpha, gamma)
+
+map_breaks <- c(5, 10, 15, 20, 30, 40)
+
+ d_map <- ggplot() + facet_wrap(~scale) +
+  geom_polygon(data = tidy_world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
+  geom_sf(data = tidy_sb_biomes, aes(fill = richness) , colour=NA, lwd=0) +
+  scale_fill_viridis(discrete = F, option=  "plasma", #"D",
+                   #  limits = c(0, 40)
+                   trans="log10", breaks= map_breaks, labels= map_breaks
+                     )  +
+  theme_void(base_size=18) + scale_x_continuous(expand = c(0.006, 0.006)) +
+  theme(legend.position = 'bottom',
+        legend.direction="horizontal",
+        legend.key.width = unit(1.5,"cm") ,
+        plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 1, unit = "cm")
+  ) #+ labs(fill = 'Soil seedbank average \n species richness' ,
+         #  subtitle = "c)")
+
+#  this sucks too
+
+
+a_map <- ggplot() +
   geom_polygon(data = tidy_world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_sf(data = tidy_biomes.sb, aes(fill = alpha) , colour=NA, lwd=0) +
-  scale_fill_viridis(discrete = F, option="plasma", limits = c(0, 20) )  +
+  scale_fill_viridis(discrete = F, option="D",  limits = c(0, 20) 
+                     )  +
   theme_void(base_size=18) + scale_x_continuous(expand = c(0.006, 0.006)) +
   theme(legend.position = 'bottom',
     legend.direction="horizontal",
@@ -135,10 +160,10 @@ a_map <- ggplot() +
     plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 1, unit = "cm")
   ) + labs(fill = 'Soil seedbank average \n species richness' ,
            subtitle = "c)")
-  
+
 a_map
 
-g_map <- ggplot() + 
+g_map <- ggplot() +
   geom_polygon(data = tidy_world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_sf(data = tidy_biomes.sb, aes(fill = gamma), colour=NA,  lwd=0) +
   scale_fill_viridis(discrete = F, option="plasma", limits = c(10, 40)) +

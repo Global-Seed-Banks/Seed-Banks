@@ -162,9 +162,9 @@ Density_biome_broad_Fig <- ggplot() +
             alpha = 0.05) +
   geom_point(data = sb_density_area,
              aes(x = reorder(Biome_Broad_Hab, Estimate), y = Seed_density_m2, #colour = 	"#C0C0C0"
-                 colour = Biome_Broad_Hab,  size= 10
+                 colour = Biome_Broad_Hab
                  ), 
-             size = 0.75, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
+             size = 1.5, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
   geom_point(data = density_conditional_effects,
              aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`), size = 3) +
   geom_errorbar(data = density_conditional_effects,
