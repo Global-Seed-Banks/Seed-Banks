@@ -71,6 +71,7 @@ sb_mod <- sb_calc %>%
   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
                                     TRUE ~ Biome_WWF_Broad)) %>%
   mutate(Lat_Deg_abs = abs(Lat_Deg)) %>%
+  # testing realm compared to WWF classifications
   mutate( Realm = case_when(Lat_Deg_abs >= 60 ~ "Polar",
                             Lat_Deg_abs > 23.5 & Lat_Deg < 60 ~ "Temperate",
                             Lat_Deg_abs <= 23.5 ~ "Tropical",

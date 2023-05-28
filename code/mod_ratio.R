@@ -176,11 +176,11 @@ ratio_biome_broad_Fig <- ggplot() +
             alpha = 0.05) +
   geom_point(data = sb_ratio,
              aes(x = reorder(Biome_Broad_Hab, Estimate), y = ratio_seeds_species, #colour = 	"#C0C0C0"
-                 colour = Biome_Broad_Hab
+                 colour = Biome_Broad_Hab,  shape= Biome_Broad_Hab, size =3
                  ), 
              size = 0.75, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
   geom_point(data = ratio_conditional_effects,
-             aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`), size = 3) +
+             aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`, shape= `WWF Biome`), size = 3) +
   geom_errorbar(data = ratio_conditional_effects,
                 aes(x =  reorder(`WWF Biome`, Estimate), ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
                 size = 1, width = 0) +
@@ -188,9 +188,15 @@ ratio_biome_broad_Fig <- ggplot() +
        y = expression(paste('Ratio (Seeds/Species)')) ,
        #subtitle=  expression(paste('Ratio (Seeds/Species)'))  
        ) + 
- # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
-  scale_color_viridis(discrete = T, option="D")  +
-  scale_fill_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#04a3bd","#99610a", "#1a472a", "#fab255", # aquatic, arable, boreal, deserts
+                                 "#da7901",  "#1c9d7c" , "#788f33","#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+                                 "#d8b847","#007e2f","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  ))+
+  scale_shape_manual(values = c(17, 15, 18, 16, 
+                                18, 16, 18, 18,
+                                16, 18, 16, 16) ) +
+  # scale_color_viridis(discrete = T, option="D")  +
+  # scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
    coord_cartesian( ylim = c(0,350)) +
   scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+

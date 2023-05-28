@@ -179,8 +179,16 @@ geom_line(data = rich.fitted.df,
                 ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = wrapped_text),
               alpha = 0.2) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
-  scale_color_viridis(discrete = T, option="D")  +
-  scale_fill_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  ))+
+  scale_fill_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  ))+
+  # scale_color_viridis(discrete = T, option="D")  +
+  # scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=20 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),

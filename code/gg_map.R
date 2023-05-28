@@ -113,18 +113,18 @@ gsbm <- sb %>%
   ggplot() +
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
-                  shape= Biome_Cats,
+                  shape= Biome_Broad_Hab,
                  color=`Biome_Broad_Hab`
                  ), size=3, alpha=0.5
              ) +
- scale_color_manual( values= c( "#04a3bd","#99610a", "#1a472a", "#fab255", # aquatic, arable, boreal, deseerts
-                                "#da7901", "#1c9d7c", "#788f33","#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                "#d8b847","#007e2f","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
-                                
-                                ))+
-  scale_shape_manual(values = c(17, 15, 16, 16, 
-                                16, 16, 16, 16,
-                                16, 16, 16, 16) ) +
+  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+                                 "#da7901",  "#20B2AA" , "#788f33","#3b7c70",#"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+                                 "#d8b847", "#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  ))+
+  # trop "#007e2f" tundra
+  scale_shape_manual(values = c(17, 15, 18, 16, 
+                                18, 16, 18, 18,
+                                16, 18, 16, 16) ) +
  # scale_shape_manual(values=c(15, 17, 16))+
  # scale_color_viridis(discrete = T, option="D")  +
   #scale_color_manual(values=met.brewer("Signac", 12))+
@@ -162,13 +162,13 @@ gsbm_legend <- sb %>%
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
                  shape= Biome_Broad_Hab,
                  color=`Biome_Broad_Hab`), size=3) +
-  scale_color_manual( values= c( "#04a3bd","#99610a", "#1a472a", "#fab255", # aquatic, arable, boreal, deserts
-                                 "#da7901",  "#1c9d7c" , "#788f33","#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                 "#d8b847","#007e2f","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
   ))+
-  scale_shape_manual(values = c(17, 15, 16, 16, 
-                                16, 16, 16, 16,
-                                16, 16, 16, 16) ) +
+  scale_shape_manual(values = c(17, 15, 18, 16, 
+                                18, 16, 18, 18,
+                                16, 18, 16, 16) ) +
   coord_equal() +
   theme_void(base_size=18) +
   theme(legend.position = 'bottom',

@@ -10,6 +10,7 @@ library(patchwork)
 library(viridis)
 library(tidybayes)
 library(ggplot2)
+library(purrr)
 
 
 user <- Sys.info()["user"]
@@ -126,7 +127,7 @@ density.predicted <- sb_density_area %>%
    mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
    group_by(Biome_Broad_Hab_group, Biome_Broad_Hab) %>% 
    nest(data = c(  Biome_Broad_Hab, Seed_density_m2) ) %>%
-  mutate(predicted = map(data, ~epred_draws(density_m2, newdata= .x, re_formula = NA))) 
+  mutate(predicted = purrr::map(data, ~epred_draws(density_m2, newdata= .x, re_formula = NA))) 
 
 head(density.predicted)
 
@@ -161,7 +162,7 @@ Density_biome_broad_Fig <- ggplot() +
             alpha = 0.05) +
   geom_point(data = sb_density_area,
              aes(x = reorder(Biome_Broad_Hab, Estimate), y = Seed_density_m2, #colour = 	"#C0C0C0"
-                 colour = Biome_Broad_Hab
+                 colour = Biome_Broad_Hab,  size= 10
                  ), 
              size = 0.75, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
   geom_point(data = density_conditional_effects,
@@ -173,9 +174,12 @@ Density_biome_broad_Fig <- ggplot() +
        y = expression(paste('Seed density (',m^2,')')),
       # subtitle=  expression(paste('Seed density (',m^2,')')),
        ) +
- # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
-  scale_color_viridis(discrete = T, option="D")  +
-  scale_fill_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
+                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
+                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  ))+
+  # scale_color_viridis(discrete = T, option="D")  +
+  # scale_fill_viridis(discrete = T, option="D")  +
   #ylim(0,100000)+
    coord_cartesian( ylim = c(0,25000)) +
   scale_y_continuous(breaks=c(0,1000, 3000,5000,10000,15000,20000,25000))+

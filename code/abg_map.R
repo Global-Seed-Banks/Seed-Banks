@@ -13,7 +13,7 @@ library(patchwork)
 # Ali file path
 biomes<-readOGR("/Users/arau0001/Library/CloudStorage/Dropbox/Global seed banks/Seed-Bank-Map/GIS", "tnc_terr_ecoregions", stringsAsFactors = FALSE)
 # Emma file path
-biomes<-sf::st_read("./GIS/tnc_terr_ecoregions.shp", stringsAsFactors = FALSE)
+biomes<-readOGR("./GIS","tnc_terr_ecoregions", stringsAsFactors = FALSE)
 
 biomes$broad<-biomes$WWF_MHTNAM
 biomes$broad[biomes$broad == "Flooded Grasslands and Savannas"] <- "Tropical and Subtropical Grasslands, Savannas and Shrublands"
@@ -23,10 +23,11 @@ biomes$broad[biomes$broad %in% c("Tropical and Subtropical Dry Broadleaf Forests
 # Ali
 div.vals<-read.csv("/Users/arau0001/Dropbox/GSB/Tables/Table_6.csv")
 # Emma
-div.vals<-read.csv("~/Dropbox/GSB/Tables/Table_6.csv")
+div.vals<-read.csv("~/Dropbox/GSB/Data/sb_av_div_estimates.csv")
 div.vals<-div.vals[div.vals$Number_Sites==1,]
 #dens.vals.pred<-read.csv("/Users/arau0001/Dropbox/GSB/Data/predicted_density.csv")
 #ens.vals.tab3<-read.csv("/Users/arau0001/Dropbox/GSB/Tables/table_3.csv")
+head(div.vals)
 
 biomes$alpha<-div.vals$a_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
 #biomes$beta<-div.vals$b_Estimate[match(biomes$broad,div.vals$Biome_Broad_Hab)]
@@ -118,10 +119,10 @@ head(world)
 tidy_world <- map_data("world")
 
 # convert biomes.sb to sf object
-class(biomes.sf)
-tidy_biomes.sb <- st_as_sf(biomes.sb)
+tidy_biomes.sb <- st_as_sf(biomes.sb) 
 class(tidy_biomes.sb)
 head(tidy_biomes.sb)
+colnames(tidy_biomes.sb)
 
 a_map <- ggplot() + 
   geom_polygon(data = tidy_world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
@@ -150,6 +151,7 @@ g_map <- ggplot() +
             subtitle = "d)")
 
 g_map
+
 
 
 # dev.off()
