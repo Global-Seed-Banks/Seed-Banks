@@ -126,11 +126,16 @@ colnames(tidy_biomes.sb)
 
 
 # put colors on same gradient by using one scale across all values ?
-tidy_sb_biomes<- tidy_biomes.sb %>% gather( key= "scale", value="richness", alpha, gamma)
+tidy_sb_biomes<- tidy_biomes.sb %>% gather( key= "scale", value="richness", alpha, gamma) %>%
+  mutate( scale = factor(scale,
+                         levels= c("alpha", "gamma"),
+                         labels = c( (expression(paste('c)'))), 
+                                     (expression(paste('d)'))) 
+                         )) )
 
 map_breaks <- c(5, 10, 15, 20, 30, 40)
 
- d_map <- ggplot() + facet_wrap(~scale) +
+ d_map <- ggplot() + facet_wrap(~scale, labeller = label_parsed) +
   geom_polygon(data = tidy_world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_sf(data = tidy_sb_biomes, aes(fill = richness) , colour=NA, lwd=0) +
   scale_fill_viridis(discrete = F, option=  "plasma", #"D",
@@ -141,13 +146,17 @@ map_breaks <- c(5, 10, 15, 20, 30, 40)
   theme(legend.position = 'bottom',
         legend.direction="horizontal",
         legend.key.width = unit(1.5,"cm") ,
-        plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 1, unit = "cm")
-  ) #+ labs(fill = 'Soil seedbank average \n species richness' ,
-         #  subtitle = "c)")
+        strip.text.x = element_text(hjust = 0.01),
+        panel.spacing = unit(2, "lines"),
+       # plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 1, unit = "cm")
+  ) + labs(fill = 'Soil seedbank average \n species richness' ,
+         #  subtitle = "c)"
+         )
 
-#  this sucks too
+ d_map
+#  eh
 
-
+#other versions
 a_map <- ggplot() +
   geom_polygon(data = tidy_world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_sf(data = tidy_biomes.sb, aes(fill = alpha) , colour=NA, lwd=0) +
@@ -158,7 +167,7 @@ a_map <- ggplot() +
     legend.direction="horizontal",
     legend.key.width = unit(1.5,"cm") ,
     plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 1, unit = "cm")
-  ) + labs(fill = 'Soil seedbank average \n species richness' ,
+  ) + labs(fill = (expression(paste('Average ', italic(alpha), '-species richness ',sep = ''))) ,
            subtitle = "c)")
 
 a_map
@@ -172,9 +181,9 @@ g_map <- ggplot() +
         legend.direction="horizontal",
         legend.key.width = unit(1.5,"cm") ,
         plot.margin= margin(t = 0.2, r = 1, b = -0.2, l = 0.2, unit = "cm")
-  )  + labs(fill= 'Soil seedbank average \n species richness' ,
+  )  + labs(fill= (expression(paste('Average ', italic(gamma), '-species richness ',sep = ''))) ,
+              #'Soil seedbank average \n species richness' ,
             subtitle = "d)")
-
 g_map
 
 

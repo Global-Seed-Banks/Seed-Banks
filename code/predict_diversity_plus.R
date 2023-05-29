@@ -224,13 +224,20 @@ d_data <- bind_rows(
   rich_biome_div %>% select(Biome_Broad_Hab,  g_Estimate, g_Upper.CI, g_Lower.CI) %>%
    mutate(Estimate = g_Estimate, Upper.CI = g_Upper.CI, Lower.CI= g_Lower.CI) %>% 
    select(Biome_Broad_Hab, Estimate, Upper.CI, Lower.CI)
-   %>% mutate(scale = "gamma") )
+   %>% mutate(scale = "gamma") ) %>%
+  # for label parsed
+  mutate( scale = factor(scale,
+                         levels= c("alpha", "gamma"),
+                         labels = c( (expression(paste('a)   ', italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))), 
+                                     (expression(paste('b)   ', italic(gamma), '-scale (15' ,m^2,')', sep = ''))) 
+                         )) )
  
 View(d_data)
 
 map_breaks <- c(5, 10, 15, 20, 30, 40)
 
-rich_biome_d <- ggplot() + facet_wrap(~scale) +
+
+rich_biome_d <- ggplot() + facet_wrap(~scale, labeller = label_parsed) +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = d_data,
              aes(x = Biome_Broad_Hab , y = Estimate, colour = Estimate, #Biome_Broad_Hab,
@@ -268,7 +275,6 @@ rich_biome_d <- ggplot() + facet_wrap(~scale) +
 
 rich_biome_d
 
-
 (rich_biome_d/d_map)
 
 
@@ -301,10 +307,10 @@ rich_biome_a <- ggplot() +
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="none") + 
-   coord_cartesian( ylim = c(0,30)) +
+   coord_cartesian( ylim = c(0,60)) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
-  ggtitle((expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))))+
-  ylab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) +
+  ggtitle( (expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))) )+
+  ylab( (expression(paste('Average ', italic(alpha), '-richness ',sep = ''))) ) +
   labs(subtitle= "a)" )+
    guides(col = guide_legend(ncol = 3))
 
