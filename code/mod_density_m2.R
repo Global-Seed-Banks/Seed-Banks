@@ -151,7 +151,17 @@ density.total.mean <- density.predicted.df %>%
 head(density.total.mean)
 View(head(density.total.mean))
 
+sb_density_area %>% select(Biome_Broad_Hab) %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 
+# reorder? tundra _. tropical....aquatic, arable?
+# sb_density_area <- sb_density_area %>% mutate(name = fct_relevel(Biome_Broad_Hab, 
+#                           "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands", 
+#                           "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+#                           "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+#                           "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands"
+#                           )) 
+  
+  
 Density_biome_broad_Fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_hline(data = density.total.mean,
