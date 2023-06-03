@@ -206,76 +206,81 @@ write.csv(table_6, "table_6.csv")
 rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
  rich_biome_div <- rich_biome_div %>% #left_join(cols) %>% 
-   filter( Number_Sites == "1") # turn off for Fgure S6
-   # mutate(Number_Sites = factor(Number_Sites)) %>% # turn this line and next on for Figure S6
-   # mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
+   filter( Number_Sites == "1")  %>% 
+   mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
+                                        "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                        "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                        "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                        "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                        "Aquatic", "Arable"
+   ))
 
  head(rich_biome_div)
  
  
  
  # try out a faceted combo color gradient on a log scale
-d_data <- bind_rows( 
-  # a scale
-  rich_biome_div %>% select(Biome_Broad_Hab, a_Estimate, a_Upper.CI, a_Lower.CI) %>%
-   mutate(Estimate = a_Estimate, Upper.CI = a_Upper.CI, Lower.CI= a_Lower.CI) %>% 
-   select(Biome_Broad_Hab, Estimate, Upper.CI, Lower.CI) %>% mutate(scale = "alpha"),
- # g scale
-  rich_biome_div %>% select(Biome_Broad_Hab,  g_Estimate, g_Upper.CI, g_Lower.CI) %>%
-   mutate(Estimate = g_Estimate, Upper.CI = g_Upper.CI, Lower.CI= g_Lower.CI) %>% 
-   select(Biome_Broad_Hab, Estimate, Upper.CI, Lower.CI)
-   %>% mutate(scale = "gamma") ) %>%
-  # for label parsed
-  mutate( scale = factor(scale,
-                         levels= c("alpha", "gamma"),
-                         labels = c( (expression(paste('a)   ', italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))), 
-                                     (expression(paste('b)   ', italic(gamma), '-scale (15' ,m^2,')', sep = ''))) 
-                         )) )
- 
-View(d_data)
+# d_data <- bind_rows( 
+#   # a scale
+#   rich_biome_div %>% select(Biome_Broad_Hab, a_Estimate, a_Upper.CI, a_Lower.CI) %>%
+#    mutate(Estimate = a_Estimate, Upper.CI = a_Upper.CI, Lower.CI= a_Lower.CI) %>% 
+#    select(Biome_Broad_Hab, Estimate, Upper.CI, Lower.CI) %>% mutate(scale = "alpha"),
+#  # g scale
+#   rich_biome_div %>% select(Biome_Broad_Hab,  g_Estimate, g_Upper.CI, g_Lower.CI) %>%
+#    mutate(Estimate = g_Estimate, Upper.CI = g_Upper.CI, Lower.CI= g_Lower.CI) %>% 
+#    select(Biome_Broad_Hab, Estimate, Upper.CI, Lower.CI)
+#    %>% mutate(scale = "gamma") ) %>%
+#   # for label parsed
+#   mutate( scale = factor(scale,
+#                          levels= c("alpha", "gamma"),
+#                          labels = c( (expression(paste('a)   ', italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))), 
+#                                      (expression(paste('b)   ', italic(gamma), '-scale (15' ,m^2,')', sep = ''))) 
+#                          )) )
+#  
+# View(d_data)
 
 map_breaks <- c(5, 10, 15, 20, 30, 40)
 
-
-rich_biome_d <- ggplot() + facet_wrap(~scale, labeller = label_parsed) +
-  geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = d_data,
-             aes(x = Biome_Broad_Hab , y = Estimate, colour = Estimate, #Biome_Broad_Hab,
-                 #aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
-                 #group = Number_Sites,  #shape = Number_Sites
-             ), 
-             position = position_dodge(width = 0.75), size = 3) +
-  geom_errorbar(data = d_data,
-                aes(x = Biome_Broad_Hab , ymin = `Lower.CI`, ymax =  `Upper.CI`, 
-                    # aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
-                    colour =  Estimate, #turn off for figure s6
-                    #Biome_Broad_Hab, # turn on for figure s6
-                    #group = Number_Sites
-                ),
-                position = position_dodge(width = 0.75),
-                linewidth = 0.75, width = 0) +
-  #scale_color_viridis(discrete = T, option="D")  +
-  scale_color_viridis(discrete = F, option=  "plasma", #"D",
-                     #  limits = c(0, 40)
-                     trans="log10", breaks= map_breaks, labels= map_breaks
-  )  +
-  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               #axis.text.x=element_blank(), 
-                               axis.title.x = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                               plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="none") + 
-  # coord_cartesian( ylim = c(0,30)) +
-   scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
-  # ggtitle((expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))))+
-  ylab("Average species richness")
-  # ylab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) +
-  # labs(subtitle= "a)" )+
-  # guides(col = guide_legend(ncol = 3))
-
-rich_biome_d
-
-(rich_biome_d/d_map)
+# 
+# rich_biome_d <- ggplot() + facet_wrap(~scale, labeller = label_parsed) +
+#   geom_hline(yintercept = 0,linetype="longdash") +
+#   geom_point(data = d_data,
+#              aes(x = Biome_Broad_Hab , y = Estimate, colour = Estimate, #Biome_Broad_Hab,
+#                  #aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
+#                  #group = Number_Sites,  #shape = Number_Sites
+#              ), 
+#              position = position_dodge(width = 0.75), size = 3) +
+#   geom_errorbar(data = d_data,
+#                 aes(x = Biome_Broad_Hab , ymin = `Lower.CI`, ymax =  `Upper.CI`, 
+#                     # aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
+#                     colour =  Estimate, #turn off for figure s6
+#                     #Biome_Broad_Hab, # turn on for figure s6
+#                     #group = Number_Sites
+#                 ),
+#                 position = position_dodge(width = 0.75),
+#                 linewidth = 0.75, width = 0) +
+#   #scale_color_viridis(discrete = T, option="D")  +
+#   scale_color_viridis(discrete = F, option=  "plasma", #"D",
+#                      #  limits = c(0, 40)
+#                      trans="log10", breaks= map_breaks, labels= map_breaks
+#   )  +
+#   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#                                #axis.text.x=element_blank(), 
+#                                axis.title.x = element_blank(),
+#                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+#                                plot.title=element_text(size=18, hjust=0.5),
+#                                strip.background = element_blank(),legend.position="none") + 
+#   # coord_cartesian( ylim = c(0,30)) +
+#    scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
+#   # ggtitle((expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))))+
+#   ylab("Average species richness")
+#   # ylab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) +
+#   # labs(subtitle= "a)" )+
+#   # guides(col = guide_legend(ncol = 3))
+# 
+# rich_biome_d
+# 
+# (rich_biome_d/d_map)
 
 
 # seperate plots and color scales old version
@@ -357,9 +362,97 @@ rich_biome_g
 # LANDSCAPES 16 X 32
 (rich_biome_a + rich_biome_g) / (a_map + g_map) + plot_layout(heights = c(10, 10))
 
-# NO MAPS BELOW
 
 # for supplementary figure version
+
+rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
+
+rich_biome_div <- rich_biome_div %>% #left_join(cols) %>% 
+mutate(Number_Sites = factor(Number_Sites)) %>% # turn this line and next on for Figure S6
+mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
+  mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
+                                                                          "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                          "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                                          "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                                          "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                                          "Aquatic", "Arable"
+))
+rich_biome_a <- ggplot() + 
+  geom_hline(yintercept = 0,linetype="longdash") +
+  geom_point(data = rich_biome_div,
+            # aes(x = Biome_Broad_Hab , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
+                 aes(x = Biome_Broad_Hab , y = a_Estimate, colour = Biome_Broad_Hab, #Biome_Broad_Hab,
+                 group = Number_Sites,  shape = Number_Sites
+             ), 
+             position = position_dodge(width = 0.75), size = 3) +
+  geom_errorbar(data = rich_biome_div,
+               # aes(x = Biome_Broad_Hab , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
+                     aes(x = Biome_Broad_Hab , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
+                    colour =  Biome_Broad_Hab, #turn off for figure s6
+                    #Biome_Broad_Hab, # turn on for figure s6
+                    group = Number_Sites
+                ),
+                position = position_dodge(width = 0.75),
+                linewidth = 0.75, width = 0) +
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") + 
+  coord_cartesian( ylim = c(0,60)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
+  ggtitle( (expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))) )+
+  ylab( (expression(paste('Average ', italic(alpha), '-richness ',sep = ''))) ) +
+  labs(subtitle= "a)" )+
+  guides(col = guide_legend(ncol = 3))
+
+
+rich_biome_a
+
+
+rich_biome_g <- ggplot() + 
+  geom_hline(yintercept = 0,linetype="longdash") +
+  geom_point(data = rich_biome_div,
+             aes(x = Biome_Broad_Hab , y = g_Estimate, 
+                 # aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , y = g_Estimate, 
+                 colour = #Biome_Broad_Hab,  # turn on for figure s6
+                   Biome_Broad_Hab, # turn off for figure s6
+                 group = Number_Sites,   shape = Number_Sites
+             ), 
+             position = position_dodge(width = 0.75), size = 3) +
+  geom_errorbar(data = rich_biome_div,
+                aes(x = Biome_Broad_Hab, g_Estimate  , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = Biome_Broad_Hab,  #Biome_Broad_Hab,  
+                    #   aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = g_Estimate,  #Biome_Broad_Hab, 
+                    group = Number_Sites
+                ),
+                position = position_dodge(width = 0.75),
+                size = 0.75, width = 0) +
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") + 
+  coord_cartesian( ylim = c(0,110)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
+  ggtitle((expression(paste(italic(gamma), '-scale (15' ,m^2,')', sep = ''))))+
+  ylab((expression(paste('Average ', italic(gamma), '-richness ',sep = '')))) +
+  labs(subtitle= "b)" )+
+  guides(col = guide_legend(ncol = 3))
+
+
+rich_biome_g
 rich_legend <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
@@ -388,16 +481,11 @@ rich_legend_o <- g_legend(rich_legend)
 
 
 # landscape 10 x 16
-(rich_biome_a )/ ( rich_biome_g) / (rich_biome_b)  / (rich_legend_o) + plot_layout(heights = c(10, 10, 10, 0.5))
+#(rich_biome_a )/ ( rich_biome_g) / (rich_biome_b)  / (rich_legend_o) + plot_layout(heights = c(10, 10, 10, 0.5))
 
 (rich_biome_a )/ ( rich_biome_g)  / (rich_legend_o) + plot_layout(heights = c(10, 10,  0.5))
 
-(rich_biome_a)/ (rich_biome_g) 
 
-
-(rich_biome_a) + (rich_biome_g) 
-
-head(rich_biome_div)
 
 rich_biome_b <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
