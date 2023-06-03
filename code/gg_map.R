@@ -102,10 +102,16 @@ ggplot(data = world) +
 # Get the world polygon
 world <- map_data("world")
 
-sb <- sb %>%   mutate(Biome_Cats = case_when(Biome_Broad_Hab %in% c("Arable", "Aquatic") ~ Biome_Broad_Hab ,
-                                                  TRUE ~ "Natural")) 
-sb %>% select(Biome_Broad_Hab , Biome_Cats) %>% distinct()
 
+
+sb <- sb %>% mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
+                                                  "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                  "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                  "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                  "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                  "Aquatic", "Arable"
+                                                                       
+))
 
 # coord_equal version
 gsbm <- sb %>%
@@ -117,14 +123,16 @@ gsbm <- sb %>%
                  color=`Biome_Broad_Hab`
                  ), size=3, alpha=0.5
              ) +
-  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
-                                 "#da7901",  "#20B2AA" , "#788f33","#3b7c70",#"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                 "#d8b847", "#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
   ))+
   # trop "#007e2f" tundra
-  scale_shape_manual(values = c(17, 15, 18, 16, 
-                                18, 16, 18, 18,
-                                16, 18, 16, 16) ) +
+  scale_shape_manual(values = c( 16, 18, 16,
+                                 18, 18, 16, 
+                                 18, 16,  18, 16, 
+                                 17, 15) ) +
  # scale_shape_manual(values=c(15, 17, 16))+
  # scale_color_viridis(discrete = T, option="D")  +
   #scale_color_manual(values=met.brewer("Signac", 12))+
@@ -162,13 +170,15 @@ gsbm_legend <- sb %>%
   geom_point(aes(x=Lon_Deg, y=Lat_Deg, 
                  shape= Biome_Broad_Hab,
                  color=`Biome_Broad_Hab`), size=3) +
-  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
-                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
   ))+
-  scale_shape_manual(values = c(17, 15, 18, 16, 
-                                18, 16, 18, 18,
-                                16, 18, 16, 16) ) +
+  scale_shape_manual(values = c(  16, 18, 16,
+                                18, 18, 16, 
+                                18, 16,  18, 16, 
+                                17, 15) ) +
   coord_equal() +
   theme_void(base_size=18) +
   theme(legend.position = 'bottom',
@@ -193,7 +203,7 @@ legend <- g_legend(gsbm_legend)
 
 # with non-alpha legend to see colors better
 (gsbm)/(legend) +  plot_layout(ncol=1, nrow=2, heights = c(12,2))
-
+# LANDSCAPE 8.50 X 16
 
 
 # Save as PNG in plots folder

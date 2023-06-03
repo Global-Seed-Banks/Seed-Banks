@@ -134,6 +134,13 @@ predicted_density<- read.csv(paste0(path2wd, 'Data/predicted_density.csv'))
 
 head(predicted_density)
 
+predicted_density <- predicted_density %>% mutate(`Biome_Broad_Hab` = fct_relevel(`Biome_Broad_Hab`,
+                                                                                                "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                                                "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                                                                "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                                                                "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                                                                "Aquatic", "Arable"
+))
 
 predicted_density_fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -144,16 +151,18 @@ predicted_density_fig <- ggplot() +
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
             alpha = 0.05) +
   geom_point(data = predicted_density,
-             aes(x =  reorder(`Biome_Broad_Hab`, d_Estimate), y = d_Estimate, colour =  `Biome_Broad_Hab`), size = 3) +
+             aes(x =  `Biome_Broad_Hab`, y = d_Estimate, colour =  `Biome_Broad_Hab`), size = 3) +
   geom_errorbar(data = predicted_density,
-                aes(x = reorder(`Biome_Broad_Hab`, d_Estimate), ymin = `d_Lower.CI`, ymax = `d_Upper.CI`, colour =  `Biome_Broad_Hab`),
+                aes(x = `Biome_Broad_Hab`, ymin = `d_Lower.CI`, ymax = `d_Upper.CI`, colour =  `Biome_Broad_Hab`),
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Predicted seed density (',m^2,')')),
        subtitle= '') +
-  # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
-  scale_color_viridis(discrete = T, option="D")  +
-  scale_fill_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
   #ylim(0,100000)+
   coord_cartesian( ylim = c(0,25000)) +
   scale_y_continuous(breaks=c(0,1000, 3000,5000,10000,15000,20000,25000))+

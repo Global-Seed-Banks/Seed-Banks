@@ -56,6 +56,9 @@ load( 'rich_m2.Rdata')
 load( 'density_m2.Rdata')
 load( 'ratio.Rdata')
 
+head(sb_rich_area)
+
+# not working? reload r- lapply and sf fuck this up
 # richness/m2 for 1 site predicted values
 rich_m2_predict <- tidyr::crossing( 
   Number_Sites = c( 1 ),
@@ -71,7 +74,7 @@ rich_m2_predict <- tidyr::crossing(
   mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
   group_by(Biome_Broad_Hab_group, Biome_Broad_Hab ) %>%
   nest(data = c(Biome_Broad_Hab, Centred_log_Total_Sample_Area_m2, Total_Sample_Area_m2, Centred_log_Number_Sites, Number_Sites)) %>%
-  mutate(predicted = map(data, ~predicted_draws(rich_m2, newdata= .x, ndraws = 2000,  
+  mutate(predicted = purrr::map(data, ~predicted_draws(rich_m2, newdata= .x, ndraws = 2000,  
                                                 allow_new_levels = TRUE, 
                                                 re_formula =  NA))) 
 
@@ -143,6 +146,14 @@ write.csv(ratio_m2,  "ratio_m2_estimates.csv")
 
 ratio_m2_est <- read.csv(paste0(path2wd, 'Data/ratio_m2_estimates.csv'))
 
+ratio_m2 <- ratio_m2 %>% mutate(`Biome_Broad_Hab` = fct_relevel(`Biome_Broad_Hab`,
+                                                                                  "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                                  "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                                                  "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                                                  "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                                                  "Aquatic", "Arable"
+))
+
 
 ratio_biome_broad_Fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -158,16 +169,18 @@ ratio_biome_broad_Fig <- ggplot() +
   #            ),
   #            size = 0.25, alpha = 0.2, position = position_jitter(width = 0.05, height=0.45)) +
   geom_point(data = ratio_m2,
-             aes(x =  reorder(Biome_Broad_Hab, ratio_Estimate), y = ratio_Estimate, colour =  Biome_Broad_Hab), size = 3) +
+             aes(x =  Biome_Broad_Hab, y = ratio_Estimate, colour =  Biome_Broad_Hab), size = 3) +
   geom_errorbar(data = ratio_m2,
                 aes(x =  Biome_Broad_Hab, ymin = `ratio_Lower CI`, ymax = `ratio_Upper CI`, colour =  Biome_Broad_Hab),
                 size = 1, width = 0) +
   labs(x = '',
-       y = expression(paste('Ratio (Seeds/Species)')) ,
+       y = expression(paste('Predicted ratio (Seeds/Species)')) ,
        subtitle=  expression(paste('Predicted ratio (seeds/species)'))  ) + 
-  # scale_color_manual(values =  c(	"#C0C0C0","#228B22", 	"#6B8E23"))  + 
-  scale_color_viridis(discrete = T, option="D")  +
-  scale_fill_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
   #ylim(0,100000)+
   coord_cartesian( ylim = c(0,1000)) +
   scale_y_continuous(breaks=c(0,50,100,200, 250, 300,500, 800, 1000))+

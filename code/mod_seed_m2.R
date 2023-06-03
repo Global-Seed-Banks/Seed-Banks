@@ -192,15 +192,31 @@ seed.fitted.df <- seed.fitted.df %>% mutate(Number_Sites = factor(Number_Sites))
 
 sb_seed_area <- sb_seed_area %>% left_join(p_e)
 
+sb_seed_area <- sb_seed_area %>% mutate(wrapped_text = fct_relevel(wrapped_text,
+                                                                   "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                   "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and \n Shrublands",
+                                                                   "Mediterranean Forests, Woodlands and \n Scrub", "Deserts and Xeric Shrublands",
+                                                                   "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, \n Savannas and Shrublands",
+                                                                   "Aquatic", "Arable"
+))
+
+seed.fitted.df <- seed.fitted.df %>% mutate(wrapped_text = fct_relevel(wrapped_text,
+                                                                       "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                       "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and \n Shrublands",
+                                                                       "Mediterranean Forests, Woodlands and \n Scrub", "Deserts and Xeric Shrublands",
+                                                                       "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, \n Savannas and Shrublands",
+                                                                       "Aquatic", "Arable"
+))
+
 
 fig_seed.biome_broad <- ggplot() + 
-  facet_wrap(~reorder(wrapped_text, Estimate), scales="free") +
+  facet_wrap(~reorder(wrapped_text, Biome_Broad_Hab), scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
   geom_point(data = sb_seed_area ,
              aes( x = Total_Sample_Area_m2,
-               y = Total_Seeds, colour = Biome_Broad_Hab,
+               y = Total_Seeds, colour = wrapped_text,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
   # geom_line(data = obs_nest.seeds.df,
@@ -211,17 +227,25 @@ fig_seed.biome_broad <- ggplot() +
   # fixed effect
   geom_line(data = seed.fitted.df,
             aes( x = Total_Sample_Area_m2,
-                 y = fitted[,1] , colour = Biome_Broad_Hab, group = Number_Sites , linetype = Number_Sites ),
+                 y = fitted[,1] , colour = wrapped_text, group = Number_Sites , linetype = Number_Sites ),
             size = 1 ) +
   geom_ribbon(data = seed.fitted.df ,
               aes(
                 x = Total_Sample_Area_m2,
-                ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = Biome_Broad_Hab),
+                ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = wrapped_text),
               alpha = 0.2) +
   #coord_cartesian(xlim = c(min(sb_seed_area_biome_broad$Total_Sample_Area_m2), quantile(sb_seed_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
   coord_cartesian( ylim = c(0,5000), xlim = c(0,15)) +
-  scale_color_viridis(discrete = T, option="D")  +
-  scale_fill_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
+  scale_fill_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                "#447fdd","#99610a" # aquatic, arable
+  ))+
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="none") +
   labs(y = "Number of seeds in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
@@ -404,15 +428,27 @@ load('global.seed_biome_broad.posteriors.Rdata')
 
 global.seed_biome_broad.p
 
+global.seed_biome_broad.p <- global.seed_biome_broad.p %>% mutate(`WWF Biome` = fct_relevel(`WWF Biome`,
+                                                                                            "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                                            "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                                                            "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                                                            "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                                                            "Aquatic", "Arable"
+))
+
 fig_seed_biome_broad_global <- ggplot() + 
-  geom_point(data = global.seed_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ), y = Estimate, color=`WWF Biome`),size = 2) +
-  geom_errorbar(data = global.seed_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ),ymin = `Lower CI`,
+  geom_point(data = global.seed_biome_broad.p, aes(x = `WWF Biome`, y = Estimate, color=`WWF Biome`),size = 2) +
+  geom_errorbar(data = global.seed_biome_broad.p, aes(x = `WWF Biome`,ymin = `Lower CI`,
                                                ymax = `Upper CI`, color = `WWF Biome`),
                 width = 0, size = 0.7) +
   labs(x = '',
        y='Slope', subtitle = "") +
   geom_hline(yintercept = 0, lty = 2) +
-  scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
   labs(y = "Slope", # x = expression(paste('Total Sample Area ' , m^2)),
        x="",
        color = "WWF Biome", subtitle= "b)") + 

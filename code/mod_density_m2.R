@@ -154,13 +154,21 @@ View(head(density.total.mean))
 sb_density_area %>% select(Biome_Broad_Hab) %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 
 # reorder? tundra _. tropical....aquatic, arable?
-# sb_density_area <- sb_density_area %>% mutate(name = fct_relevel(Biome_Broad_Hab, 
-#                           "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands", 
-#                           "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
-#                           "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
-#                           "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands"
-#                           )) 
+sb_density_area <- sb_density_area %>% mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
+                          "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                          "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                          "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                          "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                          "Aquatic", "Arable"
+                          ))
   
+density_conditional_effects <- density_conditional_effects %>% mutate(`WWF Biome` = fct_relevel(`WWF Biome`,
+                                                                            "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                            "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                                            "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                                            "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                                            "Aquatic", "Arable"
+))
   
 Density_biome_broad_Fig <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -171,22 +179,23 @@ Density_biome_broad_Fig <- ggplot() +
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
             alpha = 0.05) +
   geom_point(data = sb_density_area,
-             aes(x = reorder(Biome_Broad_Hab, Estimate), y = Seed_density_m2, #colour = 	"#C0C0C0"
+             aes(x = Biome_Broad_Hab, y = Seed_density_m2, #colour = 	"#C0C0C0"
                  colour = Biome_Broad_Hab
                  ), 
              size = 1.5, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
   geom_point(data = density_conditional_effects,
-             aes(x =  reorder(`WWF Biome`, Estimate), y = Estimate, colour =  `WWF Biome`), size = 3) +
+             aes(x =  `WWF Biome`, y = Estimate, colour =  `WWF Biome`), size = 3) +
   geom_errorbar(data = density_conditional_effects,
-                aes(x =   reorder(`WWF Biome`, Estimate), ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
+                aes(x =   `WWF Biome`, ymin = `Lower CI`, ymax = `Upper CI`, colour =  `WWF Biome`),
                 size = 1, width = 0) +
   labs(x = '',
        y = expression(paste('Seed density (',m^2,')')),
-      # subtitle=  expression(paste('Seed density (',m^2,')')),
+       subtitle=  "a)"
        ) +
-  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
-                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
   ))+
   # scale_color_viridis(discrete = T, option="D")  +
   # scale_fill_viridis(discrete = T, option="D")  +

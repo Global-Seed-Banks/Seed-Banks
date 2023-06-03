@@ -120,6 +120,40 @@ load('rich_biome_broad.mod_dat.Rdata')
 load('global.rich_biome_broad.posteriors.Rdata')
 
 
+#View(global.rich_biome_broad.p)
+#p_e <- global.rich_biome_broad.p %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+
+# relevel number of sites as a factor and reorder
+rich.fitted.df <- rich.fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
+  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
+  #left_join(p_e) %>% 
+  distinct()
+
+#sb_rich_area <- sb_rich_area %>% left_join(p_e)
+
+head(rich.fitted.df)
+head(sb_rich_area)
+
+rich.fitted.df %>% select(Biome_Broad_Hab) %>% distinct()
+
+
+sb_rich_area <- sb_rich_area %>% mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
+                          "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                          "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                          "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                          "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                          "Aquatic", "Arable"
+                          ))
+
+rich.fitted.df <- rich.fitted.df %>% mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
+                          "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                          "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                          "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                          "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                          "Aquatic", "Arable"
+                          ))
+
+
 # wrap text
 wrapit <- function(text) {
   wtext <- paste(strwrap(text,width=40),collapse=" \n ")
@@ -137,30 +171,27 @@ sb_rich_area$wrapped_text <- unlist(sb_rich_area$wrapped_text)
 rich.fitted.df$wrapped_text <- llply(rich.fitted.df$Biome_Broad_Hab, wrapit)
 rich.fitted.df$wrapped_text <- unlist(rich.fitted.df$wrapped_text)
 
-head(rich.fitted.df)
+View(rich.fitted.df)
+rich.fitted.df %>% select(wrapped_text) %>% distinct()
 
-View(global.rich_biome_broad.p)
-p_e <- global.rich_biome_broad.p %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
+sb_rich_area <- sb_rich_area %>% mutate(wrapped_text = fct_relevel(wrapped_text,
+                                                                      "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                      "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and \n Shrublands",
+                                                                      "Mediterranean Forests, Woodlands and \n Scrub", "Deserts and Xeric Shrublands",
+                                                                      "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, \n Savannas and Shrublands",
+                                                                      "Aquatic", "Arable"
+))
 
-
-# relevel number of sites as a factor and reorder
-rich.fitted.df <- rich.fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
-  mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
-  left_join(p_e) %>% distinct()
-
-sb_rich_area <- sb_rich_area %>% left_join(p_e)
-
-head(rich.fitted.df)
-head(sb_rich_area)
-
-rich.fitted.df %>% select(Biome_Broad_Hab) %>% distinct()
-
-View( rich.fitted.df %>% filter( Biome_Broad_Hab == "Tundra"))
+rich.fitted.df <- rich.fitted.df %>% mutate(wrapped_text = fct_relevel(wrapped_text,
+                                                                          "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                          "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and \n Shrublands",
+                                                                          "Mediterranean Forests, Woodlands and \n Scrub", "Deserts and Xeric Shrublands",
+                                                                          "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, \n Savannas and Shrublands",
+                                                                          "Aquatic", "Arable"
+))
 
 fig_rich.biome_broad <- ggplot() + 
-  facet_wrap(~ reorder(wrapped_text, Estimate),
-             #  wrapped_text,
-             scales="free") +
+  facet_wrap(~reorder(wrapped_text, Biome_Broad_Hab), scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
   # raw data points
@@ -179,13 +210,15 @@ geom_line(data = rich.fitted.df,
                 ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = wrapped_text),
               alpha = 0.2) +
   coord_cartesian( ylim = c(0,100), xlim = c(0,15)) +
-  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
-                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
   ))+
-  scale_fill_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
-                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  scale_fill_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
   ))+
   # scale_color_viridis(discrete = T, option="D")  +
   # scale_fill_viridis(discrete = T, option="D")  +
@@ -196,6 +229,8 @@ geom_line(data = rich.fitted.df,
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) 
 
 fig_rich.biome_broad
+
+
 
 # custom legend
 legend.data <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
@@ -363,10 +398,18 @@ save(global.rich_biome_broad.p, file = 'global.rich_biome_broad.posteriors.Rdata
  
 head(global.rich_biome_broad.p)
 
+global.rich_biome_broad.p <- global.rich_biome_broad.p %>% mutate(`WWF Biome` = fct_relevel(`WWF Biome`,
+                                                                      "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                      "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                                      "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                                      "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                                      "Aquatic", "Arable"
+))
+
 #slopes
 fig_rich_biome_broad_global <- ggplot() + 
-  geom_point(data = global.rich_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ) , y = Estimate, color=`WWF Biome`),size = 2) +
-  geom_errorbar(data = global.rich_biome_broad.p, aes(x = reorder(`WWF Biome`, Estimate ), ymin = `Lower CI`,
+  geom_point(data = global.rich_biome_broad.p, aes(x = `WWF Biome` , y = Estimate, color=`WWF Biome`),size = 2) +
+  geom_errorbar(data = global.rich_biome_broad.p, aes(x = `WWF Biome`, ymin = `Lower CI`,
                                                ymax =  `Upper CI`, color = `WWF Biome`),
                 width = 0, size = 0.7) +
   labs(x = '',
@@ -374,9 +417,10 @@ fig_rich_biome_broad_global <- ggplot() +
   geom_hline(yintercept = 0, lty = 2) +
   scale_y_continuous(limits = c(-0.2, 0.4), breaks=c(0, 0.2, 0.4)) +
   #scale_color_viridis(discrete = T, option="D")  +
-  scale_color_manual( values= c( "#447fdd","#99610a", "#1e3d14", "#fab255", # aquatic, arable, boreal, deserts
-                                 "#da7901",   "#20B2AA" , "#788f33", "#3b7c70", #"#165d43", # med forests, montane grasslands, temp forests, temp confier forests
-                                 "#d8b847","#228B22","#b38711", "#94b594" # temp grasslands, trop forests, trop grasslands, tundra
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
   ))+
   labs(y = "Slope", 
        x="",

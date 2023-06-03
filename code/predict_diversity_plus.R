@@ -357,7 +357,7 @@ rich_biome_g
 # LANDSCAPES 16 X 32
 (rich_biome_a + rich_biome_g) / (a_map + g_map) + plot_layout(heights = c(10, 10))
 
-
+# NO MAPS BELOW
 
 # for supplementary figure version
 rich_legend <- ggplot() + 
@@ -432,12 +432,19 @@ rich_biome_b <- ggplot() +
 
 rich_biome_b
 
+rich_biome_div <- rich_biome_div %>% mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
+                                                                   "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+                                                                   "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+                                                                   "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+                                                                   "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+                                                                   "Aquatic", "Arable"
+))
 
 rich_joint <- ggplot()+
   geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
    # overall effects
   geom_point(data = rich_biome_div,
-             aes(x = a_Estimate, y = g_Estimate, colour = Biome_Broad_Hab
+             aes(x = a_Estimate, y = g_Estimate, colour = Biome_Broad_Hab, shape= Biome_Broad_Hab
              ), size = 3) +
   geom_errorbar(data = rich_biome_div,
                 aes(x = a_Estimate , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = Biome_Broad_Hab )) +
@@ -445,14 +452,23 @@ rich_joint <- ggplot()+
                 aes(y = g_Estimate , xmin = `a_Lower.CI`, xmax =  `a_Upper.CI`,  colour = Biome_Broad_Hab )) +
   scale_x_continuous(breaks=c(0, 5, 10, 15, 20, 25)) +
   scale_y_continuous(breaks=c(0, 10, 20, 30, 40, 50, 60)) +
-  scale_color_viridis(discrete = T, option="D")  +
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
+  scale_shape_manual(values = c(  16, 18, 16,
+                                  18, 18, 16, 
+                                  18, 16,  18, 16, 
+                                  17, 15) ) +
   ylab((expression(paste('Average ', italic(gamma), '-richness ',sep = '')))) +
   xlab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) +
   theme_classic(base_size=18) +
-  labs(subtitle= "a)" )+
+  labs(subtitle= "" )+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
-  guides(color=guide_legend(title="", ncol = 3))
+  guides(color=guide_legend(title="", ncol = 3),
+         shape=guide_legend(title="", ncol = 3),)
 
 # 8.50 X 14
 rich_joint
