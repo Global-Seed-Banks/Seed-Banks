@@ -104,7 +104,7 @@ rich_seeds_biome_broad_fitted <- cbind(rich_seeds$data,
                           )) %>%
   as_tibble() %>% inner_join(sb_rich_seed %>% select(Total_Species, 
                                                       log_Total_Species, log_Total_Seeds,
-                                                      Total_Seeds,
+                                                      Total_Seeds, Number_Sites,
                                                           Biome_Broad_Hab),
                              #  by= c("Total_Species2","Biome_Broad_Hab","Habitat_Broad","studyID", "rowID")
   )
@@ -112,7 +112,35 @@ rich_seeds_biome_broad_fitted <- cbind(rich_seeds$data,
 
 head(rich_seeds_biome_broad_fitted)
 nrow(rich_seeds_biome_broad_fitted)
+# 
+head(sb_rich_seed)
+nrow(sb_rich_seed)
+summary()
 
+seed_rich_fitted <- tidyr::crossing( sb_rich_seed %>% dplyr::group_by(Biome_Broad_Hab) %>%
+                                  dplyr::summarise(Total_Seeds = c( seq( min(Total_Seeds), max(Total_Seeds),
+                                                                                  length.out = n()
+                                  ) ) ),
+                                Number_Sites = c(1, 20, 100),
+)  %>% mutate( log_Number_Sites = log(Number_Sites),
+               log_Total_Seeds = log(Total_Seeds),
+               Centred_log_Number_Sites = log_Number_Sites - mean(log_Number_Sites, na.rm = TRUE),
+               Centred_log_Total_Seeds = log_Total_Seeds - mean(log_Total_Seeds, na.rm = TRUE) ) %>%
+  select(-c( log_Number_Sites, log_Total_Seeds ) ) %>%
+  arrange( Total_Seeds, Number_Sites ) %>%
+  mutate(Biome_Broad_Hab_group = Biome_Broad_Hab) %>%
+  group_by(Biome_Broad_Hab_group ) %>%
+  nest(data = c(Biome_Broad_Hab, Centred_log_Total_Seeds, Total_Seeds, Centred_log_Number_Sites, Number_Sites)) %>%
+  mutate(fitted = map(data, ~fitted(rich_seeds, newdata= .x,  re_formula =  NA  )))
+
+
+seed_rich_fitted.df  <- seed_rich_fitted %>%
+  unnest(cols = c(fitted, data)) %>%
+  ungroup() %>% select(-Biome_Broad_Hab_group) %>%
+  arrange(Biome_Broad_Hab, Total_Seeds, Number_Sites)
+
+head(seed_rich_fitted.df)
+nrow(seed_rich_fitted.df)
 
 # fixed effect coefficients
 rich_seeds_biome_broad_fixef <- fixef(rich_seeds)
@@ -126,7 +154,7 @@ rich_seeds_biome_broad_coef # dont really need this
 
 setwd(paste0(path2wd, 'Data/'))
 # # # save data objects to avoid doing this every time
-save(rich_seeds_biome_broad_fitted, rich_seeds_biome_broad_fixef, rich_seeds_biome_broad_coef, file = 'rich_seeds_biome_broad.mod_dat.Rdata')
+save(rich_seeds_biome_broad_fitted, seed_rich_fitted.df, rich_seeds_biome_broad_fixef, rich_seeds_biome_broad_coef, file = 'rich_seeds_biome_broad.mod_dat.Rdata')
 
 
 # plots
@@ -148,13 +176,13 @@ wrapit <- function(text) {
 sb_rich_seed$wrapped_text <- llply(sb_rich_seed$Biome_Broad_Hab, wrapit)
 sb_rich_seed$wrapped_text <- unlist(sb_rich_seed$wrapped_text)
 
-rich_seeds_biome_broad_fitted$wrapped_text <- llply(rich_seeds_biome_broad_fitted$Biome_Broad_Hab, wrapit)
-rich_seeds_biome_broad_fitted$wrapped_text <- unlist(rich_seeds_biome_broad_fitted$wrapped_text)
+seed_rich_fitted.df$wrapped_text <- llply(seed_rich_fitted.df$Biome_Broad_Hab, wrapit)
+seed_rich_fitted.df$wrapped_text <- unlist(seed_rich_fitted.df$wrapped_text)
 
 p_e <- global.rich_seed_biome_broad.p %>% select(`WWF Biome`, Estimate) %>% mutate( Biome_Broad_Hab = `WWF Biome`)
 
 # relevel number of sites as a factor and reorder
-seed.fitted.df <- seed.fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
+seed_rich_fitted.df <- seed_rich_fitted.df %>% mutate(Number_Sites = factor(Number_Sites)) %>%
   mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
   left_join(p_e)
 
@@ -169,7 +197,7 @@ sb_rich_seed <- sb_rich_seed %>% mutate(wrapped_text = fct_relevel(wrapped_text,
                                                                    "Aquatic", "Arable"
 ))
 
-rich_seeds_biome_broad_fitted <- rich_seeds_biome_broad_fitted %>% mutate(wrapped_text = fct_relevel(wrapped_text,
+seed_rich_fitted.df <- seed_rich_fitted.df %>% mutate(wrapped_text = fct_relevel(wrapped_text,
                                                                        "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
                                                                        "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and \n Shrublands",
                                                                        "Mediterranean Forests, Woodlands and \n Scrub", "Deserts and Xeric Shrublands",
@@ -190,18 +218,18 @@ fig_rich_seed.biome_broad <- ggplot() +
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
   # fixed effect
-  geom_line(data = rich_seeds_biome_broad_fitted,
+  geom_line(data = seed_rich_fitted.df,
             aes(#x = (Total_Sample_Area_mm2/1000000), 
               # x = Total_Sample_Area_mm2,
               x = Total_Seeds,
-              y = Estimate, colour = wrapped_text),
+              y = fitted[,1], colour = wrapped_text,  group = Number_Sites , linetype = Number_Sites),
             size = 0.75) +
   # uncertainy in fixed effect
-  geom_ribbon(data = rich_seeds_biome_broad_fitted,
+  geom_ribbon(data = seed_rich_fitted.df,
               aes( #x =  (Total_Sample_Area_mm2/1000000), 
                 #x =  Total_Sample_Area_mm2, 
                 x = Total_Seeds,
-                ymin = Q2.5, ymax = Q97.5, fill = wrapped_text),
+                ymin = fitted[,3], ymax = fitted[,4], group = Number_Sites , fill = wrapped_text),
               alpha = 0.1 ) +
   #coord_cartesian(xlim = c(min(sb_seed_area_biome_broad$Total_Sample_Area_m2), quantile(sb_seed_area_biome_broad$Total_Sample_Area_m2, 0.97))) +
   coord_cartesian( ylim = c(0,200), xlim = c(0,50000)) +
