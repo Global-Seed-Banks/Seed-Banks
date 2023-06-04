@@ -8,6 +8,7 @@ sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.st
 
 # Total_Species   Seed_density_m2   Total_Seeds
 sb_dat <- sb %>% filter(!is.na(Total_Species),
+                        !is.na(Centred_log_Total_Sample_Area_m2),
                         !log_Total_Seeds == "-Inf",
                         !is.na(Total_Seeds),
                         !is.na(log_Total_Species)) %>%
@@ -21,7 +22,7 @@ sb_dat <- sb %>% filter(!is.na(Total_Species),
           rowID = as.factor(rowID),
           Method = as.factor(Method)) 
 
-rich_seeds <- brm(Total_Species ~ log_Total_Seeds * Biome_Broad_Hab + (1 | Method/studyID ),
+rich_seeds <- brm(Total_Species ~ log_Total_Seeds * Biome_Broad_Hab +  Centred_log_Number_Sites + (1 | Method/studyID ),
                     family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                     control = list(adapt_delta = 0.9999,
                                    max_treedepth = 13)
