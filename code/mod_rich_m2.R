@@ -224,7 +224,7 @@ geom_line(data = rich.fitted.df,
   # scale_fill_viridis(discrete = T, option="D")  +
   theme_bw(base_size=20 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="none") +
-  labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
+  labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) 
 

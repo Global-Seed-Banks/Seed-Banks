@@ -248,7 +248,7 @@ fig_seed.biome_broad <- ggplot() +
   ))+
   theme_bw(base_size=14 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
                                   legend.position="none") +
-  labs(y = "Number of seeds in the soil seed bank",  x = expression(paste('Total Sample Area ' , m^2)),
+  labs(y = "Number of seeds in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) #+
 
