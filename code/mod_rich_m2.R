@@ -509,7 +509,7 @@ fig_rich_biome_broad_global_log <- ggplot() +
   labs(y = "Slope", 
        x="",
        color = "WWF Biome", subtitle= "b)") + 
-  scale_y_continuous(trans = 'log', breaks = c(0.02, 0.05, 0.15)) + 
+  scale_y_continuous(trans = 'log', breaks = c(0.01, 0.02, 0.05, 0.15)) + 
   labs( y= "log[Slope]")+
   theme_bw(base_size=20)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #panel.background = element_rect(fill = "transparent"), # bg of the panel

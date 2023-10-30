@@ -21,7 +21,7 @@ sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
 head(sb)
 colnames(sb)
 summary(sb)
-
+nrow(sb)
 
 sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           log_Total_Species = log(Total_Species),
@@ -130,30 +130,35 @@ biome_count
 
 head(sb_prep)
 nrow(sb_prep)
-# 3071 rows but these can have varying numbers of observations/responses
+# 3107 rows but these can have varying numbers of observations/responses
 
 sb_gathered <- sb_prep %>% select(
   rowID, 
   studyID,
   Centred_log_Total_Sample_Area_m2, 
-  Biome_Broad_Hab, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2) %>%
-  gather(metric, response, Total_Seeds:Seed_density_m2) %>%
+  Biome_Broad_Hab, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2, ratio_seeds_species) %>%
+  gather(metric, response, Total_Seeds:ratio_seeds_species) %>%
   filter(!is.na(response),
-       # !response == 0 ,
-       # response == 0 
-       ) 
+        # !is.na(Centred_log_Total_Sample_Area_m2),
+        !response == 0 ,
+        #response == 0 
+       ) %>% #filter(metric == "Seed_density_m2") %>%
+   filter(metric == "ratio_seeds_species")
+
 head(sb_gathered)
 nrow(sb_gathered) # Total data points = 8087 including 0's
+
+
 
 # % 0's 15/8087
 round( ((15/8087)* 100) , 2) # 0.19 % of data are zeros
 
 nrow( sb_prep %>% select(
   studyID,
-  #Lat_Deg ,  Lon_Deg
+  Lat_Deg ,  Lon_Deg
 ) %>% distinct() )
 # 1451 study id's
-# 1935 locations
+# 2048 locations (study id and location) (1935 without study id)
 
 sites_count <- sb_gathered %>%
   select(Number_Sites) %>%
@@ -163,30 +168,50 @@ sites_count <- sb_gathered %>%
 head(sites_count) # of data points within number of sites
 # 4763 data points within 1 site
 
-biome_count <- sb_gathered %>% # number of data points within every biome
-  select(Biome_Broad_Hab) %>%
-  dplyr::group_by(Biome_Broad_Hab) %>%
-  count() 
+head(sb_gathered)
 
-print(biome_count, n = Inf)
+biome_count <- sb_gathered %>% # number of data points within every biome
+  select(Biome_Broad_Hab, metric) %>%
+  dplyr::group_by(Biome_Broad_Hab, metric) %>%
+  count() %>% spread(metric, freq) %>%
+  mutate(`Biome_Broad_Hab` = fct_relevel(`Biome_Broad_Hab`, c(
+    "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+    "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+    "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+    "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+    "Aquatic", "Arable")
+  )) %>% arrange(`Biome_Broad_Hab` )
+
+biome_count
+
+write.csv(biome_count,  "biome_count_ratio.csv")
 
 # of data points within every model
 #richness
+sb_gathered %>% filter(metric == "Total_Species",
+                       is.na(Centred_log_Total_Sample_Area_m2) ) 
+
 nrow( sb_gathered %>% filter(metric == "Total_Species",
-                             !is.na(Centred_log_Total_Sample_Area_m2) ) )
+                             !is.na(Centred_log_Total_Sample_Area_m2), 
+                             ) )
+
 #seeds
 nrow( sb_gathered %>% filter(metric == "Total_Seeds",
-                             !is.na(Centred_log_Total_Sample_Area_m2)) )
+                             !is.na(Centred_log_Total_Sample_Area_m2)) 
+                             )
 
 head(sb_gathered)
+
 nrow( 
   sb_gathered %>% filter(metric == "Total_Seeds",
-                       !is.na(Centred_log_Total_Sample_Area_m2)) %>%
-  select(studyID) %>% distinct() )
+                       #!is.na(Centred_log_Total_Sample_Area_m2)) %>%
+  )) 
+  select(studyID) %>% distinct() 
   #summarise( sum_seeds = sum( as.numeric(response)) ) # total number of seeds
 
 # density
-nrow( sb_gathered %>%  filter( !response == 0 ) %>% filter(metric == "Seed_density_m2") )
+nrow( sb_gathered %>%  #filter( !response == 0 ) %>% 
+        filter(metric == "Seed_density_m2") )
 
 nrow( sb_prep %>% select(rowID, studyID, Biome_Broad_Hab, ratio_seeds_species) %>%
   filter(!is.na(ratio_seeds_species),
