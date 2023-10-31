@@ -17,27 +17,27 @@ setwd(path2wd)
 
 sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
 
+# remove rows with NA across all 4 metrics
+sb<-sb[!is.na(sb$Total_Seeds) | !is.na(sb$Total_Species) | !is.na(sb$Seed_density_m2) | !is.na(sb$Seed_density_litre),]
 
 head(sb)
 colnames(sb)
 summary(sb)
-nrow(sb)
 
-sb_biomes <- sb %>% select(Biome_WWF, Biome_WWF_Broad) %>% #distinct() %>%
-  dplyr::group_by(Biome_WWF, Biome_WWF_Broad) %>%
-  count() %>%
-  mutate(`Biome_WWF_Broad` = fct_relevel(`Biome_WWF_Broad`, c(
-    "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
-    "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
-    "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
-    "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands"#,
-    #"Aquatic", "Arable"
-    )
-  )) %>% arrange(`Biome_WWF_Broad` )
+# table s1
+nrow(sb) # n records
 
-print(sb_biomes)
+nrow( sb %>% select( # n studies
+  studyID
+) %>% distinct() )
 
-write.csv(sb_biomes,  "sb_biomes.csv")
+nrow( sb %>% select( # n unique locations
+  studyID,
+  Lat_Deg ,  Lon_Deg
+) %>% distinct() )
+
+head(sb)
+
 
 
 sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
@@ -87,13 +87,7 @@ summary(sb_calc)
 sb_mod <- sb_calc %>% 
   mutate(Biome_Broad_Hab = case_when(Habitat_Broad %in% c("Arable", "Aquatic") ~ Habitat_Broad ,
                                     TRUE ~ Biome_WWF_Broad)) %>%
-  mutate(Lat_Deg_abs = abs(Lat_Deg)) %>%
-  # testing realm compared to WWF classifications
-  mutate( Realm = case_when(Lat_Deg_abs >= 60 ~ "Polar",
-                            Lat_Deg_abs > 23.5 & Lat_Deg < 60 ~ "Temperate",
-                            Lat_Deg_abs <= 23.5 ~ "Tropical",
-                            TRUE ~ "Other" ) )
-
+  mutate(Lat_Deg_abs = abs(Lat_Deg)) 
 
 # conclusion: ours is better for our purposes
 sb_mod %>% distinct(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>% arrange(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>%
@@ -111,7 +105,7 @@ sb_check <- sb_mod %>% filter(Biome_Broad_Hab %in% c( "Aquatic", "Mediterranean 
 
 View(sb_check)
 
-
+nrow(sb_mod)
 # sb_mod %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
 # 
 # sb_mod %>% select(Biome_Broad_Hab, Total_Sample_Area_m2, Total_Seeds, Total_Species) %>%
@@ -126,18 +120,18 @@ write.csv(sb_mod,  "sb_prep.csv")
 # reload new dat and get some summaries for methods/ tables etc whatever
 sb_prep <- read.csv(paste0(path2wd, 'sb_prep.csv'))
 
-sb_clean <- read.csv(paste0(path2wd, 'gsb_cleaned.csv'))
-
-head(sb_clean)
-
-study_refs <- sb_clean %>% 
-  select( studyID, URL, Title, Journal) %>%
-  distinct()
-
-head(study_refs)
-nrow(study_refs)
-
-head(sb_prep)
+# sb_clean <- read.csv(paste0(path2wd, 'gsb_cleaned.csv'))
+# 
+# head(sb_clean)
+# 
+# study_refs <- sb_clean %>% 
+#   select( studyID, URL, Title, Journal) %>%
+#   distinct()
+# 
+# head(study_refs)
+# nrow(study_refs)
+# 
+# head(sb_prep)
 
 biome_count <- sb_prep %>% select(Biome_Broad_Hab,  Total_Species) %>%
   dplyr::group_by(Biome_Broad_Hab) %>%
@@ -149,6 +143,7 @@ head(sb_prep)
 nrow(sb_prep)
 # 3107 rows but these can have varying numbers of observations/responses
 
+# table s1
 sb_gathered <- sb_prep %>% select(
   rowID, 
   studyID,
@@ -157,22 +152,31 @@ sb_gathered <- sb_prep %>% select(
   gather(metric, response, Total_Seeds:ratio_seeds_species) %>%
   filter(!is.na(response),
         # !is.na(Centred_log_Total_Sample_Area_m2),
-        !response == 0 ,
+       # !response == 0 ,
         #response == 0 
-       ) %>% #filter(metric == "Seed_density_m2") %>%
-   filter(metric == "ratio_seeds_species")
+       ) #%>% #filter(metric == "Seed_density_m2") %>%
+   #filter(metric == "ratio_seeds_species")
 
 head(sb_gathered)
 nrow(sb_gathered) # Total data points = 8087 including 0's
 
+# table s1
+nrow( sb_gathered %>% filter(!metric == "ratio_seeds_species"))
+nrow( sb_gathered %>% filter(metric == "Total_Species"))
+nrow( sb_gathered %>% filter(metric == "Total_Seeds"))
+nrow( sb_gathered %>% filter(metric == "Seed_density_m2"))
+nrow( sb_gathered %>% filter(metric == "ratio_seeds_species"))
 
+nrow( sb_gathered %>% filter(metric == "Total_Species") %>% filter(!is.na(Centred_log_Total_Sample_Area_m2) ))
+nrow( sb_gathered %>% filter(metric == "Total_Seeds")  %>% filter(!is.na(Centred_log_Total_Sample_Area_m2)  ))
+nrow( sb_gathered %>% filter(metric == "Seed_density_m2")  %>% filter(!is.na(Centred_log_Total_Sample_Area_m2) ))
 
 # % 0's 15/8087
 round( ((15/8087)* 100) , 2) # 0.19 % of data are zeros
 
 nrow( sb_prep %>% select(
   studyID,
-  Lat_Deg ,  Lon_Deg
+ # Lat_Deg ,  Lon_Deg
 ) %>% distinct() )
 # 1451 study id's
 # 2048 locations (study id and location) (1935 without study id)
@@ -185,23 +189,84 @@ sites_count <- sb_gathered %>%
 head(sites_count) # of data points within number of sites
 # 4763 data points within 1 site
 
+head(sb_prep)
+
+# table s2
+# table s2 biomes 
+sb_biomes <- sb_prep %>% filter(Biome_Broad_Hab != "Aquatic", Biome_Broad_Hab != "Arable") %>%
+  select(Biome_WWF, Biome_WWF_Broad) %>% #distinct() %>%
+  dplyr::group_by(Biome_WWF, Biome_WWF_Broad) %>%
+  count() %>%
+  mutate( Biome_WWF_Broad = as.factor(Biome_WWF_Broad)) %>%
+  mutate(`Biome_WWF_Broad` = fct_relevel(`Biome_WWF_Broad`, c(
+    "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+    "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+    "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+    "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands"#,
+    #"Aquatic", "Arable"
+  )
+  )) %>% arrange(`Biome_WWF_Broad` )
+
+print(sb_biomes)
+
+write.csv(sb_biomes,  "sb_biomes.csv")
+
+head(sb_gathered)
+# table s3
+sb_gathered <- sb_prep %>% select(
+  rowID, 
+  studyID,
+  Centred_log_Total_Sample_Area_m2, 
+  Biome_Broad_Hab, Number_Sites, Total_Seeds, Total_Species, Seed_density_m2, ratio_seeds_species) %>%
+ # filter(Seed_density_m2 != 0, ratio_seeds_species != 0) %>%
+  gather(metric, response, Total_Seeds:ratio_seeds_species) %>%
+  filter(!is.na(response),
+          #!is.na(Centred_log_Total_Sample_Area_m2),
+         # !response == 0 ,
+         #response == 0 
+  ) 
 head(sb_gathered)
 
-biome_count <- sb_gathered %>% # number of data points within every biome
+biome_count_ss <- sb_gathered %>% # number of data points within every biome
+  filter(!is.na(Centred_log_Total_Sample_Area_m2)) %>%
   select(Biome_Broad_Hab, metric) %>%
+  filter(metric %in% c("Total_Seeds" , "Total_Species") ) %>%
   dplyr::group_by(Biome_Broad_Hab, metric) %>%
-  count() %>% spread(metric, freq) %>%
-  mutate(`Biome_Broad_Hab` = fct_relevel(`Biome_Broad_Hab`, c(
+  count() %>% spread(metric, n) %>%
+  mutate( Biome_Broad_Hab = as.factor(Biome_Broad_Hab)) %>%
+  mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab, c(
     "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
     "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
     "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
     "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
     "Aquatic", "Arable")
-  )) %>% arrange(`Biome_Broad_Hab` )
+  )) %>% arrange(Biome_Broad_Hab)
 
-biome_count
+biome_count_ss
 
-write.csv(biome_count,  "biome_count_ratio.csv")
+write.csv(biome_count_ss,  "biome_count_ss.csv")
+
+
+biome_count_dr <- sb_gathered %>% # number of data points within every biome
+  filter(response != 0) %>%
+  select(Biome_Broad_Hab, metric) %>%
+  filter(metric %in% c("Seed_density_m2" , "ratio_seeds_species") ) %>%
+  dplyr::group_by(Biome_Broad_Hab, metric) %>%
+  count() %>% spread(metric, n) %>%
+  mutate( Biome_Broad_Hab = as.factor(Biome_Broad_Hab)) %>%
+  mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab, c(
+    "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+    "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+    "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+    "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
+    "Aquatic", "Arable")
+  )) %>% arrange(Biome_Broad_Hab)
+
+biome_count_dr
+
+write.csv(biome_count_dr,  "biome_count_dr.csv")
+
+
 
 # of data points within every model
 #richness
