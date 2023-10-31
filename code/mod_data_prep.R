@@ -227,6 +227,7 @@ sb_gathered <- sb_prep %>% select(
   ) 
 head(sb_gathered)
 
+# first two columns (need sample area)
 biome_count_ss <- sb_gathered %>% # number of data points within every biome
   filter(!is.na(Centred_log_Total_Sample_Area_m2)) %>%
   select(Biome_Broad_Hab, metric) %>%
@@ -246,7 +247,7 @@ biome_count_ss
 
 write.csv(biome_count_ss,  "biome_count_ss.csv")
 
-
+# last two columns- dont need sample area and remove 0's
 biome_count_dr <- sb_gathered %>% # number of data points within every biome
   filter(response != 0) %>%
   select(Biome_Broad_Hab, metric) %>%
