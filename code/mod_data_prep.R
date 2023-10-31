@@ -23,6 +23,23 @@ colnames(sb)
 summary(sb)
 nrow(sb)
 
+sb_biomes <- sb %>% select(Biome_WWF, Biome_WWF_Broad) %>% #distinct() %>%
+  dplyr::group_by(Biome_WWF, Biome_WWF_Broad) %>%
+  count() %>%
+  mutate(`Biome_WWF_Broad` = fct_relevel(`Biome_WWF_Broad`, c(
+    "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
+    "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
+    "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands",
+    "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands"#,
+    #"Aquatic", "Arable"
+    )
+  )) %>% arrange(`Biome_WWF_Broad` )
+
+print(sb_biomes)
+
+write.csv(sb_biomes,  "sb_biomes.csv")
+
+
 sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           log_Total_Species = log(Total_Species),
                             #  log10_Total_Seeds = log10(Total_Seeds),
