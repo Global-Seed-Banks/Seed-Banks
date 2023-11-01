@@ -38,8 +38,6 @@ nrow( sb %>% select( # n unique locations
 
 head(sb)
 
-
-
 sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           log_Total_Species = log(Total_Species),
                             #  log10_Total_Seeds = log10(Total_Seeds),
@@ -169,7 +167,8 @@ nrow( sb_gathered %>% filter(metric == "ratio_seeds_species"))
 
 nrow( sb_gathered %>% filter(metric == "Total_Species") %>% filter(!is.na(Centred_log_Total_Sample_Area_m2) ))
 nrow( sb_gathered %>% filter(metric == "Total_Seeds")  %>% filter(!is.na(Centred_log_Total_Sample_Area_m2)  ))
-nrow( sb_gathered %>% filter(metric == "Seed_density_m2")  %>% filter(!is.na(Centred_log_Total_Sample_Area_m2) ))
+nrow( sb_gathered %>% filter(metric == "Seed_density_m2")  %>% filter(response != 0 ))
+nrow( sb_gathered %>% filter(metric == "ratio_seeds_species")  %>% filter(response != 0 ))
 
 # % 0's 15/8087
 round( ((15/8087)* 100) , 2) # 0.19 % of data are zeros
