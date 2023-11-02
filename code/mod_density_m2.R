@@ -61,11 +61,11 @@ summary(density_m2)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_den.biome_broad <- pp_check(density_m2)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
+figure_s1_b <- pp_check(density_m2)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
   labs(title= expression(paste('b) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_den.biome_broad 
+figure_s1_b 
 
 
 # caterpillars/chains
@@ -170,7 +170,7 @@ density_conditional_effects <- density_conditional_effects %>% mutate(`WWF Biome
                                                                             "Aquatic", "Arable"
 ))
   
-Density_biome_broad_Fig <- ggplot() + 
+figure_5_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_hline(data = density.total.mean,
              aes(yintercept = P_Estimate), size = 0.5) +
@@ -211,7 +211,7 @@ Density_biome_broad_Fig <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-Density_biome_broad_Fig
+figure_5_a
 # Landscape 8.50 X 18
 
-(Density_biome_broad_Fig/ratio_biome_broad_Fig)
+(figure_5_a/figure_5_b)

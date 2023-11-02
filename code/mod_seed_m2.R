@@ -67,11 +67,11 @@ conditional_effects(seeds_m2)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_seed.biome_broad <- pp_check(seeds_m2) + xlab( "Total Seeds") + ylab("Density") +
+figure_s1_d <- pp_check(seeds_m2) + xlab( "Total Seeds") + ylab("Density") +
   labs(title= "d) Seeds ~ area") + xlim(0,8500)+ ylim(0,0.0006)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_seed.biome_broad 
+figure_s1_d 
 
 
 # caterpillars/chains
@@ -209,7 +209,7 @@ seed.fitted.df <- seed.fitted.df %>% mutate(wrapped_text = fct_relevel(wrapped_t
 ))
 
 
-fig_seed.biome_broad <- ggplot() + 
+figure_s5_a <- ggplot() + 
   facet_wrap(~reorder(wrapped_text, Biome_Broad_Hab), scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -219,12 +219,6 @@ fig_seed.biome_broad <- ggplot() +
                y = Total_Seeds, colour = wrapped_text,
              ), 
              size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  # geom_line(data = obs_nest.seeds.df,
-  #           aes(x = Total_Sample_Area_m2, y= exp(predicted[,1]), 
-  #               group = Habitat_Broad, line_type = Habitat_Broad
-  #               ),
-  #           size = 0.25) +
-  # fixed effect
   geom_line(data = seed.fitted.df,
             aes( x = Total_Sample_Area_m2,
                  y = fitted[,1] , colour = wrapped_text, group = Number_Sites , linetype = Number_Sites ),
@@ -253,12 +247,12 @@ fig_seed.biome_broad <- ggplot() +
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") + guides(col = guide_legend(nrow = 4)) #+
 
 
-fig_seed.biome_broad
+figure_s5_a
 
 legend.data <- seed.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
   mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
 
-fixed.leg <- ggplot() +
+figure_s5_legend <- ggplot() +
   geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
   theme_classic(base_size=14 )+theme(panel.grid.major = element_blank(), 
                                      panel.grid.minor = element_blank(), 
@@ -272,7 +266,7 @@ fixed.leg <- ggplot() +
   scale_color_viridis(discrete = T, option="D")  +
   theme(legend.key.width = unit(2,"cm")) +  guides(linetype=guide_legend(title="Number of sites"))
 
-fixed.leg
+figure_s5_legend
 
 # extract legend
 # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
@@ -283,7 +277,7 @@ g_legend<-function(a.gplot){
   return(legend)}
 
 # fixed effect legend
-rich_legend_l <- g_legend(fixed.leg)
+figure_s5_legend <- g_legend(figure_s5_legend)
 # slopes
 seed_biome_broad.fixed.p <- as_draws_df(seeds_m2, subset = floor(runif(n = 1000, 1, max = 2000)))
 
@@ -436,7 +430,7 @@ global.seed_biome_broad.p <- global.seed_biome_broad.p %>% mutate(`WWF Biome` = 
                                                                                             "Aquatic", "Arable"
 ))
 
-fig_seed_biome_broad_global <- ggplot() + 
+figure_s5_b <- ggplot() + 
   geom_point(data = global.seed_biome_broad.p, aes(x = `WWF Biome`, y = Estimate, color=`WWF Biome`),size = 2) +
   geom_errorbar(data = global.seed_biome_broad.p, aes(x = `WWF Biome`,ymin = `Lower CI`,
                                                ymax = `Upper CI`, color = `WWF Biome`),
@@ -459,24 +453,10 @@ fig_seed_biome_broad_global <- ggplot() +
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
-fig_seed_biome_broad_global
+figure_s5_b
 
 
-# extract legend
-# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-# g_legend <- function(a.gplot){
-#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
-#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-#   legend <- tmp$grobs[[leg]]
-#   return(legend)}
-# 
-# # overall legend
-# seed_biome_broad_leg <- g_legend(fig_seed.biome_broad)
+figure_s5 <- (figure_s5_a ) / (figure_s5_legend) / ( figure_s5_b) +  plot_layout(ncol=1, nrow=3, heights = c(12,2,7))
 
-(fig_seed.biome_broad ) / (rich_legend_l) / ( fig_seed_biome_broad_global) +  plot_layout(ncol=1, nrow=3, heights = c(12,2,7))
-
-
-#with legend
-# lnadscape 16 X 20
-#(fig_seed.biome_broad + theme(legend.position="none") ) / ( fig_seed_biome_broad_global)/ (seed_biome_broad_leg) +  plot_layout(ncol=1, nrow=3, heights = c(12,7,2))
+figure_s5
 

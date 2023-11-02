@@ -35,7 +35,7 @@ sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
 
 head(sb_rich_area)
 
-# model
+# load model
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
 load( 'rich_m2.Rdata')
@@ -44,11 +44,11 @@ summary(rich_m2)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich.biome_broad <- pp_check(rich_m2,)+ xlab( "Total Species") + ylab("Density") +
+figure_s1_a <- pp_check(rich_m2,)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "a) Species ~ area") + #xlim(-200,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_rich.biome_broad 
+figure_s1_a 
 
 # chains
 plot(rich_m2)

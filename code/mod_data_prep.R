@@ -8,14 +8,14 @@ library(viridis)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/Dropbox/GSB/Data/",
+                  "el50nico" = "~/Dropbox/GSB/",
                   # " " = " " # Ali puts his computer username and file path here
 )
 
 
 setwd(path2wd)
 
-sb <- read.csv(paste0(path2wd, 'gsb_slim.csv'))
+sb <- read.csv(paste0(path2wd, 'Data/gsb_slim.csv'))
 
 # remove rows with NA across all 4 metrics
 sb<-sb[!is.na(sb$Total_Seeds) | !is.na(sb$Total_Species) | !is.na(sb$Seed_density_m2) | !is.na(sb$Seed_density_litre),]
@@ -24,7 +24,7 @@ head(sb)
 colnames(sb)
 summary(sb)
 
-# table s1
+# table s1 numbers
 nrow(sb) # n records
 
 nrow( sb %>% select( # n studies
@@ -38,47 +38,26 @@ nrow( sb %>% select( # n unique locations
 
 head(sb)
 
+# quantify metrics we want
 sb_calc <- sb %>% mutate( log_Total_Seeds = log(Total_Seeds),
                           log_Total_Species = log(Total_Species),
-                            #  log10_Total_Seeds = log10(Total_Seeds),
-                            #  log10_Total_Species = log10(Total_Species),
                           ratio_seeds_species = (Total_Seeds / Total_Species),
-                          #     log_ratio_seeds_species = log(ratio_seeds_species),
-                          #     log10_ratio_seeds_species = log10(ratio_seeds_species),
                           Total_Sample_Volume_mm3 = (Total_Number_Samples * Sample_Volume_mm3),
                           Total_Sample_Area_mm2 = (Total_Number_Samples * Sample_Area_mm2),
                           log_Total_Number_Samples = log(Total_Number_Samples),
                           log_Number_Sites = log(Number_Sites),
-                          # log_Total_Sample_Area_mm2 = log(Total_Sample_Area_mm2),
-                          # log10_Total_Number_Samples = log10(Total_Number_Samples),
-                          # log10_Total_Sample_Area_mm2 = log10(Total_Sample_Area_mm2),
                           Total_Sample_Area_m2 = (Total_Sample_Area_mm2 / 1000000),
                           Total_Sample_Volume_m3 = (Total_Sample_Volume_mm3 / 1000000000),
                           log_Total_Sample_Area_m2 = log(Total_Sample_Area_m2),
-                          # log_Calc_Volume_m3 = log(Calc_Volume_m3),
-                          # log10_Total_Sample_Area_m2 = log10(Total_Sample_Area_m2),
-                          # log10_Calc_Volume_m3 = log10(Calc_Volume_m3),
-                          # Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
-                          # Centred_Calc_Volume_mm3 = Calc_Volume_mm3 - mean(Calc_Volume_mm3, na.rm = TRUE),
-                          # Centred_Calc_Volume_m3 = Calc_Volume_m3 - mean(Calc_Volume_m3, na.rm = TRUE),
-                          # Centred_Total_Sample_Area_mm2 = Total_Sample_Area_mm2 - mean(Total_Sample_Area_mm2, na.rm = TRUE),
                           Centred_Total_Number_Samples = Total_Number_Samples - mean(Total_Number_Samples, na.rm = TRUE),
                           Centred_Number_Sites = Number_Sites - mean(Number_Sites, na.rm = TRUE),
                           Centred_log_Total_Number_Samples = log_Total_Number_Samples - mean(log_Total_Number_Samples, na.rm = TRUE),
                           Centred_log_Number_Sites = log_Number_Sites - mean(log_Number_Sites, na.rm = TRUE),
-                          # Centred_log_Total_Seeds = log_Total_Seeds - mean(log_Total_Seeds, na.rm = TRUE),
-                          # Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
-                          # Centred_log_Calc_Volume_m3 = log_Calc_Volume_m3 - mean(log_Calc_Volume_m3, na.rm = TRUE),
-                          # Centred_log_Total_Sample_Area_mm2 = log_Total_Sample_Area_mm2 - mean(log_Total_Sample_Area_mm2, na.rm = TRUE),
                           Centred_log_Total_Sample_Area_m2 = log_Total_Sample_Area_m2 - mean(log_Total_Sample_Area_m2, na.rm = TRUE),
-                          #Centred_log10_Total_Sample_Area_m2 = log10_Total_Sample_Area_m2 - mean(log10_Total_Sample_Area_m2, na.rm = TRUE)
 ) 
-
-
 
 head(sb_calc)
 summary(sb_calc)
-
 
 # write over biomes when habitat is arable or aquatic
 # test Blowes et al biome method fopr comparison
@@ -87,59 +66,27 @@ sb_mod <- sb_calc %>%
                                     TRUE ~ Biome_WWF_Broad)) %>%
   mutate(Lat_Deg_abs = abs(Lat_Deg)) 
 
-# conclusion: ours is better for our purposes
-sb_mod %>% distinct(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>% arrange(Biome_Broad_Hab, Realm, Method, Lat_Deg_abs) %>%
-  filter(Biome_Broad_Hab == "Tropical and Subtropical Forests")
 
-# check out biome and habitat combos
-sb_mod %>% distinct( Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
-
-sb_check <- sb_mod %>% filter(Biome_Broad_Hab %in% c( "Aquatic", "Mediterranean Forests, Woodlands and Scrub", 
-                                          "Montane Grasslands and Shrublands" , "Tundra")) %>%
-  select(Biome_Broad_Hab, Number_Sites, Total_Sample_Area_m2, Total_Species) %>%
-  filter(Total_Sample_Area_m2 <= 1 ,
-         !is.na(Total_Species)) %>%
-  arrange(Biome_Broad_Hab,  Number_Sites, Total_Sample_Area_m2, Total_Species)
-
-View(sb_check)
-
-nrow(sb_mod)
-# sb_mod %>% distinct(Biome_Broad_Hab) %>% arrange(Biome_Broad_Hab)
-# 
-# sb_mod %>% select(Biome_Broad_Hab, Total_Sample_Area_m2, Total_Seeds, Total_Species) %>%
-#   filter(Biome_Broad_Hab == "Tundra") %>% distinct() %>% arrange(desc(Total_Species))
-#   
-# nrow(sb_mod %>% filter(Total_Seeds == 0))
-
-#setwd(paste0(path2wd, 'Data/'))
 write.csv(sb_mod,  "sb_prep.csv")
 
 
 # reload new dat and get some summaries for methods/ tables etc whatever
-sb_prep <- read.csv(paste0(path2wd, 'sb_prep.csv'))
+sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
-# sb_clean <- read.csv(paste0(path2wd, 'gsb_cleaned.csv'))
-# 
-# head(sb_clean)
-# 
-# study_refs <- sb_clean %>% 
-#   select( studyID, URL, Title, Journal) %>%
-#   distinct()
-# 
-# head(study_refs)
-# nrow(study_refs)
-# 
-# head(sb_prep)
 
-biome_count <- sb_prep %>% select(Biome_Broad_Hab,  Total_Species) %>%
-  dplyr::group_by(Biome_Broad_Hab) %>%
-  count() 
+head(sb)
+colnames(sb)
+summary(sb)
 
-biome_count
+# table s1 numbers
+nrow(sb_prep) # n records
 
-head(sb_prep)
-nrow(sb_prep)
-# 3107 rows but these can have varying numbers of observations/responses
+nrow( sb_prep %>% select( # n studies
+  studyID
+) %>% distinct() )
+
+
+head(sb)
 
 # table s1
 sb_gathered <- sb_prep %>% select(
@@ -156,37 +103,32 @@ sb_gathered <- sb_prep %>% select(
    #filter(metric == "ratio_seeds_species")
 
 head(sb_gathered)
-nrow(sb_gathered) # Total data points = 8087 including 0's
 
-# table s1
-nrow( sb_gathered %>% filter(!metric == "ratio_seeds_species"))
+# table s1 observations
+nrow( sb_gathered %>% filter(!metric == "ratio_seeds_species")) # observations including richness, abundance and density
 nrow( sb_gathered %>% filter(metric == "Total_Species"))
 nrow( sb_gathered %>% filter(metric == "Total_Seeds"))
 nrow( sb_gathered %>% filter(metric == "Seed_density_m2"))
 nrow( sb_gathered %>% filter(metric == "ratio_seeds_species"))
 
+# number of observations used in each model
 nrow( sb_gathered %>% filter(metric == "Total_Species") %>% filter(!is.na(Centred_log_Total_Sample_Area_m2) ))
 nrow( sb_gathered %>% filter(metric == "Total_Seeds")  %>% filter(!is.na(Centred_log_Total_Sample_Area_m2)  ))
 nrow( sb_gathered %>% filter(metric == "Seed_density_m2")  %>% filter(response != 0 ))
 nrow( sb_gathered %>% filter(metric == "ratio_seeds_species")  %>% filter(response != 0 ))
 
+nrow(sb_gathered %>% filter(response == 0 ))
 # % 0's 15/8087
 round( ((15/8087)* 100) , 2) # 0.19 % of data are zeros
 
-nrow( sb_prep %>% select(
-  studyID,
- # Lat_Deg ,  Lon_Deg
-) %>% distinct() )
-# 1451 study id's
-# 2048 locations (study id and location) (1935 without study id)
 
-sites_count <- sb_gathered %>%
+sites_count <- sb_gathered %>% filter(!metric == "ratio_seeds_species") %>%
   select(Number_Sites) %>%
   dplyr::group_by(Number_Sites) %>%
   count() 
 
 head(sites_count) # of data points within number of sites
-# 4763 data points within 1 site
+# 4763 observations within 1 site
 
 head(sb_prep)
 
@@ -207,7 +149,7 @@ sb_biomes <- sb_prep %>% filter(Biome_Broad_Hab != "Aquatic", Biome_Broad_Hab !=
   )) %>% arrange(`Biome_WWF_Broad` )
 
 print(sb_biomes)
-
+# table s2
 write.csv(sb_biomes,  "sb_biomes.csv")
 
 head(sb_gathered)
@@ -226,7 +168,7 @@ sb_gathered <- sb_prep %>% select(
   ) 
 head(sb_gathered)
 
-# first two columns (need sample area)
+# first two columns (need sample area) table s3
 biome_count_ss <- sb_gathered %>% # number of data points within every biome
   filter(!is.na(Centred_log_Total_Sample_Area_m2)) %>%
   select(Biome_Broad_Hab, metric) %>%
@@ -246,7 +188,7 @@ biome_count_ss
 
 write.csv(biome_count_ss,  "biome_count_ss.csv")
 
-# last two columns- dont need sample area and remove 0's
+# last two columns- dont need sample area and remove 0's table s2
 biome_count_dr <- sb_gathered %>% # number of data points within every biome
   filter(response != 0) %>%
   select(Biome_Broad_Hab, metric) %>%
@@ -266,41 +208,6 @@ biome_count_dr
 
 write.csv(biome_count_dr,  "biome_count_dr.csv")
 
-
-
-# of data points within every model
-#richness
-sb_gathered %>% filter(metric == "Total_Species",
-                       is.na(Centred_log_Total_Sample_Area_m2) ) 
-
-nrow( sb_gathered %>% filter(metric == "Total_Species",
-                             !is.na(Centred_log_Total_Sample_Area_m2), 
-                             ) )
-
-#seeds
-nrow( sb_gathered %>% filter(metric == "Total_Seeds",
-                             !is.na(Centred_log_Total_Sample_Area_m2)) 
-                             )
-
-head(sb_gathered)
-
-nrow( 
-  sb_gathered %>% filter(metric == "Total_Seeds",
-                       #!is.na(Centred_log_Total_Sample_Area_m2)) %>%
-  )) 
-  select(studyID) %>% distinct() 
-  #summarise( sum_seeds = sum( as.numeric(response)) ) # total number of seeds
-
-# density
-nrow( sb_gathered %>%  #filter( !response == 0 ) %>% 
-        filter(metric == "Seed_density_m2") )
-
-nrow( sb_prep %>% select(rowID, studyID, Biome_Broad_Hab, ratio_seeds_species) %>%
-  filter(!is.na(ratio_seeds_species),
-         !ratio_seeds_species == 0 ) )
-
-nrow( sb_gathered %>% select() %>% filter(metric == "Total_Species",
-                             !is.na(Total_Sample_Area_m2) ) )
 
 sb_gathered %>% filter(metric == "Total_Species",
                        !is.na(Centred_log_Total_Sample_Area_m2) ) %>%
@@ -336,7 +243,7 @@ colnames(sb_prep)
 
 # get a summary of min and max values
 # keep country and study details so we can cite them as examples
-
+# cute stories to tell at beginning of methods
 sb_deets <- sb_prep %>% group_by(Biome_Broad_Hab, Country, studyID, rowID) %>%
   summarise(`min-Total_Number_Samples` = min(as.numeric(Total_Number_Samples), na.rm = TRUE),
             `max-Total_Number_Samples` = max(as.numeric(Total_Number_Samples),na.rm = TRUE),

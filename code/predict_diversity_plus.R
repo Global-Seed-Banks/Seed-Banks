@@ -161,6 +161,7 @@ nrow(rich_biome_div)
 View(rich_biome_div)
 
 setwd(paste0(path2wd, 'Data/'))
+# for map
 write.csv(rich_biome_div,  "sb_av_div_estimates.csv")
 
 
@@ -190,7 +191,7 @@ g_table <- table_prep %>% select(-a_scale) %>%
 g_table
 
 
-table_6 <- a_table %>% left_join( g_table) %>%
+table_s6 <- a_table %>% left_join( g_table) %>%
   separate(a_1, c("a_estimate", "a_CI"), sep=" ", remove=F) %>% 
   separate(g_1, c("g_estimate", "g_CI"), sep=" ", remove=F) %>% 
   mutate(a_estimate = as.numeric(a_estimate),
@@ -198,10 +199,10 @@ table_6 <- a_table %>% left_join( g_table) %>%
   arrange(a_estimate, g_estimate, Biome_Broad_Hab) %>%
   select(-c(a_estimate, g_estimate, a_CI, g_CI))
 
-head(table_6)
+head(table_s6)
 
 setwd(paste0(path2wd, 'Tables/'))
-write.csv(table_6, "table_6.csv")
+write.csv(table_s6, "table_s6.csv")
 
 rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
@@ -219,73 +220,7 @@ rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
  
  
  
- # try out a faceted combo color gradient on a log scale
-# d_data <- bind_rows( 
-#   # a scale
-#   rich_biome_div %>% select(Biome_Broad_Hab, a_Estimate, a_Upper.CI, a_Lower.CI) %>%
-#    mutate(Estimate = a_Estimate, Upper.CI = a_Upper.CI, Lower.CI= a_Lower.CI) %>% 
-#    select(Biome_Broad_Hab, Estimate, Upper.CI, Lower.CI) %>% mutate(scale = "alpha"),
-#  # g scale
-#   rich_biome_div %>% select(Biome_Broad_Hab,  g_Estimate, g_Upper.CI, g_Lower.CI) %>%
-#    mutate(Estimate = g_Estimate, Upper.CI = g_Upper.CI, Lower.CI= g_Lower.CI) %>% 
-#    select(Biome_Broad_Hab, Estimate, Upper.CI, Lower.CI)
-#    %>% mutate(scale = "gamma") ) %>%
-#   # for label parsed
-#   mutate( scale = factor(scale,
-#                          levels= c("alpha", "gamma"),
-#                          labels = c( (expression(paste('a)   ', italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))), 
-#                                      (expression(paste('b)   ', italic(gamma), '-scale (15' ,m^2,')', sep = ''))) 
-#                          )) )
-#  
-# View(d_data)
-
-map_breaks <- c(5, 10, 15, 20, 30, 40)
-
-# 
-# rich_biome_d <- ggplot() + facet_wrap(~scale, labeller = label_parsed) +
-#   geom_hline(yintercept = 0,linetype="longdash") +
-#   geom_point(data = d_data,
-#              aes(x = Biome_Broad_Hab , y = Estimate, colour = Estimate, #Biome_Broad_Hab,
-#                  #aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
-#                  #group = Number_Sites,  #shape = Number_Sites
-#              ), 
-#              position = position_dodge(width = 0.75), size = 3) +
-#   geom_errorbar(data = d_data,
-#                 aes(x = Biome_Broad_Hab , ymin = `Lower.CI`, ymax =  `Upper.CI`, 
-#                     # aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
-#                     colour =  Estimate, #turn off for figure s6
-#                     #Biome_Broad_Hab, # turn on for figure s6
-#                     #group = Number_Sites
-#                 ),
-#                 position = position_dodge(width = 0.75),
-#                 linewidth = 0.75, width = 0) +
-#   #scale_color_viridis(discrete = T, option="D")  +
-#   scale_color_viridis(discrete = F, option=  "plasma", #"D",
-#                      #  limits = c(0, 40)
-#                      trans="log10", breaks= map_breaks, labels= map_breaks
-#   )  +
-#   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-#                                #axis.text.x=element_blank(), 
-#                                axis.title.x = element_blank(),
-#                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-#                                plot.title=element_text(size=18, hjust=0.5),
-#                                strip.background = element_blank(),legend.position="none") + 
-#   # coord_cartesian( ylim = c(0,30)) +
-#    scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
-#   # ggtitle((expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))))+
-#   ylab("Average species richness")
-#   # ylab((expression(paste('Average ', italic(alpha), '-richness ',sep = '')))) +
-#   # labs(subtitle= "a)" )+
-#   # guides(col = guide_legend(ncol = 3))
-# 
-# rich_biome_d
-# 
-# (rich_biome_d/d_map)
-
-
-# seperate plots and color scales old version
-
-rich_biome_a <- ggplot() + 
+figure_4_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
@@ -320,10 +255,10 @@ rich_biome_a <- ggplot() +
    guides(col = guide_legend(ncol = 3))
 
 
-rich_biome_a
+figure_4_a
 
 
-rich_biome_g <- ggplot() + 
+figure_4_b <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = g_Estimate, 
@@ -356,12 +291,13 @@ rich_biome_g <- ggplot() +
    guides(col = guide_legend(ncol = 3))
 
 
-rich_biome_g
+figure_4_b
 
 # map objects created in abg_map.R
 # LANDSCAPES 16 X 32
-(rich_biome_a + rich_biome_g) / (a_map + g_map) + plot_layout(heights = c(10, 10))
+figure_4 <- (rich_biome_a + rich_biome_g) / (a_map + g_map) + plot_layout(heights = c(10, 10))
 
+figure_4
 
 # for supplementary figure version
 
@@ -377,7 +313,7 @@ mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
                                                                           "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
                                                                           "Aquatic", "Arable"
 ))
-rich_biome_a <- ggplot() + 
+figure_s3_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
             # aes(x = Biome_Broad_Hab , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
@@ -413,10 +349,10 @@ rich_biome_a <- ggplot() +
   guides(col = guide_legend(ncol = 3))
 
 
-rich_biome_a
+figure_s3_a
 
 
-rich_biome_g <- ggplot() + 
+figure_s3_b <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = g_Estimate, 
@@ -452,8 +388,9 @@ rich_biome_g <- ggplot() +
   guides(col = guide_legend(ncol = 3))
 
 
-rich_biome_g
-rich_legend <- ggplot() + 
+figure_s3_b
+
+figure_s3_legend <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = a_Estimate, group= as.character(Number_Sites), shape= as.character(Number_Sites)), 
@@ -466,7 +403,7 @@ rich_legend <- ggplot() +
   scale_shape(solid = FALSE)+
   guides(shape=guide_legend(title="Number of sites"))
 
-rich_legend
+figure_s3_legend
 
 # extract legends
 # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
@@ -477,16 +414,16 @@ g_legend<-function(a.gplot){
   return(legend)}
 
 # fixed effect for controls
-rich_legend_o <- g_legend(rich_legend)
+figure_s3_legend_o <- g_legend(figure_s3_legend)
 
 
 # landscape 10 x 16
 #(rich_biome_a )/ ( rich_biome_g) / (rich_biome_b)  / (rich_legend_o) + plot_layout(heights = c(10, 10, 10, 0.5))
 
-(rich_biome_a )/ ( rich_biome_g)  / (rich_legend_o) + plot_layout(heights = c(10, 10,  0.5))
+figure_s3 <- (figure_s3_a )/ ( figure_s3_b)  / (figure_s3_legend_o) + plot_layout(heights = c(10, 10,  0.5))
 
 
-
+# beta diversity from rich m2 model- not in paper- we went with slopes instead
 rich_biome_b <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
@@ -528,7 +465,7 @@ rich_biome_div <- rich_biome_div %>% mutate(Biome_Broad_Hab = fct_relevel(Biome_
                                                                    "Aquatic", "Arable"
 ))
 
-rich_joint <- ggplot()+
+figure_s4  <- ggplot()+
   geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
    # overall effects
   geom_point(data = rich_biome_div,
@@ -559,10 +496,8 @@ rich_joint <- ggplot()+
          shape=guide_legend(title="", ncol = 3),)
 
 # 8.50 X 14
-rich_joint
+figure_s4
 
-# 12 X 14
-(rich_joint / rich_biome_b) + plot_layout(heights = c(10, 10))
 
 # what about joint richness ratio
 

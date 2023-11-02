@@ -55,7 +55,7 @@ table_5_dat <- table_5 %>%   unite("Richness seeds slope", Lower.CI:Upper.CI, se
 
 table_5_dat
 
-combined_dat <- table_1_dat %>% left_join(table_3_dat) %>% left_join(table_4_dat) %>% left_join(table_5_dat) %>%
+table_s5 <- table_1_dat %>% left_join(table_3_dat) %>% left_join(table_4_dat) %>% left_join(table_5_dat) %>%
   mutate(`WWF.Biome` = fct_relevel(`WWF.Biome`, c(
                                        "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
                                        "Temperate Broadleaf and Mixed Forests",  "Temperate Conifer Forests", "Temperate Grasslands, Savannas and Shrublands",
@@ -64,8 +64,8 @@ combined_dat <- table_1_dat %>% left_join(table_3_dat) %>% left_join(table_4_dat
                                        "Aquatic", "Arable")
   )) %>% arrange(`WWF.Biome` )
 
-combined_dat
-head(combined_dat)
+table_s5
+head(table_s5)
 
 setwd(paste0(path2wd, 'Tables/'))
-write.csv(combined_dat, "table_7.csv")
+write.csv(table_s5, "table_s5.csv")

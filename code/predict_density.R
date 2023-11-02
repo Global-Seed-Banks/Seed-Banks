@@ -142,7 +142,7 @@ predicted_density <- predicted_density %>% mutate(`Biome_Broad_Hab` = fct_releve
                                                                                                 "Aquatic", "Arable"
 ))
 
-predicted_density_fig <- ggplot() + 
+figure_s7 <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_hline(data = p_density.total.mean,
              aes(yintercept = P_Estimate), size = 0.45) +
@@ -172,5 +172,5 @@ predicted_density_fig <- ggplot() +
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 
-predicted_density_fig
+figure_s7
 # Landscape 8.50 X 16

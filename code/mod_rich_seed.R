@@ -58,16 +58,14 @@ exp(-0.031)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_rich_seeds <- pp_check(rich_seeds)+ xlab( "Total Species") + ylab("Density") +
+figure_s1_e <- pp_check(rich_seeds)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "e) Species ~ seeds") + xlim(0,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_rich_seeds
+figure_s1_e
 
-(pp_seed.biome_broad + pp_rich_seeds)
-
-( pp_rich.biome_broad +  pp_den.biome_broad + pp_ratio) / ( pp_seed.biome_broad +  pp_rich_seeds)
-
+figure_s1 <- ( figure_s1_a +  figure_s1_b + figure_s1_c) / ( figure_s1_d +  figure_s1_e)
+figure_s1
 
 # caterpillars/chains
 plot(seeds_biome_broad)
@@ -205,7 +203,7 @@ seed_rich_fitted.df <- seed_rich_fitted.df %>% mutate(wrapped_text = fct_relevel
                                                                        "Aquatic", "Arable"
 ))
 
-fig_rich_seed.biome_broad <- ggplot() + 
+figure_s6_a <- ggplot() + 
   facet_wrap(~reorder(wrapped_text, Biome_Broad_Hab), scales="free") +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -251,7 +249,7 @@ fig_rich_seed.biome_broad <- ggplot() +
 #xlim(0,800)+ ylim(0,200)+
 #scale_x_log10() + scale_y_log10() 
 
-fig_rich_seed.biome_broad
+figure_s6_a
 
 
 
@@ -269,24 +267,18 @@ rich_seed_biome_broad_global_posterior <-  rich_seed_biome_broad.fixed.p %>%
          seed.arable.global = (`b_log_Total_Seeds` + `b_log_Total_Seeds:Biome_Broad_HabArable` ),
          seed.bor.global = (`b_log_Total_Seeds` + `b_log_Total_Seeds:Biome_Broad_HabBorealForestsDTaiga` ),
          seed.des.global = (`b_log_Total_Seeds` + `b_log_Total_Seeds:Biome_Broad_HabDesertsandXericShrublands`),
-        # seed.fgs.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabFloodedGrasslandsandSavannas`),
-        # seed.mang.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabMangroves`),
          seed.medfs.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabMediterraneanForestsWoodlandsandScrub`),
          seed.mongs.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabMontaneGrasslandsandShrublands`),
          seed.tempbf.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTemperateBroadleafandMixedForests`),
          seed.tempcf.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTemperateConiferForests`),
          seed.tempgs.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTemperateGrasslandsSavannasandShrublands`),
          seed.tropf.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTropicalandSubtropicalForests`),
-         #seed.tropcf.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTropicalandSubtropicalConiferousForests`),
-         #seed.tropdbf.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTropicalandSubtropicalDryBroadleafForests`),
          seed.tropgs.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTropicalandSubtropicalGrasslandsSavannasandShrublands`),
-         #seed.tropmbf.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTropicalandSubtropicalMoistBroadleafForests`),
          seed.tund.global = (`b_log_Total_Seeds`+ `b_log_Total_Seeds:Biome_Broad_HabTundra`),
   ) %>%
-  dplyr::select(c(seed.aq.global, seed.arable.global, seed.bor.global, seed.des.global, #seed.fgs.global, seed.mang.global, 
+  dplyr::select(c(seed.aq.global, seed.arable.global, seed.bor.global, seed.des.global, 
                   seed.medfs.global,
                   seed.mongs.global, seed.tempbf.global, seed.tempcf.global, seed.tempgs.global, 
-                  #seed.tropcf.global, seed.tropdbf.global,  seed.tropmbf.global,
                   seed.tropf.global, seed.tropgs.global, seed.tund.global
                   ))
 
@@ -296,11 +288,6 @@ head(rich_seed_biome_broad_global_posterior)
 
 sb_seed_area_zone$biome_broad_WWF<- as.factor(sb_seed_area_zone$biome_broad_WWF)
 levels(sb_seed_area_zone$biome_broad_WWF)
-
-# seed.bor.global, seed.des.global, seed.fgs.global, seed.mang.global, seed.medfs.global,
-# seed.mongs.global, seed.tempbf.global, seed.tempcf.global, seed.tempgs.global, seed.tropcf.global,
-# seed.tropdbf.global, seed.tropgs.global, seed.tropmbf.global,
-# seed.tund.global
 
 seed.aq.p <-  rich_seed_biome_broad_global_posterior %>% 
   mutate( response = "Aquatic", eff = mean(seed.aq.global),
@@ -326,17 +313,6 @@ seed.des.p <-  rich_seed_biome_broad_global_posterior %>%
           eff_upper = quantile(seed.des.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
-# seed.fgs.p <-  rich_seed_biome_broad_global_posterior %>% 
-#   mutate( response = "Flooded Grasslands and Savannas", eff = mean(seed.fgs.global),
-#           eff_lower = quantile(seed.fgs.global, probs=0.025),
-#           eff_upper = quantile(seed.fgs.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-# 
-# seed.mang.p <-  rich_seed_biome_broad_global_posterior %>% 
-#   mutate( response = "Mangroves", eff = mean(seed.mang.global),
-#           eff_lower = quantile(seed.mang.global, probs=0.025),
-#           eff_upper = quantile(seed.mang.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
 seed.medfs.p <-  rich_seed_biome_broad_global_posterior %>% 
   mutate( response = "Mediterranean Forests, Woodlands and Scrub", eff = mean(seed.medfs.global),
@@ -376,29 +352,11 @@ seed.tropf.p <-  rich_seed_biome_broad_global_posterior %>%
           eff_upper = quantile(seed.tropf.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
-# seed.tropcf.p <-  rich_seed_biome_broad_global_posterior %>% 
-#   mutate( response = "Tropical and Subtropical Coniferous Forests", eff = mean(seed.tropcf.global),
-#           eff_lower = quantile(seed.tropcf.global, probs=0.025),
-#           eff_upper = quantile(seed.tropcf.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-# 
-# seed.tropdbf.p <-  rich_seed_biome_broad_global_posterior %>% 
-#   mutate( response = "Tropical and Subtropical Dry Broadleaf Forests", eff = mean(seed.tropdbf.global),
-#           eff_lower = quantile(seed.tropdbf.global, probs=0.025),
-#           eff_upper = quantile(seed.tropdbf.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-
 seed.tropgs.p <-  rich_seed_biome_broad_global_posterior %>% 
   mutate( response = "Tropical and Subtropical Grasslands, Savannas and Shrublands", eff = mean(seed.tropgs.global),
           eff_lower = quantile(seed.tropgs.global, probs=0.025),
           eff_upper = quantile(seed.tropgs.global, probs=0.975)) %>%
   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
-
-# seed.tropmbf.p <-  rich_seed_biome_broad_global_posterior %>% 
-#   mutate( response = "Tropical and Subtropical Moist Broadleaf Forests", eff = mean(seed.tropmbf.global),
-#           eff_lower = quantile(seed.tropmbf.global, probs=0.025),
-#           eff_upper = quantile(seed.tropmbf.global, probs=0.975)) %>%
-#   dplyr::select(c(eff,eff_upper,eff_lower,response)) %>% distinct() 
 
 seed.tund.p <-  rich_seed_biome_broad_global_posterior %>% 
   mutate( response = "Tundra", eff = mean(seed.tund.global),
@@ -447,7 +405,7 @@ global.rich_seed_biome_broad.p <- global.rich_seed_biome_broad.p %>% mutate(`WWF
                                                                                             "Aquatic", "Arable"
 ))
 
-fig_rich_seed_biome_broad_global <- ggplot() + 
+figure_s6_b <- ggplot() + 
   geom_point(data = global.rich_seed_biome_broad.p, aes(x = `WWF Biome`, y = Estimate, color=`WWF Biome`),size = 2) +
   geom_errorbar(data = global.rich_seed_biome_broad.p, aes(x = `WWF Biome`, ymin = `Lower CI`,
                                                ymax = `Upper CI`, color = `WWF Biome`),
@@ -471,24 +429,10 @@ fig_rich_seed_biome_broad_global <- ggplot() +
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
-fig_rich_seed_biome_broad_global
+figure_s6_b
 
 
-# extract legend
-# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-# g_legend <- function(a.gplot){
-#   tmp <- ggplot_gtable(ggplot_build(a.gplot))
-#   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-#   legend <- tmp$grobs[[leg]]
-#   return(legend)}
+(figure_s6_a )/( figure_s6_b) +  plot_layout(ncol=1, nrow=2, heights = c(12,7))
 
-# overall legend
-#rich_seed_biome_broad_leg <- g_legend(fig_rich_seed.biome_broad)
-
-(fig_rich_seed.biome_broad )/( fig_rich_seed_biome_broad_global) +  plot_layout(ncol=1, nrow=2, heights = c(12,7))
-
-
-# with legend
 # lnadscape 16 X 20
-#(fig_rich_seed.biome_broad + theme(legend.position="none"))/( fig_rich_seed_biome_broad_global)/ (rich_seed_biome_broad_leg) +  plot_layout(ncol=1, nrow=3, heights = c(10,10,1))
 

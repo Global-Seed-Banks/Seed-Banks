@@ -16,8 +16,8 @@ library(tidybayes)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/GRP GAZP Dropbox/Emma Ladouceur/GSB/",
-                  # " " = " " # Petr puts his computer username and file path here
+                  "el50nico" = "~/Dropbox/GSB/",
+                  # " " = " " # Ali puts his computer username and file path here
 )
 
 
