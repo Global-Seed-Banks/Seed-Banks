@@ -1,6 +1,6 @@
 # Soil seed bank richness, abundance and density across spatial scales and global biomes
 
-# Code by Emma Ladouceur & Alistair Auffret
+Code by Emma Ladouceur & Alistair Auffret
 
 ### Data
 * All you need is **gsb_slim.csv**
