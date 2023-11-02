@@ -71,11 +71,11 @@ summary(ratio)
 
 # posterior predictive check
 color_scheme_set("darkgray")
-pp_ratio <- pp_check(ratio)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
+figure_s1_c <- pp_check(ratio)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
   labs(title= "c) Ratio") + xlim(0,400)+ #ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
-pp_ratio 
+figure_s1_c 
 
 #6X11
 (pp_rich.biome_broad + pp_den.biome_broad + pp_ratio)/(pp_den.biome_broad + pp_ratio)
@@ -181,7 +181,7 @@ ratio_conditional_effects <- ratio_conditional_effects %>% mutate(`WWF Biome` = 
                                                                                                 "Aquatic", "Arable"
 ))
 
-ratio_biome_broad_Fig <- ggplot() + 
+figure_5b <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_hline(data = ratio.total.mean,
              aes(yintercept = P_Estimate), size = 0.45) +
@@ -219,6 +219,6 @@ ratio_biome_broad_Fig <- ggplot() +
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
 
-ratio_biome_broad_Fig
+figure_5b
 # Landscape 8.50 X 18
-
+(figure_5_a/figure_5_b)
