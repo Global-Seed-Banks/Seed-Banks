@@ -13,7 +13,7 @@ Code by Emma Ladouceur & Alistair Auffret
 
 * **2_Figure_2.R** Mapping records for Figure 2.
 
-* **cluster** All statistical models were run on a HPC Cluster. Submit scripts and R scripts for each model found in this folder and the models saved as .RData files. Model objects can be found within the data repository.
+* **cluster** All statistical models were run on a HPC Cluster. Submit scripts and R scripts for each statistical model found in this folder and the models saved as .RData files. Model objects can be found within the data repository.
 
 * **3_Figure_3_S2.R**  Figure 3 and S2
 

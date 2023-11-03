@@ -296,6 +296,7 @@ mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100"))) %>%
                                                                           "Tropical and Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
                                                                           "Aquatic", "Arable"
 ))
+
 figure_s3_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
