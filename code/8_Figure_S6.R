@@ -104,7 +104,6 @@ rich_seeds_biome_broad_fitted <- cbind(rich_seeds$data,
                                                       log_Total_Species, log_Total_Seeds,
                                                       Total_Seeds, Number_Sites,
                                                           Biome_Broad_Hab),
-                             #  by= c("Total_Species2","Biome_Broad_Hab","Habitat_Broad","studyID", "rowID")
   )
 
 

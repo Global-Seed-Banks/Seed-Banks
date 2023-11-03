@@ -123,10 +123,8 @@ g_legend <- function(a.gplot){
   legend <- tmp$grobs[[leg]]
   return(legend)}
 
-# overall legend
 legend <- g_legend(gsbm_legend)
 
-# with non-alpha legend to see colors better
 figure_2 <- (gsbm)/(legend) +  plot_layout(ncol=1, nrow=2, heights = c(12,2))
 # LANDSCAPE 8.50 X 16
 

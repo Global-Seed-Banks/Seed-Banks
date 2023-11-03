@@ -47,7 +47,6 @@ head(tidy_biomes.sb)
 colnames(tidy_biomes.sb)
 
 
-# put colors on same gradient by using one scale across all values ?
 tidy_sb_biomes<- tidy_biomes.sb %>% gather( key= "scale", value="richness", alpha, gamma) %>%
   mutate( scale = factor(scale,
                          levels= c("alpha", "gamma"),
@@ -87,8 +86,6 @@ figure_4_d <- ggplot() +
               #'Soil seedbank average \n species richness' ,
             subtitle = "d)")
 figure_4_d
-
-
 
 
 

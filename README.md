@@ -3,7 +3,7 @@
 Code by Emma Ladouceur & Alistair Auffret
 
 ### Data
-* All you need is **gsb_slim.csv**
+* All you need is **gsb_db.csv**
 
 * OTHER ENTITIES: **model objects** Each linear mixed effects model used in this analyses is saved as a model object *(.RData)* so you can just load them to recreate figures, rather than run them on your local machine.
 
@@ -19,7 +19,7 @@ Code by Emma Ladouceur & Alistair Auffret
 
 * **4_Figure_4ab_S3ab_S4.r**  Predict species richness for each Biome at two scales and plot Figure 4 a) & b), Figure S3 a) & b) & Figure S4. Also produce Table S6.
 
-* **4_Figure_4cd.r**  Call data from **4_Figure_4ab** to produce Figure 4 c) & d) (maps)
+* **4_Figure_4cd.r**  Call estimates quantified in **4_Figure_4ab** to produce Figure 4 c) & d) (maps)
 
 * **5_Figure_5a.r** Figure 5a)
 

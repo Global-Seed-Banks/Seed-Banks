@@ -59,7 +59,7 @@ nrow(sb_seed_area)
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'seed_m2.Rdata') # jan folder 
+load( 'abundance_area.Rdata') # jan folder 
 
 summary(seeds_m2)
 
@@ -111,8 +111,8 @@ seed_biome_broad_fitted <- cbind(seeds_m2$data,
                                                           Total_Number_Samples, 
                                                           Total_Sample_Area_m2, log_Total_Sample_Area_m2,
                                                           Centred_log_Total_Sample_Area_m2, Number_Sites,
-                                                     Biome_WWF_Broad, Habitat_Broad, Biome_Broad_Hab),
-                             #  by= c("Total_Species2","Biome_WWF_Broad","Habitat_Broad","studyID", "rowID")
+                                                     Biome_WWF_Broad, Habitat_Broad, Biome_Broad_Hab)
+                        
   )
 
 

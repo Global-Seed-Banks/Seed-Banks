@@ -48,7 +48,7 @@ View(sb_density_area %>% select(Biome_Broad_Hab, Seed_density_m2) %>%
 
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'density_m2.Rdata')
+load( 'seed_density.Rdata')
 
 
 
@@ -179,7 +179,7 @@ figure_5_a <- ggplot() +
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
             alpha = 0.05) +
   geom_point(data = sb_density_area,
-             aes(x = Biome_Broad_Hab, y = Seed_density_m2, #colour = 	"#C0C0C0"
+             aes(x = Biome_Broad_Hab, y = Seed_density_m2, 
                  colour = Biome_Broad_Hab
                  ), 
              size = 1.5, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +
@@ -197,9 +197,6 @@ figure_5_a <- ggplot() +
                                  "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
                                  "#447fdd","#99610a" # aquatic, arable
   ))+
-  # scale_color_viridis(discrete = T, option="D")  +
-  # scale_fill_viridis(discrete = T, option="D")  +
-  #ylim(0,100000)+
    coord_cartesian( ylim = c(0,25000)) +
   scale_y_continuous(breaks=c(0,1000, 3000,5000,10000,15000,20000,25000))+
   theme_bw(base_size=20) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),

@@ -38,7 +38,7 @@ head(sb_rich_area)
 # load model
 setwd(paste0(path2wd, 'Model_Fits/'))
 # models run on cluster, load in model objects here
-load( 'rich_m2.Rdata')
+load( 'rich_area.Rdata')
 
 summary(rich_m2)
 
@@ -448,8 +448,7 @@ figure_3
 head(rich.fitted.df)
 
 
-
-fig_rich.biome_broad_log <- ggplot() +
+figure_s2_a <- ggplot() +
   facet_wrap(~ reorder(wrapped_text, Biome_Broad_Hab),
   scales="free") +
   # horizontal zero line
@@ -488,10 +487,10 @@ fig_rich.biome_broad_log <- ggplot() +
   labs(y = "log[Species richness in the soil seed bank]",  x = expression(paste('Total Sample Area log[' , m^2,']')),
        color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") #+ guides(col = guide_legend(nrow = 4))
 
-fig_rich.biome_broad_log 
+figure_s2_a
 
 
-fig_rich_biome_broad_global_log <- ggplot() + 
+figure_s2_b <- ggplot() + 
   geom_point(data = global.rich_biome_broad.p, aes(x = `WWF Biome` , y = Estimate, color=`WWF Biome`),size = 2) +
   geom_errorbar(data = global.rich_biome_broad.p, aes(x = `WWF Biome`, ymin = `Lower CI`,
                                                       ymax =  `Upper CI`, color = `WWF Biome`),
@@ -518,12 +517,12 @@ fig_rich_biome_broad_global_log <- ggplot() +
                                plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.1, unit = "cm"),
                                strip.background = element_blank(),legend.position="none") + scale_x_discrete(labels = function(x) str_wrap(x, width = 10))
 
-fig_rich_biome_broad_global_log
+figure_s2_b
 
 # put together with patchwork
-figure_3_log <- ( (fig_rich.biome_broad_log) / (rich_legend_l) / ( fig_rich_biome_broad_global_log) )  +
+figure_s2 <- ( (figure_s2_a) / (rich_legend_l) / ( figure_s2_b) )  +
   plot_layout(ncol = 1, nrow = 3, heights = c(12, 2, 7) )
 
 # lnadscape 16 X 20
-figure_3_log
+figure_s2
 

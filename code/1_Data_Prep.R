@@ -15,7 +15,7 @@ path2wd <- switch(user,
 
 setwd(path2wd)
 
-sb <- read.csv(paste0(path2wd, 'Data/gsb_slim.csv'))
+sb <- read.csv(paste0(path2wd, 'Data/gsb_db.csv'))
 
 # remove rows with NA across all 4 metrics
 sb<-sb[!is.na(sb$Total_Seeds) | !is.na(sb$Total_Species) | !is.na(sb$Seed_density_m2) | !is.na(sb$Seed_density_litre),]

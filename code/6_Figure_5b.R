@@ -61,11 +61,6 @@ setwd(paste0(path2wd, 'Model_Fits/'))
 load( 'ratio.Rdata')
 
 
-
-# density_biome_broad
-# density_habs
-# density_deg
-
 # model summary
 summary(ratio)
 
@@ -157,7 +152,6 @@ ratio.total.mean <- ratio.predicted.df %>%
   select(-.draw) %>%
   select(-c(Biome_Broad_Hab_group, ratio_seeds_species)) %>%
   ungroup() %>%
-  #group_by(Seed_ratio_m2) %>%
   mutate( P_Estimate = mean(.epred),
           P_Estimate_lower = quantile(.epred, probs=0.025),
           P_Estimate_upper = quantile(.epred, probs=0.975) ) %>%
@@ -190,7 +184,7 @@ figure_5b <- ggplot() +
                 ymin = P_Estimate_lower, ymax =  P_Estimate_upper ),
             alpha = 0.05) +
   geom_point(data = sb_ratio,
-             aes(x = Biome_Broad_Hab, y = ratio_seeds_species, #colour = 	"#C0C0C0"
+             aes(x = Biome_Broad_Hab, y = ratio_seeds_species, 
                  colour = Biome_Broad_Hab
                  ), 
              size = 1.5, alpha = 0.2, position = position_jitter(width = 0.25, height=0.45)) +

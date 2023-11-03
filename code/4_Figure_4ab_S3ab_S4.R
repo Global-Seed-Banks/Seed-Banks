@@ -95,12 +95,7 @@ head(rich_biome_predict_df)
 
 rich_biome_a <- rich_biome_predict_df %>%
   select(-c( .row, .chain, .iteration, Centred_log_Total_Sample_Area_m2, Biome_Broad_Hab_group)) %>%
-  filter( Total_Sample_Area_m2 == 0.010000   ) %>% # Yang et al
-  # group_by(Biome_Broad_Hab, Number_Sites) %>%
-  #  filter(
-  #    predicted > quantile(predicted, probs=0.025),
-  #    predicted < quantile(predicted, probs=0.975),
-  # ) %>% sample_n(1000)  %>%
+  filter( Total_Sample_Area_m2 == 0.010000   ) %>% 
   mutate(a_samp_scale = Total_Sample_Area_m2,
          a_predicted = predicted) %>%
   select(-c(Total_Sample_Area_m2,predicted, X ))
@@ -110,12 +105,7 @@ head(rich_biome_a)
 
 rich_biome_g <- rich_biome_predict_df %>%
   select(-c(.row, .chain, .iteration, Centred_log_Total_Sample_Area_m2, Biome_Broad_Hab_group)) %>%
-  filter(  Total_Sample_Area_m2 ==  15.000000   ) %>% # arbitrary gamma scale
-  #group_by(Biome_Broad_Hab, Number_Sites) %>%
-  # filter(
-  #   predicted > quantile(predicted, probs=0.025),
-  #   predicted < quantile(predicted, probs=0.975),
-  # ) %>% sample_n(1000)  %>%
+  filter(  Total_Sample_Area_m2 ==  15.000000   ) %>% 
   mutate(g_samp_scale = Total_Sample_Area_m2,
          g_predicted = predicted) %>%
   select(-c(Total_Sample_Area_m2,predicted, X))
@@ -170,7 +160,7 @@ rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
 head(rich_biome_div)
 
-table_prep <- rich_biome_div %>% #mutate(g_Lower.CI = round(g_Lower.CI, 0)) %>%
+table_prep <- rich_biome_div %>%
   unite("a_CI", a_Lower.CI:a_Upper.CI, sep=",") %>%
   unite("g_CI", g_Lower.CI:g_Upper.CI, sep=",") %>%
   mutate(a_CI = paste0("(", a_CI, ")"),
@@ -206,7 +196,7 @@ write.csv(table_s6, "table_s6.csv")
 
 rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 
- rich_biome_div <- rich_biome_div %>% #left_join(cols) %>% 
+ rich_biome_div <- rich_biome_div %>% 
    filter( Number_Sites == "1")  %>% 
    mutate(Biome_Broad_Hab = fct_relevel(Biome_Broad_Hab,
                                         "Tundra", "Boreal Forests/Taiga", "Montane Grasslands and Shrublands",
@@ -223,21 +213,17 @@ rich_biome_div <- read.csv(paste0(path2wd, 'Data/sb_av_div_estimates.csv'))
 figure_4_a <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
-             aes(x = Biome_Broad_Hab , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
-             #aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , y = a_Estimate, colour = a_Estimate, #Biome_Broad_Hab,
-                group = Number_Sites,  #shape = Number_Sites
+             aes(x = Biome_Broad_Hab , y = a_Estimate, colour = a_Estimate, 
+                group = Number_Sites,  
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
                 aes(x = Biome_Broad_Hab , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
-               # aes(x = reorder(Biome_Broad_Hab, a_Estimate ) , ymin = `a_Lower.CI`, ymax =  `a_Upper.CI`, 
-                    colour =  a_Estimate, #turn off for figure s6
-                      #Biome_Broad_Hab, # turn on for figure s6
+                    colour =  a_Estimate,
                     group = Number_Sites
                     ),
                 position = position_dodge(width = 0.75),
                 linewidth = 0.75, width = 0) +
- #scale_color_viridis(discrete = T, option="D")  +
   scale_color_viridis(discrete = F, option="D", 
                       limits = c(0, 20) 
                       )  +
@@ -262,10 +248,7 @@ figure_4_b <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = rich_biome_div,
              aes(x = Biome_Broad_Hab , y = g_Estimate, 
-            # aes(x = reorder(Biome_Broad_Hab, g_Estimate ) , y = g_Estimate, 
-                 colour = #Biome_Broad_Hab,  # turn on for figure s6
-                   g_Estimate, # turn off for figure s6
-                 group = Number_Sites,   #shape = Number_Sites
+                 group = Number_Sites,   
                  ), 
              position = position_dodge(width = 0.75), size = 3) +
   geom_errorbar(data = rich_biome_div,
@@ -416,9 +399,6 @@ g_legend<-function(a.gplot){
 # fixed effect for controls
 figure_s3_legend_o <- g_legend(figure_s3_legend)
 
-
-# landscape 10 x 16
-#(rich_biome_a )/ ( rich_biome_g) / (rich_biome_b)  / (rich_legend_o) + plot_layout(heights = c(10, 10, 10, 0.5))
 
 figure_s3 <- (figure_s3_a )/ ( figure_s3_b)  / (figure_s3_legend_o) + plot_layout(heights = c(10, 10,  0.5))
 
