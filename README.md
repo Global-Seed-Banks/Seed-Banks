@@ -5,7 +5,7 @@ Code by Emma Ladouceur & Alistair Auffret
 ### Data
 * All you need is **gsb_db.csv**
 
-* **GIS** folder contains a world map downloaded from the [European Commission]([https://www.example.com](https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries), used for plotting.
+* **GIS** folder contains a world map downloaded from the [European Commission](https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries) used for plotting.
 
 * OTHER ENTITIES: **model objects** Each linear mixed effects model used in this analyses is saved as a model object *(.RData)* so you can just load them to recreate figures, rather than run them on your local machine.
 
