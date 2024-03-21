@@ -31,8 +31,10 @@ sb_dat <- sb %>% filter(#!is.na(log_Total_Seeds),
 # )
 
 
-seeds_m2 <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + Centred_log_Number_Sites + ( 1  | Method/studyID ),
-               family = Gamma(link="log"), data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000,
+seeds_m2 <- brm(Total_Seeds ~ Centred_log_Total_Sample_Area_m2 * Biome_Broad_Hab + Centred_log_Number_Sites + ( 1  | studyID/Method ),
+               #family = Gamma(link="log"),
+               family= lognormal(),
+               data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000,
                prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                control = list(adapt_delta = 0.99999,
                               max_treedepth = 13)
