@@ -526,3 +526,50 @@ figure_s2 <- ( (figure_s2_a) / (rich_legend_l) / ( figure_s2_b) )  +
 # lnadscape 16 X 20
 figure_s2
 
+
+
+
+
+fig_together <- ggplot() + 
+  #facet_wrap(~reorder(wrapped_text, Biome_Broad_Hab), scales="free") +
+  # horizontal zero line
+  geom_hline(yintercept = 0, lty = 2) +
+  # raw data points
+  geom_point(data = sb_rich_area %>% filter(Number_Sites == "1"),
+             aes(x = Total_Sample_Area_m2,
+                 y = Total_Species, colour = Biome_Broad_Hab,
+             ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
+  geom_line(data = rich.fitted.df  %>% filter(Number_Sites == "1"), 
+            aes( x = Total_Sample_Area_m2,
+                 y = fitted[,1] , colour = Biome_Broad_Hab  ),
+            size = 1 
+  ) +
+  geom_ribbon(data = rich.fitted.df  %>% filter(Number_Sites == "1") ,
+              aes(
+                x = Total_Sample_Area_m2,
+                ymin = fitted[,3], ymax = fitted[,4], fill = Biome_Broad_Hab),
+              alpha = 0.2) +
+  coord_cartesian( ylim = c(5,100),  xlim = c(1,15)
+  ) +
+  scale_y_continuous(trans = 'log', breaks= c(5,10,20,50, 100)) +  scale_x_continuous(trans = 'log', breaks=c( 1, 2, 5, 10, 15) ) +
+  theme_bw(base_size=20 ) + 
+  
+  labs(y = "log[Species richness in the soil seed bank]",  x = expression(paste('Total Sample Area log[' , m^2,']')),
+       color = "WWF Biome", fill = "WWF Biome", subtitle= "a)") +
+
+  scale_color_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                 "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" # aquatic, arable
+  ))+
+  scale_fill_manual( values= c( "#94b594", "#1e3d14",   "#20B2AA", #tundra, boreal fs, montane grasslands
+                                "#788f33", "#3b7c70",  "#d8b847", #temp broad, temp con, temp grass
+                                "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
+                                "#447fdd","#99610a" # aquatic, arable
+  ))+
+  # scale_color_viridis(discrete = T, option="D")  +
+  # scale_fill_viridis(discrete = T, option="D")  +
+  theme_bw(base_size=20 ) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), strip.background = element_rect(colour="black", fill="white"),
+                                  legend.position="bottom") + guides(col = guide_legend(nrow = 4)) 
+
+fig_together
