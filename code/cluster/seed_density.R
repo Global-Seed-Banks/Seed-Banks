@@ -19,7 +19,7 @@ sb_dat <- sb %>% filter(!is.na(Seed_density_m2),
           Method = as.factor(Method)) 
 
 
-density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab + ( 1 | studyID/Method ),
+density_m2 <- brm(Seed_density_m2 ~  Biome_Broad_Hab * Habitat_Degraded + ( 1 | studyID/Method ),
                     #family = Gamma(link="log"), 
                   family= lognormal(),
                   data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 

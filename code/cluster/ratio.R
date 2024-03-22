@@ -18,7 +18,7 @@ sb_dat <- sb %>% filter(!is.na(ratio_seeds_species)) %>%
           Method = as.factor(Method)) 
 
 
-ratio <- brm(ratio_seeds_species ~  Biome_Broad_Hab + (1 | studyID/Method ),
+ratio <- brm(ratio_seeds_species ~  Biome_Broad_Hab * Habitat_Degraded + (1 | studyID/Method ),
                     family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
                     control = list(adapt_delta = 0.99999,
                                    max_treedepth = 12)
