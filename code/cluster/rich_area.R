@@ -22,7 +22,7 @@ sb_dat <- sb %>% filter(!is.na(Total_species),
 
 
 
-rich_m2 <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Biome_broad_Hab * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/Method ),
+rich_m2 <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Biome_broad_hab * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/Method ),
                     family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 8000, warmup = 1000,
                     prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                     control = list(adapt_delta = 0.99999,
