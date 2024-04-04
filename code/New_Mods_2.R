@@ -150,9 +150,9 @@ save(mod_bo_r, file = 'mod_bo_r.Rdata')
 # Deserts and Xeric Shrublands
 sb_de_r <- sb %>% filter(Biome_broad_hab == "Deserts and Xeric Shrublands")
 
-View(sb_de_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
+sb_de_r %>% select(Biome_zone, Biome_broad_hab, Habitat_broad) %>% distinct()
 
-mod_de_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+mod_de_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   *  Habitat_broad * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
                 family = poisson(), data = sb_de_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
                 prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                 control = list(adapt_delta = 0.99999,
@@ -171,9 +171,9 @@ save(mod_de_r, file = 'mod_de_r.Rdata')
 # Mediterranean Forests, Woodlands and Scrub
 sb_med_r <- sb %>% filter(Biome_broad_hab == "Mediterranean Forests, Woodlands and Scrub")
 
-View(sb_med_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
+sb_med_r %>% select(Biome_zone, Biome_broad_hab, Habitat_broad) %>% distinct()
 
-mod_med_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+mod_med_r <- brm(Total_species ~ Centred_log_total_sample_area_m2  * Habitat_broad * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
                 family = poisson(), data = sb_med_r, cores = 4, chains = 4, iter = 8000, warmup = 1000,
                 prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                 control = list(adapt_delta = 0.99999,
@@ -189,43 +189,23 @@ setwd(paste0(path2wd, 'Model_Fits/New/'))
 save(mod_med_r, file = 'mod_med_r.Rdata')
 
 
-# Montane Grasslands and Shrublands
-sb_mo_r <- sb %>% filter(Biome_broad_hab == "Montane Grasslands and Shrublands")
 
-View(sb_mo_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
+# Temperate 
+sb_temp_r <- sb %>% filter(Biome_zone == "Temperate") %>%
+  filter(!Biome_broad_hab == "Arable") %>% filter(!Biome_broad_hab == "Aquatic") 
 
-mod_mo_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                 family = poisson(), data = sb_mo_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
-                 prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
-                 control = list(adapt_delta = 0.99999,
-                                max_treedepth = 13)
-)
+sb_temp_r %>% select(Biome_zone, Biome_broad_hab, Habitat_broad) %>% distinct()
 
-summary(mod_mo_r)
-pp_check(mod_mo_r)
-conditional_effects(mod_mo_r)
-
-setwd(paste0(path2wd, 'Model_Fits/New/'))
-# # # save data objects to avoid doing this every time
-save(mod_mo_r, file = 'mod_mo_r.Rdata')
-
-
-
-# Temperate Broadleaf and Mixed Forests
-sb_tbroad_r <- sb %>% filter(Biome_broad_hab == "Temperate Broadleaf and Mixed Forests")
-
-View(sb_tbroad_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
-
-mod_tbroad_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                family = poisson(), data = sb_tbroad_r, cores = 4, chains = 4, iter = 8000, warmup = 1000,
+mod_temp_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Habitat_broad  * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+                family = poisson(), data = sb_temp_r, cores = 4, chains = 4, iter = 8000, warmup = 1000,
                 prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                 control = list(adapt_delta = 0.99999,
                                max_treedepth = 13)
 )
 
-summary(mod_tbroad_r)
-pp_check(mod_tbroad_r)
-conditional_effects(mod_tbroad_r)
+summary(mod_temp_r)
+pp_check(mod_temp_r)
+conditional_effects(mod_temp_r)
 
 setwd(paste0(path2wd, 'Model_Fits/New/'))
 # # # save data objects to avoid doing this every time
@@ -233,113 +213,51 @@ save(mod_tbroad_r, file = 'mod_tbroad_r.Rdata')
 
 
 
-# Temperate Conifer Forests
-sb_tconf_r <- sb %>% filter(Biome_broad_hab == "Temperate Conifer Forests")
+# Tropical 
+sb_trop_r <- sb %>% filter(Biome_zone == "Tropical")  %>%
+  filter(!Biome_broad_hab == "Arable") %>% filter(!Biome_broad_hab == "Aquatic") 
 
-#View(sb_tconf_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
+sb_trop_r %>% select(Biome_zone, Biome_broad_hab, Habitat_broad) %>% distinct()
 
-mod_tconf_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                    family = poisson(), data = sb_tconf_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
-                    prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
-                    control = list(adapt_delta = 0.99999,
-                                   max_treedepth = 13)
-)
-
-summary(mod_tconf_r)
-pp_check(mod_tconf_r)
-conditional_effects(mod_tconf_r)
-
-setwd(paste0(path2wd, 'Model_Fits/New/'))
-# # # save data objects to avoid doing this every time
-save(mod_tconf_r, file = 'mod_tconf_r.Rdata')
-
-
-
-# Temperate Grasslands, Savannas and Shrublands
-sb_tempg_r <- sb %>% filter(Biome_broad_hab == "Temperate Grasslands, Savannas and Shrublands")
-
-#View(sb_tempg_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
-
-mod_tempg_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                   family = poisson(), data = sb_tempg_r, cores = 4, chains = 4, iter = 8000, warmup = 1000,
+mod_trop_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Habitat_broad  * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+                   family = poisson(), data = sb_trop_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
                    prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                    control = list(adapt_delta = 0.99999,
                                   max_treedepth = 13)
 )
 
-summary(mod_tempg_r)
-pp_check(mod_tempg_r)
-conditional_effects(mod_tempg_r)
+summary(mod_trop_r)
+pp_check(mod_trop_r)
+conditional_effects(mod_trop_r)
 
 setwd(paste0(path2wd, 'Model_Fits/New/'))
 # # # save data objects to avoid doing this every time
-save(mod_tempg_r, file = 'mod_tempg_r.Rdata')
-
-
-
-# Tropical and Subtropical Forests
-sb_tropf_r <- sb %>% filter(Biome_broad_hab == "Tropical and Subtropical Forests")
-
-#View(sb_tropf_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
-
-mod_tropf_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                   family = poisson(), data = sb_tropf_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
-                   prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
-                   control = list(adapt_delta = 0.99999,
-                                  max_treedepth = 13)
-)
-
-summary(mod_tropf_r)
-pp_check(mod_tropf_r)
-conditional_effects(mod_tropf_r)
-
-setwd(paste0(path2wd, 'Model_Fits/New/'))
-# # # save data objects to avoid doing this every time
-save(mod_tropf_r, file = 'mod_tropf_r.Rdata')
+save(mod_trop_r, file = 'mod_tropf_r.Rdata')
 
 
 
 # Tropical and Subtropical Grasslands, Savannas and Shrublands
-sb_tropg_r <- sb %>% filter(Biome_broad_hab == "Tropical and Subtropical Grasslands, Savannas and Shrublands")
+sb_tund_r <- sb %>% filter(Biome_broad_hab == "Tundra")  %>%
+  filter(!Biome_broad_hab == "Arable") %>% filter(!Biome_broad_hab == "Aquatic") 
 
-#View(sb_tropg_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
+sb_tund_r %>% select(Biome_zone, Biome_broad_hab, Habitat_broad) %>% distinct()
 
-mod_tropg_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                   family = poisson(), data = sb_tropg_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
+sb_tund_r %>% filter(Habitat_broad == "Forest")
+
+mod_tund_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+                   family = poisson(), data = sb_tund_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
                    prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                    control = list(adapt_delta = 0.99999,
                                   max_treedepth = 13)
 )
 
-summary(mod_tropg_r)
-pp_check(mod_tropg_r)
-conditional_effects(mod_tropg_r)
+summary(mod_tund_r)
+pp_check(mod_tund_r)
+conditional_effects(mod_tund_r)
 
 setwd(paste0(path2wd, 'Model_Fits/New/'))
 # # # save data objects to avoid doing this every time
-save(mod_tropg_r, file = 'mod_tropg_r.Rdata')
-
-
-
-# Tropical and Subtropical Grasslands, Savannas and Shrublands
-sb_tu_r <- sb %>% filter(Biome_broad_hab == "Tundra")
-
-#View(sb_tu_r %>% filter(Habitat_degraded == 1) %>% select(Country, Total_species, Total_Sample_Area_m2))
-
-mod_tu_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                   family = poisson(), data = sb_tu_r, cores = 4, chains = 4, iter = 6000, warmup = 1000,
-                   prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
-                   control = list(adapt_delta = 0.99999,
-                                  max_treedepth = 13)
-)
-
-summary(mod_tu_r)
-pp_check(mod_tu_r)
-conditional_effects(mod_tu_r)
-
-setwd(paste0(path2wd, 'Model_Fits/New/'))
-# # # save data objects to avoid doing this every time
-save(mod_tu_r, file = 'mod_tu_r.Rdata')
+save(mod_tund_r, file = 'mod_tu_r.Rdata')
 
 
 
