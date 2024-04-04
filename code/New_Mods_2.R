@@ -196,6 +196,8 @@ sb_temp_r <- sb %>% filter(Biome_zone == "Temperate") %>%
 
 sb_temp_r %>% select(Biome_zone, Biome_broad_hab, Habitat_broad) %>% distinct()
 
+sb_temp_r %>% select( Habitat_broad, Habitat_degraded) %>% distinct()
+
 mod_temp_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Habitat_broad  * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
                 family = poisson(), data = sb_temp_r, cores = 4, chains = 4, iter = 8000, warmup = 1000,
                 prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
