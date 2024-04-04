@@ -28,12 +28,12 @@ summary(sb)
 nrow(sb) # n records
 
 nrow( sb %>% select( # n studies
-  studyID
+  StudyID
 ) %>% distinct() )
 
 nrow( sb %>% select( # n unique locations
-  studyID,
-  Lat_Deg ,  Lon_Deg
+  StudyID,
+  Lat_deg ,  Lon_deg
 ) %>% distinct() )
 
 head(sb)
@@ -62,10 +62,52 @@ summary(sb_calc)
 # write over biomes when habitat is arable or aquatic
 sb_mod <- sb_calc %>% 
   mutate(Biome_broad_hab = case_when(Habitat_broad %in% c("Arable", "Aquatic") ~ Habitat_broad ,
+            
                                     TRUE ~ Biome_broad)) %>%
   mutate(Lat_deg_abs = abs(Lat_deg)) 
 
 head(sb_mod)
+
+
+sb_mod %>% select(Biome_broad, Habitat_broad) %>% distinct()
+sb_mod %>% select(Habitat_broad, Biome_zone, Biome_broad) %>% distinct() %>% arrange(Habitat_broad, Biome_zone, Biome_broad) 
+
+sb_mod %>% select(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad) %>% distinct() %>% arrange(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad) %>%
+  
+  
+  # filter(Biome_broad_hab == "Aquatic") %>%
+  # mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",
+  #                          grepl("Temperate", Biome_broad) ~ "Temperate",
+  #                          grepl("Mediterranean", Biome_broad) ~ "Mediterranean",
+  #                          grepl("Tropical", Biome_broad, ignore.case = TRUE) ~"Tropical"))
+  
+  # filter(Biome_broad_hab == "Arable") %>%
+  # mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",
+  #                          grepl("Temperate", Biome_broad) ~ "Temperate",
+  #                          grepl("Mediterranean", Biome_broad) ~ "Mediterranean",
+  #                          grepl("Boreal", Biome_broad) ~ "Boreal",
+  #                          grepl("Montane", Biome_broad) ~ "Tropical",
+  #                          grepl("Tropical", Biome_broad, ignore.case = TRUE) ~"Tropical"))
+  
+  # filter(Habitat_broad == "Forest") %>%
+  # filter(!Biome_zone %in% c( "Tundra", "Mediterranean and Desert") )
+
+  # filter(Habitat_broad == "Grassland") %>%
+  # filter(!Biome_zone %in% c( "Tundra",  "Mediterranean and Desert", "Boreal"))
+
+  
+# filter(Biome_zone == "Mediterranean and Desert") %>%
+# filter(Habitat_broad %in% c( "Grassland", "Forest") )%>%
+# mutate(Biome = case_when(grepl("Deserts", Biome_broad_hab) ~ "Deserts",
+#                          grepl("Mediterranean", Biome_broad_hab) ~ "Mediterranean",
+#                          grepl("Montane", Biome_broad_hab) ~ "Mediterranean",
+#                          grepl("Tropical", Biome_broad_hab) ~ "Mediterranean",
+#                          ))
+
+
+# filter(Habitat_broad == "Grassland") %>%
+#   filter(Biome_zone %in% c( "Tundra", "Boreal"))
+
 
 write.csv(sb_mod,  "sb_prep.csv")
 
@@ -74,9 +116,9 @@ write.csv(sb_mod,  "sb_prep.csv")
 sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
 
-head(sb)
-colnames(sb)
-summary(sb)
+head(sb_prep)
+colnames(sb_prep)
+summary(sb_prep)
 
 # table s1 numbers
 nrow(sb_prep) # n records
@@ -87,6 +129,14 @@ nrow( sb_prep %>% select( # n studies
 
 
 head(sb)
+
+
+sb_prep %>% select(Biome_broad, Habitat_broad, Biome_broad_hab, Habitat_degraded, StudyID, RowID) %>% distinct() %>% 
+  arrange(Biome_broad, Habitat_broad, Biome_broad_hab, Habitat_degraded,  StudyID, RowID)
+
+sb_prep %>% select(Biome_zone, Biome_broad, Habitat_broad, Biome_broad_hab, ) %>% distinct() %>% 
+  arrange(Biome_zone, Biome_broad, Habitat_broad, Biome_broad_hab) %>% filter(!Biome_broad_hab == "Arable")  %>% filter(!Biome_broad_hab == "Aquatic")
+
 
 # table s1
 sb_gathered <- sb_prep %>% select(
