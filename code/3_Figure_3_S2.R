@@ -22,21 +22,21 @@ sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 nrow(sb_prep)
 head(sb_prep)
 # data
-sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
-                                   !is.na(Total_Sample_Area_mm2),
-                                   Number_Sites == 1 
+sb_rich_area <- sb_prep %>% filter(!is.na(Total_species),
+                                   !is.na(Total_sample_area_mm2),
+                                   Number_sites == 1 
                                    ) %>%
   # treat all random effects as factors
-  mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
-          Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
-          Habitat_Broad = as.factor(Habitat_Broad),
-          studyID = as.factor(studyID),
-          rowID = as.factor(rowID))
+  mutate( Habitat_degraded = as.factor(Habitat_degraded),
+          Biome_droad_hab = as.factor(Biome_broad_hab),
+          Habitat_broad = as.factor(Habitat_broad),
+          StudyID = as.factor(StudyID),
+          RowID = as.factor(RowID))
 
 head(sb_rich_area)
 
 # load model
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/New/'))
 # models run on cluster, load in model objects here
 load( 'rich_area.Rdata')
 

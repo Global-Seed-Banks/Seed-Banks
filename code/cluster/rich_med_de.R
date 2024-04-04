@@ -19,16 +19,19 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Biome_broad_hab == "Tundra")  %>%
-  filter(!Biome_broad_hab == "Arable") %>% filter(!Biome_broad_hab == "Aquatic") %>%
-  filter(!Habitat_broad == "Forest")
-
+  filter(Biome_zone == "Mediterranean and Desert") %>%
+  filter(Habitat_broad %in% c( "Grassland", "Forest") )%>%
+  mutate(Biome = case_when(grepl("Deserts", Biome_broad_hab) ~ "Deserts",
+                           grepl("Mediterranean", Biome_broad_hab) ~ "Mediterranean",
+                           grepl("Montane", Biome_broad_hab) ~ "Mediterranean",
+                           grepl("Tropical", Biome_broad_hab) ~ "Mediterranean",
+  ))
 
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 
 
-mod_tund_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                  family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000,
+mod_med_de_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Biome  * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+                  family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 8000, warmup = 1000,
                   prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                   control = list(adapt_delta = 0.99999,
                                  max_treedepth = 13)
@@ -36,7 +39,8 @@ mod_tund_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   * Habitat_d
 
 
 
-save(mod_tund_r,
+
+save(mod_med_de_r,
      file=Sys.getenv('OFILE'))
 
 

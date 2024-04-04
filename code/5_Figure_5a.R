@@ -30,23 +30,23 @@ summary(sb_prep)
 # remove NA values 
 sb_density_area <- sb_prep %>% filter(!is.na(Seed_density_m2)) %>%
   # treat all random effects as factors
-  mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
-          Biome_Broad_Hab = as.factor(Biome_Broad_Hab),
-         Habitat_Broad = as.factor(Habitat_Broad),
-          studyID = as.factor(studyID),
-           rowID = as.factor(rowID))  
+  mutate( Habitat_degraded = as.factor(Habitat_degraded),
+          Biome_broad_hab = as.factor(Biome_broad_hab),
+         Habitat_broad = as.factor(Habitat_broad),
+          StudyID = as.factor(StudyID),
+           RowID = as.factor(RowID))  
 nrow(sb_density_area)
 
-levels(sb_density_area$Biome_Broad_Hab)
+levels(sb_density_area$Biome_broad_hab)
 
-sb_density_area %>% distinct(Biome_Broad_Hab, Seed_density_m2) %>% arrange(Biome_Broad_Hab, Seed_density_m2)
+sb_density_area %>% distinct(Biome_broad_hab, Seed_density_m2) %>% arrange(Biome_broad_Hab, Seed_density_m2)
 
 View(sb_density_area %>% select(Biome_Broad_Hab, Seed_density_m2) %>% 
        filter(Biome_Broad_Hab == "Boreal Forests/Taiga") %>%
        distinct() %>% arrange(Seed_density_m2))
 
 
-setwd(paste0(path2wd, 'Model_Fits/'))
+setwd(paste0(path2wd, 'Model_Fits/New/'))
 # models run on cluster, load in model objects here
 load( 'seed_density.Rdata')
 

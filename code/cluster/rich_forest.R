@@ -19,22 +19,24 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Biome_broad_hab == "Deserts and Xeric Shrublands")
+ filter(Habitat_broad == "Forest") %>%
+  filter(!Biome_zone %in% c( "Tundra", "Mediterranean and Desert") )
 
 
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 
-mod_de_r <- brm(Total_species ~ Centred_log_total_sample_area_m2   *  Habitat_broad * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
-                family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000,
-                prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
-                control = list(adapt_delta = 0.99999,
-                               max_treedepth = 13)
+
+mod_forest_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Biome_zone  * Habitat_degraded + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+                  family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 8000, warmup = 1000,
+                  prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
+                  control = list(adapt_delta = 0.99999,
+                                 max_treedepth = 13)
 )
 
 
 
 
-save(mod_de_r,
+save(mod_forest_r,
      file=Sys.getenv('OFILE'))
 
 
