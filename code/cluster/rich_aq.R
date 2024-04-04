@@ -20,7 +20,7 @@ sb_dat <- sb %>%
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
   filter(Biome_broad_hab == "Aquatic") %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Arid",
+  mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",
                            grepl("Temperate", Biome_broad) ~ "Temperate",
                            grepl("Mediterranean", Biome_broad) ~ "Mediterranean",
                            grepl("Tropical", Biome_broad, ignore.case = TRUE) ~"Tropical"))
