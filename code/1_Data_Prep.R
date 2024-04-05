@@ -86,22 +86,32 @@ sb_mod %>% select(Realm, Biome) %>% distinct() %>% arrange(Realm, Biome)
 sb_mod %>% select(Biome_broad, Habitat_broad) %>% distinct()
 sb_mod %>% select(Habitat_broad, Biome_zone, Biome_broad) %>% distinct() %>% arrange(Habitat_broad, Biome_zone, Biome_broad) 
 
-sb_mod %>% select(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome) %>% distinct() %>% arrange(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome) %>%
-  # mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",
-  #                          grepl("Mediterranean", Biome_broad) ~ "Mediterranean",
-  #                          grepl("Tropical", Biome_broad) ~ "Tropical",
-  #                          Biome_zone == "Mediterranean and Desert" & grepl("Montane", Biome_broad_hab) ~ "Mediterranean",
-  #                          TRUE ~ Biome_zone)) %>% 
-  # mutate(Realm = case_when(
-  #                          Habitat_broad == "Forest" & Biome_zone ==  "Mediterranean and Desert" ~ Biome_zone,
-  #                          Habitat_broad == "Grassland" & Biome == "Tropical" ~ "Grassland", 
-  #                          Habitat_broad == "Grassland" & Biome_zone ==  "Mediterranean and Desert" ~  Biome_zone,
-  #                          Biome_zone ==  "Tundra" ~  Biome_zone,
-  #                          Habitat_broad == "Grassland" & Biome_zone ==  "Boreal" ~  "Tundra",
-  #                          TRUE ~ Habitat_broad)) %>% 
-  arrange(Realm, Biome) 
+sb_mod %>% filter(Biome_broad_hab == "Aquatic") %>%
+  #filter(Realm == "Arable") %>%
+  #filter(Realm == "Forest") %>%
+   #filter(Realm == "Grassland") %>%
+  #filter(Realm == "Mediterranean and Desert") %>%
+  # filter(Realm == "Wetland") %>%
+  select(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome, Habitat_degraded) %>% #distinct() %>% 
+  arrange(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome, Habitat_degraded) %>%
+  arrange(Realm, Biome, Habitat_degraded) %>% 
+  group_by(Realm,
+           #Biome, 
+           Habitat_degraded
+           ) %>% 
+  summarise(n = n()) #%>%
+  # mutate(Biome2 = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
+  #                          grepl("Temperate", Biome) ~ "Temperate and Boreal",
+  #                          grepl("Boreal", Biome) ~ "Temperate and Boreal",
+  #                          grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
   
 
+
+colnames(sb_mod)
+
+aq <- sb_mod %>% filter(Biome_broad_hab == "Aquatic") %>% select(StudyID, Title, Doi, Country, Realm, Biome, Biome_broad) %>% distinct()
+aq  
+write.csv(aq,  "aqua_deets.csv")
 
   # filter(Biome_broad_hab == "Aquatic") %>%
   # mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",

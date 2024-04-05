@@ -25,7 +25,7 @@ sb_dat <- sb %>%
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 
 
-mod_aq_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Biome * Habitat_degraded  + Centred_log_number_sites + ( 1  | StudyID/RowID ),
+mod_aq_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 *  Habitat_degraded  + Centred_log_number_sites + ( 1  | StudyID/RowID ),
                 family = poisson(), data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000,
                 prior = c(prior( student_t(3, 0.5, 1) , class = b,  lb = 0)),
                 control = list(adapt_delta = 0.99999,

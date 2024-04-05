@@ -19,7 +19,11 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Realm == "Arable") 
+  filter(Realm == "Arable") %>%
+  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
+                            grepl("Temperate", Biome) ~ "Temperate and Boreal",
+                            grepl("Boreal", Biome) ~ "Temperate and Boreal",
+                            grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
 
 
 mod_ar_r <- brm(Total_species ~ Centred_log_total_sample_area_m2  * Biome + Centred_log_number_sites + ( 1  | StudyID/RowID ),

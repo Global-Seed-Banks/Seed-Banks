@@ -17,13 +17,17 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Realm == "Arable") 
+  filter(Realm == "Arable") %>%
+  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
+                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
+                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
+                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
 
 
 mod_ar_d <- brm(Seed_density_m2 ~  Biome + ( 1 | StudyID/RowID ),
                 family= lognormal(),
-                data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000, 
-                control = list(adapt_delta = 0.999,
+                data = sb_dat, cores = 4, chains = 4, iter = 8000, warmup = 1000, 
+                control = list(adapt_delta = 0.9999,
                                max_treedepth = 13)
 )
 
