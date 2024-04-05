@@ -75,6 +75,12 @@ print(sb %>%  arrange(Biome_broad_hab, Habitat_degraded) %>% group_by(Biome_broa
 # ~ 25 studies with method nested in study
 print(sb %>% select(StudyID, Method) %>% distinct() %>% group_by(StudyID) %>% filter(n() > 1), n=Inf)
 
+
+sb %>% select(Biome_broad, Habitat_broad) %>% distinct()
+
+sb %>% select(Habitat_broad, Biome_zone, Biome_broad_hab) %>% distinct() %>% arrange(Habitat_broad, Biome_zone, Biome_broad_hab)
+
+
 # Aquatic
 sb_aq_r <- sb %>% filter(Biome_broad_hab == "Aquatic") %>%
   mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Arid",
@@ -240,7 +246,8 @@ save(mod_trop_r, file = 'mod_tropf_r.Rdata')
 
 # Tropical and Subtropical Grasslands, Savannas and Shrublands
 sb_tund_r <- sb %>% filter(Biome_broad_hab == "Tundra")  %>%
-  filter(!Biome_broad_hab == "Arable") %>% filter(!Biome_broad_hab == "Aquatic") 
+  filter(!Biome_broad_hab == "Arable") %>% filter(!Biome_broad_hab == "Aquatic") %>%
+  filter(!Habitat_broad == "Forest")
 
 sb_tund_r %>% select(Biome_zone, Biome_broad_hab, Habitat_broad) %>% distinct()
 

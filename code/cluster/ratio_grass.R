@@ -24,8 +24,8 @@ sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 
 mod_grass_ra <- brm(ratio_seeds_species ~  Biome * Habitat_degraded + (1 | StudyID/RowID ),
                  family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000,
-                 control = list(adapt_delta = 0.99999,
-                                max_treedepth = 12)
+                 # control = list(adapt_delta = 0.99999,
+                 #                max_treedepth = 12)
 )
 
 
