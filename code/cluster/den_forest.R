@@ -23,7 +23,7 @@ sb_dat <- sb %>%
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 
 
-mod_forest_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID/RowID ),
+mod_forest_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID),
                 family= lognormal(),
                 data = sb_dat, cores = 4, chains = 4, iter = 10000, warmup = 1000, 
                 control = list(adapt_delta = 0.9999)

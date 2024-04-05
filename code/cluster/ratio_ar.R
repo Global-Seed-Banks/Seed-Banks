@@ -24,7 +24,7 @@ sb_dat <- sb %>%
                            grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
 
 
-mod_ar_ra <- brm(ratio_seeds_species ~  Biome + (1 | StudyID/RowID ),
+mod_ar_ra <- brm(ratio_seeds_species ~  Biome + (1 | StudyID ),
                  family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 10000, warmup = 1000,
                  control = list(adapt_delta = 0.9999)
 )
