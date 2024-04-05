@@ -17,16 +17,7 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Habitat_broad == "Wetland") %>%
-  mutate(Biome = case_when(
-    grepl("Deserts", Biome_broad_hab) ~ "Deserts",
-    grepl("Mediterranean", Biome_broad_hab) ~ "Mediterranean",
-    grepl("Mediterranean", Biome_zone) & grepl("Tropical", Biome_broad_hab) ~ "Mediterranean",
-  )) %>%
-  mutate(Biome = case_when(
-    is.na(Biome) ~ Biome_zone,
-    TRUE ~ Biome
-  ))
+  filter(Realm == "Wetland") 
 
 
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
@@ -38,8 +29,6 @@ mod_wetland_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID
                 control = list(adapt_delta = 0.999,
                                max_treedepth = 13)
 )
-
-
 
 
 save(mod_wetland_d,

@@ -17,8 +17,7 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Habitat_broad == "Grassland") %>%
-  filter(Biome_zone %in% c( "Tundra", "Boreal"))
+  filter(Realm == "Tundra") 
 
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 
