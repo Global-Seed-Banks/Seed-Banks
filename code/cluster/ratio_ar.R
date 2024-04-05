@@ -26,7 +26,7 @@ sb_dat <- sb %>%
 
 mod_ar_ra <- brm(ratio_seeds_species ~  Biome + (1 | StudyID/RowID ),
                  family = lognormal(), data = sb_dat, cores = 4, chains = 4, iter = 10000, warmup = 1000,
-                 control = list(adapt_delta = 0.99)
+                 control = list(adapt_delta = 0.9999)
 )
 
 
