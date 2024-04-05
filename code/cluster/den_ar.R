@@ -20,10 +20,7 @@ sb_dat <- sb %>%
   filter(Realm == "Arable") 
 
 
-sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
-
-
-mod_ar_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID/RowID ),
+mod_ar_d <- brm(Seed_density_m2 ~  Biome + ( 1 | StudyID/RowID ),
                 family= lognormal(),
                 data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000, 
                 control = list(adapt_delta = 0.999,
