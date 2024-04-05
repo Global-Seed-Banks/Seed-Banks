@@ -19,7 +19,9 @@ summary(mod_ar_r)
 conditional_effects(mod_ar_r)
 
 summary(mod_forest_r)
-pp_check(mod_forest_r)
+pp_check(mod_forest_r)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "a) Species ~ area") + xlim(-200,300)+ ylim(0,0.025)+
+  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 conditional_effects(mod_forest_r)
 
 summary(mod_grass_r)
@@ -60,18 +62,21 @@ pp_check(mod_ar_d)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 conditional_effects(mod_ar_d)
 
+#!!!
 summary(mod_forest_d)
 pp_check(mod_forest_d)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
   labs(title= expression(paste('b) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 conditional_effects(mod_forest_d)
 
+#!!
 summary(mod_grass_d)
 pp_check(mod_forest_d)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
   labs(title= expression(paste('b) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 conditional_effects(mod_grass_d)
 
+#!!
 summary(mod_med_de_d)
 pp_check(mod_grass_d)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
   labs(title= expression(paste('b) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
@@ -84,6 +89,7 @@ pp_check(mod_tund_d)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 conditional_effects(mod_tund_d)
 
+#!!
 summary(mod_wetland_d)
 pp_check(mod_wetland_d)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
   labs(title= expression(paste('b) Density (',m^2,')')) ) + xlim(-2000,40000)+ ylim(0,0.00020)+
@@ -108,24 +114,29 @@ pp_check(mod_aq_ra)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 conditional_effects(mod_aq_ra)
 
+#!!
 summary(mod_ar_ra)
 conditional_effects(mod_ar_ra)
 
+#!!
 summary(mod_forest_ra)
 pp_check(mod_forest_ra)
 conditional_effects(mod_forest_ra)
 
+#!!
 summary(mod_grass_ra)
 pp_check(mod_grass_ra)
 conditional_effects(mod_grass_ra)
 
-
+#??
 summary(mod_med_de_ra)
 conditional_effects(mod_med_de_ra)
 
+#!!
 summary(mod_tund_ra)
 conditional_effects(mod_tund_ra)
 
+#!!
 summary(mod_wetland_ra)
 conditional_effects(mod_wetland_ra)
 
