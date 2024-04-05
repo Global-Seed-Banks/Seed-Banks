@@ -34,7 +34,6 @@ mod_grass_r <- brm(Total_species ~ Centred_log_total_sample_area_m2 * Biome_zone
 
 
 
-
 save(mod_grass_r,
      file=Sys.getenv('OFILE'))
 
