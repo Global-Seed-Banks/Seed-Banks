@@ -17,19 +17,14 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Biome_broad_hab == "Arable") %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",
-                           grepl("Temperate", Biome_broad) ~ "Temperate",
-                           grepl("Mediterranean", Biome_broad) ~ "Mediterranean",
-                           grepl("Boreal", Biome_broad) ~ "Boreal",
-                           grepl("Montane", Biome_broad) ~ "Tropical",
-                           grepl("Tropical", Biome_broad, ignore.case = TRUE) ~"Tropical"))
+ filter(Habitat_broad == "Forest") %>%
+  filter(!Biome_zone %in% c( "Tundra", "Mediterranean and Desert") )
 
 
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 
 
-mod_ar_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID/RowID ),
+mod_forest_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID/RowID ),
                 family= lognormal(),
                 data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000, 
                 control = list(adapt_delta = 0.999,
@@ -39,7 +34,8 @@ mod_ar_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID/RowI
 
 
 
-save(mod_ar_d,
+
+save(mod_forest_d,
      file=Sys.getenv('OFILE'))
 
 

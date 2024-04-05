@@ -6,29 +6,37 @@ library(brms)
 path <- '/gpfs1/data/idiv_chase/emmala/Seed-Banks'
 sb <- read.csv(paste0(path, '/sb_prep.csv'), header=T, fill=TRUE, sep=",", na.strings=c(""," ","NA","NA ","na"))
 
-# Total_Species   Seed_density_m2   Total_Seeds
-sb_dat <- sb %>% filter(!is.na(Seed_density_m2),
-                        !Seed_density_m2 == 0,
-                        ) %>%
+sb_dat <- sb %>% 
+  filter(!is.na(Seed_density_m2),
+         !Seed_density_m2 == 0,
+  ) %>%
   # treat all random effects as factors
   mutate( Habitat_degraded = as.factor(Habitat_degraded),
           Biome_broad_hab = as.factor(Biome_broad_hab),
           Habitat_broad = as.factor(Habitat_broad),
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
-          Method = as.factor(Method)) 
+          Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
+  filter(Biome_broad_hab == "Aquatic") %>%
+  mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",
+                           grepl("Temperate", Biome_broad) ~ "Temperate",
+                           grepl("Mediterranean", Biome_broad) ~ "Mediterranean",
+                           grepl("Tropical", Biome_broad, ignore.case = TRUE) ~"Tropical"))
 
 
-density_m2 <- brm(Seed_density_m2 ~  Biome_broad_hab * Habitat_degraded + ( 1 | StudyID/Method ),
-                    #family = Gamma(link="log"), 
+sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
+
+
+mod_aq_d <- brm(Seed_density_m2 ~  Biome * Habitat_degraded + ( 1 | StudyID/RowID ),
                   family= lognormal(),
-                  data = sb_dat, cores = 4, chains = 4, iter = 4000, warmup = 1000, 
-                    control = list(adapt_delta = 0.999,
-                                   max_treedepth = 12)
+                  data = sb_dat, cores = 4, chains = 4, iter = 6000, warmup = 1000, 
+                  control = list(adapt_delta = 0.999,
+                                 max_treedepth = 13)
 )
 
 
-save(density_m2,
+
+save(mod_aq_d,
      file=Sys.getenv('OFILE'))
 
 

@@ -108,6 +108,24 @@ sb_mod %>% select(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad) %>% d
 # filter(Habitat_broad == "Grassland") %>%
 #   filter(Biome_zone %in% c( "Tundra", "Boreal"))
 
+# filter(Habitat_broad == "Wetland") %>%
+# mutate(Biome = case_when(
+#                          grepl("Deserts", Biome_broad_hab) ~ "Deserts",
+#                          grepl("Mediterranean", Biome_broad_hab) ~ "Mediterranean",
+#                          grepl("Mediterranean", Biome_zone) & grepl("Tropical", Biome_broad_hab) ~ "Mediterranean",
+# )) %>%
+#   mutate(Biome = case_when(
+#    is.na(Biome) ~ Biome_zone,
+#    TRUE ~ Biome
+#   ))
+
+
+
+forest <- sb_mod %>% 
+filter(Habitat_broad == "Forest") %>%
+  filter(!Biome_zone %in% c( "Tundra", "Mediterranean and Desert") )
+
+View(forest)
 
 write.csv(sb_mod,  "sb_prep.csv")
 
