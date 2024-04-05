@@ -86,20 +86,20 @@ sb_mod %>% select(Realm, Biome) %>% distinct() %>% arrange(Realm, Biome)
 sb_mod %>% select(Biome_broad, Habitat_broad) %>% distinct()
 sb_mod %>% select(Habitat_broad, Biome_zone, Biome_broad) %>% distinct() %>% arrange(Habitat_broad, Biome_zone, Biome_broad) 
 
-sb_mod %>% filter(Biome_broad_hab == "Aquatic") %>%
+sb_mod %>% #filter(Biome_broad_hab == "Aquatic") %>%
   #filter(Realm == "Arable") %>%
-  #filter(Realm == "Forest") %>%
+  filter(Realm == "Forest") %>%
    #filter(Realm == "Grassland") %>%
   #filter(Realm == "Mediterranean and Desert") %>%
   # filter(Realm == "Wetland") %>%
-  select(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome, Habitat_degraded) %>% #distinct() %>% 
-  arrange(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome, Habitat_degraded) %>%
-  arrange(Realm, Biome, Habitat_degraded) %>% 
-  group_by(Realm,
+  select(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome, Habitat_degraded, Total_species) %>% #distinct() %>% 
+  arrange(Habitat_broad, Biome_zone, Biome_broad_hab, Biome_broad, Realm, Biome, Habitat_degraded,  Total_species) %>%
+  arrange(Realm, Biome, Habitat_degraded,  Total_species) %>% filter(Biome == "Boreal")
+  #group_by(Realm,
            #Biome, 
-           Habitat_degraded
-           ) %>% 
-  summarise(n = n()) #%>%
+           # Habitat_degraded
+           # ) %>% 
+  #summarise(n = n()) #%>%
   # mutate(Biome2 = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
   #                          grepl("Temperate", Biome) ~ "Temperate and Boreal",
   #                          grepl("Boreal", Biome) ~ "Temperate and Boreal",
