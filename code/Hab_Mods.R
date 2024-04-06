@@ -120,7 +120,9 @@ conditional_effects(mod_ar_ra)
 
 #!!
 summary(mod_forest_ra)
-pp_check(mod_forest_ra)
+pp_check(mod_forest_ra)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
+labs(title= "c) Ratio") + xlim(0,400)+ #ylim(0,0.025)+
+  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 conditional_effects(mod_forest_ra)
 
 #!!
