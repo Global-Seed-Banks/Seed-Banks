@@ -12,7 +12,6 @@ library(bayesplot)
 library(patchwork)
 library(gridExtra)
 library(grid)
-library(viridis)
 
 user <- Sys.info()["user"]
 
@@ -28,19 +27,18 @@ sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
 nrow(sb_prep)
 
-sb_rich_area <- sb_prep %>% filter(!is.na(Total_Species),
-                                   !is.na(Total_Sample_Area_mm2),
-                                   #Number_sites == 1 
-) %>%
+sb_rich_area <- sb_prep %>% 
+  filter(!is.na(Total_species),
+         # !Total_species == 0,
+         !is.na(Centred_log_total_sample_area_m2) #,
+         #Number_sites == 1 
+  ) %>%
   # treat all random effects as factors
-  mutate( Habitat_Degraded = as.factor(Habitat_Degraded),
-          Biome = as.factor(Biome),
-          Habitat_Broad = as.factor(Habitat_Broad),
-          studyID = as.factor(studyID),
-          rowID = as.factor(rowID))
-
-head(sb_rich_area)
-sb_rich_area %>% select(Method) %>% distinct()
+  mutate( Habitat_degraded = as.factor(Habitat_degraded),
+          Habitat_broad = as.factor(Habitat_broad),
+          StudyID = as.factor(StudyID),
+          RowID = as.factor(RowID),
+          Method = as.factor(Method)) %>% arrange(Biome) 
 
 
 
@@ -54,22 +52,82 @@ load( 'rich_med_de.Rdata')
 load( 'rich_po_alp.Rdata')
 load( 'rich_wetland.Rdata')
 
-sb_forest_r <- sb %>% 
-  filter(!is.na(Total_species),
-         # !Total_species == 0,
-         !is.na(Centred_log_total_sample_area_m2) #,
-         #Number_sites == 1 
-  ) %>%
-  # treat all random effects as factors
-  mutate( Habitat_degraded = as.factor(Habitat_degraded),
-          Biome = as.factor(Biome),
-          Habitat_broad = as.factor(Habitat_broad),
-          StudyID = as.factor(StudyID),
-          RowID = as.factor(RowID),
-          Method = as.factor(Method)) %>% arrange(Biome) %>%
-  filter(Realm == "Forest") 
 
-forest_predict <- tidyr::crossing( 
+
+# Tundra
+sb_tund_r <- sb_rich_area %>% filter(Realm == "Tundra") %>%  ungroup() 
+
+head(sb_tund_r)
+
+summary(mod_tund_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+tund_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_tund_r %>% group_by( Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded ) %>%
+  nest(data = c( Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_tund_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+tund_predict_df <- tund_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate( Biome = "Tundra and Boreal")
+
+fig_tund_r <- ggplot() +
+  geom_hline(yintercept = 0,linetype="longdash") +
+  stat_halfeye(data = tund_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+               aes(x = Habitat_degraded , y = predicted,  fill= Biome, shape=Habitat_degraded),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = tund_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Habitat_degraded , y = predicted,  fill= Biome, 
+                   shape= Habitat_degraded,
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c(  "#94b594" 
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='',
+       # y = expression(paste('Seed density (',m^2,')')),
+       subtitle=  "a) Tundra" ) +
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") 
+
+fig_tund_r
+
+
+
+# Forest
+sb_forest_r <- sb_rich_area %>% filter(Realm == "Forest") %>%  ungroup() 
+
+summary(sb_forest_r)
+
+summary(mod_forest_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+forest_predict <-   tidyr::crossing( 
   Number_sites = c(1, 20, 100),
   sb_forest_r %>% group_by(Biome, Habitat_degraded) %>%  
     dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
@@ -89,7 +147,6 @@ forest_predict <- tidyr::crossing(
 # re_formula = NULL,
 # allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
 
-head(forest_predict)
 
 forest_predict_df <- forest_predict  %>% 
   select(-data) %>% unnest(cols= c(predicted)) %>%
@@ -98,12 +155,7 @@ forest_predict_df <- forest_predict  %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
-head(forest_predict_df)
-View(forest_predict_df)
-forest_predict_df %>% select(Total_sample_area_m2) %>% distinct()
-
-
-ggplot() +
+fig_forest_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
 stat_halfeye(data = forest_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
              aes(x = Biome , y = predicted,  fill= Biome, group = Habitat_degraded, shape=Habitat_degraded),
@@ -116,159 +168,421 @@ stat_halfeye(data = forest_predict_df %>% filter(Number_sites == 1, Total_sample
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(  "#1e3d14",   "#788f33", "#228B22"
-  )) +   coord_cartesian( ylim = c(0,60)) +
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='',
+       # y = expression(paste('Seed density (',m^2,')')),
+       subtitle=  "b) Forests" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") 
+
+fig_forest_r
+
+
+# Grasslands
+sb_grass_r <- sb_rich_area %>% filter(Realm == "Grassland") %>%  ungroup() 
+
+head(sb_grass_r)
+
+summary(mod_grass_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+grass_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_grass_r %>% group_by(Biome, Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_grass_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+grass_predict_df <- grass_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+
+fig_grass_r <- ggplot() +
+  geom_hline(yintercept = 0,linetype="longdash") +
+  stat_halfeye(data = grass_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+               aes(x = Biome , y = predicted,  fill= Biome, group = Habitat_degraded, shape=Habitat_degraded),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = grass_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Biome , y = predicted,  fill= Biome, group = Habitat_degraded,
+                   shape= Habitat_degraded,
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c( "#d8b847", "#b38711"
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='',
+       # y = expression(paste('Seed density (',m^2,')')),
+       subtitle=  "c) Grasslands" ) +
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") 
+
+fig_grass_r
+
+
+
+# Med Desert
+sb_med_de_r <- sb_rich_area %>%  
+  filter(Realm == "Mediterranean and Desert")
+
+head(sb_med_de_r)
+
+summary(mod_med_de_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+med_de_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_med_de_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+med_de_predict_df <- med_de_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts"))
+
+fig_med_de_r <- ggplot() +
+  geom_hline(yintercept = 0,linetype="longdash") +
+  stat_halfeye(data = med_de_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+               aes(x = Biome , y = predicted,  fill= Biome, group = Habitat_degraded, shape=Habitat_degraded),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = med_de_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Biome , y = predicted,  fill= Biome, group = Habitat_degraded,
+                   shape= Habitat_degraded,
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c(   "#da7901",  "#fab255"
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', #y='',
+        y = 'Species richness \n in the soil seedbank',
+       subtitle=  "d) Mediterranean and Deserts" ) +
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") 
+
+fig_med_de_r
+
+
+# Arable
+sb_ar_r <- sb_rich_area %>% filter(Realm == "Arable")  %>%
+  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
+                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
+                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
+                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
+
+head(sb_ar_r)
+
+summary(mod_ar_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+ar_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_ar_r %>% group_by(Biome) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome,  Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_ar_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+ar_predict_df <- ar_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Realm = "Arable")
+
+fig_ar_r <- ggplot() +
+  geom_hline(yintercept = 0,linetype="longdash") +
+  stat_halfeye(data = ar_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+               aes(x = Biome , y = predicted,  fill= Realm),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = ar_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Biome , y = predicted,  fill= Realm, 
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c( "#99610a" 
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='',
+       # y = expression(paste('Seed density (',m^2,')')),
+       subtitle=  "e) Arable" ) +
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") 
+
+fig_ar_r
+
+
+
+
+# Wetland
+sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") %>%
+  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
+                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
+                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
+                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
+
+head(sb_wetland_r)
+
+summary(mod_wetland_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+wetland_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_wetland_r %>% group_by(Biome, Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_wetland_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+wetland_predict_df <- wetland_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Wetland")
+
+fig_wetland_r <- ggplot() +
+  geom_hline(yintercept = 0,linetype="longdash") +
+  stat_halfeye(data = wetland_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+               aes(x = Biome , y = predicted,  fill= Realm, group = Habitat_degraded, shape=Habitat_degraded),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = wetland_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Biome , y = predicted,  fill= Realm, group = Habitat_degraded,
+                   shape= Habitat_degraded,
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c(  "#20B2AA" 
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='',
+       # y = expression(paste('Seed density (',m^2,')')),
+       subtitle=  "f) Wetlands" ) +
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") 
+
+fig_wetland_r
+
+#Aquatic
+
+sb_aq_r <- sb_rich_area %>% filter(Realm == "Aquatic") %>%  ungroup() 
+
+head(sb_aq_r)
+
+summary(mod_aq_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+aq_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_aq_r %>% group_by( Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded ) %>%
+  nest(data = c( Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_aq_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+aq_predict_df <- aq_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate( Biome = "Aquatic")
+
+fig_aq_r <- ggplot() +
+  geom_hline(yintercept = 0,linetype="longdash") +
+  stat_halfeye(data = aq_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+               aes(x = Habitat_degraded , y = predicted,  fill= Biome, shape=Habitat_degraded),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = aq_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Habitat_degraded , y = predicted,  fill= Biome, 
+                   shape= Habitat_degraded,
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c(  "#447fdd"
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='',
+       # y = expression(paste('Seed density (',m^2,')')),
+       subtitle=  "g) Aquatic" ) +
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
+                               plot.title=element_text(size=18, hjust=0.5),
+                               strip.background = element_blank(),legend.position="none") 
+
+fig_aq_r
+
+
+
+
+legend_g <- ggplot() +
+  geom_hline(yintercept = 0,linetype="longdash") +
+  # stat_halfeye(data = grass_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+  #              aes(x = Biome , y = predicted,  group = Habitat_degraded, shape=Habitat_degraded),
+  #              point_interval = mean_qi,  .width = c(0.50, 0.9), 
+  #              alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = grass_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Biome , y = predicted,   group = Habitat_degraded,
+                   shape= Habitat_degraded,
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=10, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c( "#d8b847", "#b38711"
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='', shape = (expression(paste( italic(gamma), '-richness 15 (',m^2,')',sep = ''))),
+       subtitle=  "c) Grasslands" ) +
+scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  16, 17) ) +
+  guides(shape = guide_legend(override.aes = list(size = 15)))+
+  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                               #axis.text.x=element_blank(), 
+                               axis.title.x = element_blank(),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
                                strip.background = element_blank(),legend.position="bottom") 
 
+legend_g
 
 
-setwd(paste0(path2wd, 'Data/'))
-write.csv(forest_predict_df,  "forest_predict_df.csv")
-
-forest_predict_df <- read.csv(paste0(path2wd, 'Data/forest_predict_df.csv'))
-
-head(forest_predict_df)
-colnames(forest_predict_df)
-View(forest_predict_df %>% distinct(Total_sample_area_m2))
-
-# 0.010000
-# 15.000000
-
-nrow(forest_predict_df)
-head(forest_predict_df)
-
-forest_a <- forest_predict_df %>%
-  select(-c( .row, .chain, .iteration, .draw, Centred_log_total_sample_area_m2, Biome_group)) %>%
-  filter( Total_sample_area_m2 == 0.010000   ) %>% 
-  mutate(samp_scale = Total_sample_area_m2,
-         a_predicted = predicted) %>%
-  select(-c(Total_sample_area_m2, predicted, X )) %>%
-  dplyr::group_by(Biome, Number_sites, Habitat_degraded) %>%
-  mutate( Estimate = round( mean(a_predicted, na.rm =TRUE ) ,0),
-          `Upper_CI` = quantile(a_predicted, probs=0.975, na.rm =TRUE ),
-          `Lower_CI` = quantile(a_predicted, probs=0.025, na.rm =TRUE )
-  ) %>%  select(-c(a_predicted)) %>% distinct() %>% ungroup() %>%
-  mutate(scale= "alpha")
-
-nrow(forest_a)
-print(forest_a)
-
-forest_g <- forest_predict_df %>%
-  select(-c(.row, .chain, .iteration, .draw ,Centred_log_total_sample_area_m2, Biome_group)) %>%
-  filter(  Total_sample_area_m2 ==  15.000000   ) %>% 
-  mutate(samp_scale = Total_sample_area_m2,
-         g_predicted = predicted) %>%
-  select(-c(Total_sample_area_m2, predicted, X)) %>%
-  dplyr::group_by(Biome, Number_sites, Habitat_degraded) %>%
-  mutate( 
-          Estimate = round( mean(g_predicted, na.rm =TRUE ) , 0 ),
-          `Upper_CI` = quantile(g_predicted, probs=0.975, na.rm =TRUE ),
-          `Lower_CI` = round( quantile(g_predicted, probs=0.025, na.rm =TRUE ), 0),
-  ) %>% 
-  select(-c( g_predicted)) %>% distinct() %>% ungroup() %>%
-  mutate(scale= "gamma")
-
-
-head(forest_g)
-nrow(forest_g)
-
-forest_scales <- forest_a %>% bind_rows(forest_g) 
-
-nrow(forest_scales)
-head(forest_scales)
-
-setwd(paste0(path2wd, 'Data/'))
-write.csv(forest_scales,  "forest_scales.csv")
-
-
-forest_scales <- read.csv(paste0(path2wd, 'Data/forest_scales.csv'))
-
-
-forest_div <- forest_scales %>% 
-  filter( Number_sites == "1")  %>%
-  mutate( Habitat_degraded = as.factor(Habitat_degraded))
-
-
-figure_4 <- ggplot(data = forest_div,
-                   aes(x = Biome , y = Estimate, colour = Biome, 
-                       shape=scale,
-                       group = Habitat_degraded,  
-                   linetype= Habitat_degraded),) + 
+legend_a <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = forest_div,
-             aes(x = Biome , y = Estimate, colour = Biome, 
-                 shape=scale, fill=Biome,
-                 group = Habitat_degraded,  
-             ), alpha=0.7,
-             position = position_dodge(width = 0.75), size = 5) +
-  geom_errorbar(data = forest_div,
-                aes(x = Biome , ymin = `Lower_CI`, ymax =  `Upper_CI`, 
-                    colour =  Biome,
-                    group = Habitat_degraded
-                ),alpha=0.7,
-                position = position_dodge(width = 0.75),
-                linewidth = 2, width = 0) +
-  scale_color_manual( values= c(  "#1e3d14",   "#788f33",   "#228B22" ))+
-  scale_fill_manual( values= c(  "#1e3d14",   "#788f33",   "#228B22" ))+
-  scale_linetype_manual(values = c( "solid", "dotted")) +
-  scale_shape_manual(values = c(  23, 5) ) +
+  # stat_halfeye(data = grass_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
+  #              aes(x = Biome , y = predicted,  group = Habitat_degraded, shape=Habitat_degraded),
+  #              point_interval = mean_qi,  .width = c(0.50, 0.9), 
+  #              alpha=0.4, position = position_dodge(width = 1)) +
+  stat_halfeye(data = grass_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
+               aes(x = Biome , y = predicted,   group = Habitat_degraded,
+                   shape= Habitat_degraded,
+               ),
+               point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
+               alpha=0.4, position = position_dodge(width = 1)) +
+  scale_fill_manual( values= c( "#d8b847", "#b38711"
+  )) +   coord_cartesian( ylim = c(0,90)) +
+  labs(x = '', y='', shape = (expression(paste( italic(alpha), '-richness 0.01 (',m^2,')',sep = ''))),
+       subtitle=  "c) Grasslands" ) +
+  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  16, 17) ) +
+  guides(shape = guide_legend(override.aes = list(size = 1)))+
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                               plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
                                plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="bottom") + 
-  coord_cartesian( ylim = c(0,60)) +
-  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
-  ggtitle( (expression(paste(italic(alpha), '-scale (0.01' ,m^2,')', sep = ''))) )+
-  ylab( (expression(paste('Average ', italic(alpha), '-richness ',sep = ''))) ) +
-  labs(subtitle= "a)" )+
-  guides(col = guide_legend(ncol = 3))
+                               strip.background = element_blank(),legend.position="bottom",
+                               legend.spacing.x = unit(1, 'cm') ) 
+
+legend_a
+
+# extract legends
+# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+legend_g <- g_legend(legend_g)
+legend_a <- g_legend(legend_a)
 
 
-figure_4
 
+richness_fig <- (fig_tund_r + fig_forest_r + fig_grass_r) /
+  ( fig_med_de_r + fig_ar_r) /
+  ( fig_wetland_r + fig_aq_r  )/ (legend_g) / (legend_a) + plot_layout(heights = c(10, 10,  10, 2.5, 1))
 
-figure_4_b <- ggplot() + 
-  geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = forest_div,
-             aes(x = Biome , y = g_Estimate, colour = Biome, 
-                 shape=Habitat_degraded,
-                 group = Habitat_degraded,   
-             ), 
-             position = position_dodge(width = 0.75), size = 3) +
-  geom_errorbar(data = forest_div,
-                aes(x = Biome, g_Estimate  , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = Biome,  #Biome,  
-                    #   aes(x = reorder(Biome, g_Estimate ) , ymin = `g_Lower.CI`, ymax =  `g_Upper.CI`,  colour = g_Estimate,  #Biome, 
-                    group = Habitat_degraded
-                ),
-                position = position_dodge(width = 0.75),
-                size = 0.75, width = 0) +
-  scale_color_manual( values= c(  "#1e3d14",   "#788f33",   "#228B22" ))+
-  #scale_color_viridis(discrete = F, option="plasma", limits = c(10, 40) )  +
-  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                               #axis.text.x=element_blank(), 
-                               axis.title.x = element_blank(),
-                               plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                               plot.title=element_text(size=18, hjust=0.5),
-                               strip.background = element_blank(),legend.position="bottom") + 
-  coord_cartesian( ylim = c(0,60)) +
-  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) + 
-  ggtitle((expression(paste(italic(gamma), '-scale (15' ,m^2,')', sep = ''))))+
-  ylab((expression(paste('Average ', italic(gamma), '-richness ',sep = '')))) +
-  labs(subtitle= "b)" )+
-  guides(col = guide_legend(ncol = 3))
-
-
-figure_4_b
-
-# map objects created in abg_map.R
-# LANDSCAPES 16 X 32
-figure_4 <- (figure_4_a + figure_4_b) 
-
-figure_4
-
+richness_fig

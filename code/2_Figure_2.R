@@ -79,7 +79,7 @@ gsbm <- sb %>%
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                   shape= Realm_Biome,
                  color=`Realm_Biome`
-                 ), size=3, alpha=0.5
+                 ), size=3, #alpha=0.5
              ) +
   scale_color_manual( values= c( "#94b594", "#1e3d14",  
                                  "#788f33",  "#d8b847",  "#20B2AA",#temp broad, temp con, temp grass

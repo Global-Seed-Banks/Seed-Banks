@@ -9,10 +9,12 @@ load( 'rich_ar.Rdata')
 load( 'rich_forest.Rdata')
 load( 'rich_grass.Rdata')
 load( 'rich_med_de.Rdata')
-load( 'rich_tund.Rdata')
+load( 'rich_po_alp.Rdata')
 load( 'rich_wetland.Rdata')
 
 summary(mod_aq_r)
+pp_check(mod_aq_r)
+plot(mod_aq_r)
 conditional_effects(mod_aq_r)
 
 summary(mod_ar_r)
@@ -28,14 +30,19 @@ summary(mod_grass_r)
 pp_check(mod_grass_r)
 conditional_effects(mod_grass_r)
 
-
 summary(mod_med_de_r)
+pp_check(mod_med_de_r)
+plot(mod_med_de_r)
 conditional_effects(mod_med_de_r)
 
 summary(mod_tund_r)
+pp_check(mod_tund_r)
+plot(mod_tund_r)
 conditional_effects(mod_tund_r)
 
 summary(mod_wetland_r)
+pp_check(mod_wetland_r)
+plot(mod_wetland_r)
 conditional_effects(mod_wetland_r)
 
 setwd(paste0(path2wd, 'Model_Fits/Habs/'))

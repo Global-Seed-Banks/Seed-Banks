@@ -1,5 +1,4 @@
 
-
 rm(list = ls())
 
 
@@ -27,9 +26,9 @@ sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
 
 nrow(sb_prep)
 
-sb_density <- sb_prep %>% 
-  filter(!is.na(Seed_density_m2),
-         !Seed_density_m2 == 0,
+sb_ratio <- sb_prep %>% 
+  filter(!is.na(ratio_seeds_species),
+         !ratio_seeds_species == 0,
   ) %>%
   # treat all random effects as factors
   mutate( Habitat_degraded = as.factor(Habitat_degraded),
@@ -40,76 +39,71 @@ sb_density <- sb_prep %>%
           Method = as.factor(Method)) %>% arrange(Biome) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))  
 
-head(sb_density)
+head(sb_ratio)
 
 
 
-setwd(paste0(path2wd, 'Biome_Fits/Habs/'))
-# Biomes run on cluster, load in Biome objects here
-load( 'den_aq.Rdata')
-load( 'den_ar.Rdata')
-load( 'den_forest.Rdata')
-load( 'den_grass.Rdata')
-load( 'den_med_de.Rdata')
-load( 'den_po_alp.Rdata')
-load( 'den_wetland.Rdata')
+setwd(paste0(path2wd, 'Model_Fits/Habs/'))
+# models run on cluster, load in model objects here
+load( 'ratio_aq.Rdata')
+load( 'ratio_ar.Rdata')
+load( 'ratio_forest.Rdata')
+load( 'ratio_grass.Rdata')
+load( 'ratio_med_de.Rdata')
+load( 'ratio_po_alp.Rdata')
+load( 'ratio_wetland.Rdata')
 
 
 #aquatic
 
-
-#forests
-sb_aq_d <- sb_density %>% filter(Realm == "Aquatic") 
+sb_aq_ra <- sb_ratio %>% filter(Realm == "Aquatic") 
 
 
-summary(mod_aq_d)
+summary(mod_aq_ra)
 
-aq_d <- conditional_effects(mod_aq_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
+aq_ra <- conditional_effects(mod_aq_ra, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
 
-aq_d
+aq_ra
 
-aq_d_df <-
-  as.data.frame(aq_d$`Habitat_degraded`)
+aq_ra_raf <-
+  as.data.frame(aq_ra$`Habitat_degraded`)
 
-head(aq_d_df)
+head(aq_ra_raf)
 
-aq_d_ce <- aq_d_df %>%
+aq_ra_ce <- aq_ra_raf %>%
   select( Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Biome = "Aquatic",
+  mutate( Model = "Aquatic",
           Estimate = round(estimate__ , 2),
-          `Lower_CI` = round(lower__ , 2),
-          `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome,  Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+          `Lower CI` = round(lower__ , 2),
+          `Upper CI` = round(upper__ , 2),
+  ) %>% select(Model,  Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
-aq_d_ce
+aq_ra_ce
+sb_aq_ra
 
-write.csv(aq_d_ce,  "Data/aq_d_ce.csv")
-
-sb_aq_d
-
-fig_aq_d <- ggplot() + 
+fig_aq_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_aq_d,
-             aes(x = Habitat_degraded, y = Seed_density_m2, 
-                  shape= Habitat_degraded, color=Realm
+  geom_point(data = sb_aq_ra,
+             aes(x = Habitat_degraded, y = ratio_seeds_species, 
+                 shape= Habitat_degraded, color=Realm
              ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
-  geom_point(data = aq_d_ce,
-             aes(x =  Habitat_degraded, y = Estimate, color=Biome,
+  geom_point(data = aq_ra_ce,
+             aes(x =  Habitat_degraded, y = Estimate, color=Model,
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
-  geom_errorbar(data = aq_d_ce,
-                aes(x =   Habitat_degraded, ymin = `Lower_CI`, ymax = `Upper_CI`, color=Biome),
+  geom_errorbar(data = aq_ra_ce,
+                aes(x =   Habitat_degraded, ymin = `Lower CI`, ymax = `Upper CI`, color=Model),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
-      # y = expression(paste('Seed density (',m^2,')')),
+       #  y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "g) Aquatic" ) +
   scale_color_manual( values= c(    "#447fdd"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+   coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -119,12 +113,12 @@ fig_aq_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-fig_aq_d
+fig_aq_ra
 
 
 #arable
 
-sb_arable_d <- sb_density %>%
+sb_arable_ra <- sb_ratio %>%
   filter(Realm == "Arable")  %>%
   mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
                            grepl("Temperate", Biome) ~ "Temperate and Boreal",
@@ -132,52 +126,48 @@ sb_arable_d <- sb_density %>%
                            grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
 
 
-summary(mod_ar_d)
+summary(mod_ar_ra)
 
-arable_d <- conditional_effects(mod_ar_d, effects = 'Biome', re_formula = NA, method = 'fitted')  # conditional effects
+arable_ra <- conditional_effects(mod_ar_ra, effects = 'Biome', re_formula = NA, method = 'fitted')  # conditional effects
 
-arable_d
+arable_ra
 
-arable_d_df <-
-  as.data.frame(arable_d$`Biome`)
+arable_ra_raf <-
+  as.data.frame(arable_ra$`Biome`)
 
-head(arable_d_df)
+head(arable_ra_raf)
 
-arable_d_ce <- arable_d_df %>%
+arable_ra_ce <- arable_ra_raf %>%
   select(Biome, estimate__, lower__, upper__) %>%
-  mutate( Realm = "Arable",
+  mutate( Model = "Arable",
           Estimate = round(estimate__ , 2),
-          `Lower_CI` = round(lower__ , 2),
-          `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Estimate, `Upper_CI`, `Lower_CI`) 
+          `Lower CI` = round(lower__ , 2),
+          `Upper CI` = round(upper__ , 2),
+  ) %>% select(Model, Biome, Estimate, `Upper CI`, `Lower CI`) 
 
-arable_d_ce
+arable_ra_ce
+sb_arable_ra
 
-write.csv(arable_d_ce,  "Data/arable_d_ce.csv")
-
-
-sb_arable_d
-
-fig_arable_d <- ggplot() + 
+fig_arable_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_arable_d,
-             aes(x = Biome, y = Seed_density_m2, 
+  geom_point(data = sb_arable_ra,
+             aes(x = Biome, y = ratio_seeds_species, 
                  colour = Realm , 
              ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
-  geom_point(data = arable_d_ce,
-             aes(x =  Biome, y = Estimate, colour =  Realm),
+  geom_point(data = arable_ra_ce,
+             aes(x =  Biome, y = Estimate, colour =  Model),
              position = position_dodge(width = 1), size = 3) +
-  geom_errorbar(data = arable_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Realm),
+  geom_errorbar(data = arable_ra_ce,
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Model),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
-       #y = expression(paste('Seed density (',m^2,')')),
+       #  y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "e) Arable" ) +
   scale_color_manual( values= c( "#99610a"  ))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+   coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -187,65 +177,62 @@ fig_arable_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-fig_arable_d
+fig_arable_ra
 
 
 
 #forests
-sb_forest_d <- sb_density %>%
+sb_forest_ra <- sb_ratio %>%
   filter(Realm == "Forest") 
 
 
-summary(mod_forest_d)
+summary(mod_forest_ra)
 
-forest_d <- conditional_effects(mod_forest_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
+forest_ra <- conditional_effects(mod_forest_ra, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
 
-forest_d
+forest_ra
 
-forest_d_df <-
-  as.data.frame(forest_d$`Biome:Habitat_degraded`)
+forest_ra_raf <-
+  as.data.frame(forest_ra$`Biome:Habitat_degraded`)
 
-head(forest_d_df)
+head(forest_ra_raf)
 
-forest_d_ce <- forest_d_df %>%
+forest_ra_ce <- forest_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Realm = "Forest",
+  mutate( Model = "Forest",
           Estimate = round(estimate__ , 2),
-          `Lower_CI` = round(lower__ , 2),
-          `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+          `Lower CI` = round(lower__ , 2),
+          `Upper CI` = round(upper__ , 2),
+  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
-forest_d_ce
+forest_ra_ce
+sb_forest_ra
 
-write.csv(forest_d_ce,  "Data/forest_d_ce.csv")
-
-sb_forest_d
-
-fig_forest_d <- ggplot() + 
+fig_forest_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_forest_d,
-             aes(x = Biome, y = Seed_density_m2, 
-                 colour = Realm , group= Habitat_degraded , shape= Habitat_degraded,
-                 ), 
+  geom_point(data = sb_forest_ra,
+             aes(x = Biome, y = ratio_seeds_species, 
+                 colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
+             ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
-  geom_point(data = forest_d_ce,
-             aes(x =  Biome, y = Estimate, colour =  Realm, group= Habitat_degraded, 
-                shape = Habitat_degraded ),
-  position = position_dodge(width = 1), size = 3) +
-  geom_errorbar(data = forest_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Realm, 
+  geom_point(data = forest_ra_ce,
+             aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
+                 shape = Habitat_degraded ),
+             position = position_dodge(width = 1), size = 3) +
+  geom_errorbar(data = forest_ra_ce,
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
-       #y = expression(paste('Seed density (',m^2,')')),
+      # y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "b) Forests" ) +
   scale_color_manual( values= c(  "#1e3d14", "#788f33","#228B22" ))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+   coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -255,66 +242,63 @@ fig_forest_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-fig_forest_d
+fig_forest_ra
 
 
 
 # Grass
 
-sb_grass_d <- sb_density %>%
+sb_grass_ra <- sb_ratio %>%
   filter(Realm == "Grassland") 
 
 
-summary(mod_grass_d)
+summary(mod_grass_ra)
 
-grass_d <- conditional_effects(mod_grass_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
+grass_ra <- conditional_effects(mod_grass_ra, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
 
-grass_d
+grass_ra
 
-grass_d_df <-
-  as.data.frame(grass_d$`Biome:Habitat_degraded`)
+grass_ra_raf <-
+  as.data.frame(grass_ra$`Biome:Habitat_degraded`)
 
-head(grass_d_df)
+head(grass_ra_raf)
 
-grass_d_ce <- grass_d_df %>%
+grass_ra_ce <- grass_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Realm = "Grassland",
+  mutate( Model = "Grassland",
           Estimate = round(estimate__ , 2),
-          `Lower_CI` = round(lower__ , 2),
-          `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+          `Lower CI` = round(lower__ , 2),
+          `Upper CI` = round(upper__ , 2),
+  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
-grass_d_ce
+grass_ra_ce
+sb_grass_ra
 
-write.csv(grass_d_ce,  "Data/grass_d_ce.csv")
-
-sb_grass_d
-
-fig_grass_d <- ggplot() + 
+fig_grass_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_grass_d,
-             aes(x = Biome, y = Seed_density_m2, 
+  geom_point(data = sb_grass_ra,
+             aes(x = Biome, y = ratio_seeds_species, 
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
-  geom_point(data = grass_d_ce,
+  geom_point(data = grass_ra_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
-  geom_errorbar(data = grass_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
+  geom_errorbar(data = grass_ra_ce,
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
-      # y = expression(paste('Seed density (',m^2,')')),
+       #  y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "c) Grasslands" ) +
   scale_color_manual( values= c(  "#d8b847", "#b38711"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+   coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -324,70 +308,66 @@ fig_grass_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-fig_grass_d
+fig_grass_ra
 
 
 
 # Med
 
-sb_med_de_d <- sb_density %>%
+sb_med_de_ra <- sb_ratio %>%
   filter(Realm == "Mediterranean and Desert") %>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts"))
 
-sb_med_de_d
+sb_med_de_ra
 
-summary(mod_med_de_d)
+summary(mod_med_de_ra)
 
-med_de_d <- conditional_effects(mod_med_de_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
+med_de_ra <- conditional_effects(mod_med_de_ra, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
 
-med_de_d
+med_de_ra
 
-med_de_d_df <-
-  as.data.frame(med_de_d$`Biome:Habitat_degraded`)
+med_de_ra_raf <-
+  as.data.frame(med_de_ra$`Biome:Habitat_degraded`)
 
-head(med_de_d_df)
+head(med_de_ra_raf)
 
-med_de_d_ce <- med_de_d_df %>%
+med_de_ra_ce <- med_de_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Realm = "Mediterranean Forests, Woodlands and Scrub",
+  mutate( Model = "Mediterranean Forests, Woodlands and Scrub",
           Estimate = round(estimate__ , 2),
-          `Lower_CI` = round(lower__ , 2),
-          `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+          `Lower CI` = round(lower__ , 2),
+          `Upper CI` = round(upper__ , 2),
+  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts"))
 
-med_de_d_ce
+med_de_ra_ce
+sb_med_de_ra
 
-write.csv(med_de_d_ce,  "Data/med_de_d_ce.csv")
-
-
-sb_med_de_d
-
-fig_med_de_d <- ggplot() + 
+fig_med_de_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_med_de_d,
-             aes(x = Biome, y = Seed_density_m2, 
+  geom_point(data = sb_med_de_ra,
+             aes(x = Biome, y = ratio_seeds_species, 
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
-  geom_point(data = med_de_d_ce,
+  geom_point(data = med_de_ra_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
-  geom_errorbar(data = med_de_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
+  geom_errorbar(data = med_de_ra_ce,
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+        y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "d) Mediterranean and Deserts" ) +
   scale_color_manual( values= c(    "#da7901",  "#fab255"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+   coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -397,64 +377,61 @@ fig_med_de_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-fig_med_de_d
+fig_med_de_ra
 
 
 
 
 # tund
 
-sb_tund_d <- sb_density %>%
-  filter(Realm == "Tundra") %>%  mutate( Biome = "Tundra and Boreal")
+sb_tund_ra <- sb_ratio %>%
+  filter(Realm == "Tundra") 
 
-sb_tund_d
+sb_tund_ra
 
-summary(mod_tund_d)
+summary(mod_tund_ra)
 
-tund_d <- conditional_effects(mod_tund_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
+tund_ra <- conditional_effects(mod_tund_ra, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
 
-tund_d
+tund_ra
 
-tund_d_df <-
-  as.data.frame(tund_d$`Habitat_degraded`)
+tund_ra_raf <-
+  as.data.frame(tund_ra$`Habitat_degraded`)
 
-head(tund_d_df)
+head(tund_ra_raf)
 
-tund_d_ce <- tund_d_df %>%
+tund_ra_ce <- tund_ra_raf %>%
   select(Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Biome = "Tundra and Boreal",
+  mutate( Model = "Tundra",
           Estimate = round(estimate__ , 2),
-          `Lower_CI` = round(lower__ , 2),
-          `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+          `Lower CI` = round(lower__ , 2),
+          `Upper CI` = round(upper__ , 2),
+  ) %>% select(Model, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
 
-tund_d_ce
+tund_ra_ce
+sb_tund_ra
 
-write.csv(tund_d_ce,  "Data/tund_d_ce.csv")
-
-sb_tund_d
-
-fig_tund_d <- ggplot() + 
+fig_tund_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_tund_d,
-             aes(x = Habitat_degraded, y = Seed_density_m2, 
-                 colour = Biome ,  shape= Habitat_degraded,
+  geom_point(data = sb_tund_ra,
+             aes(x = Habitat_degraded, y = ratio_seeds_species, 
+                 colour = Realm ,  shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2) +
-  geom_point(data = tund_d_ce,
-             aes(x =  Habitat_degraded, y = Estimate, colour =  Biome, 
+  geom_point(data = tund_ra_ce,
+             aes(x =  Habitat_degraded, y = Estimate, colour =  Model, 
                  shape = Habitat_degraded ),size = 3) +
-  geom_errorbar(data = tund_d_ce,
-                aes(x =   Habitat_degraded, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome),
+  geom_errorbar(data = tund_ra_ce,
+                aes(x =   Habitat_degraded, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Model),
                 size = 1, width = 0,  ) +
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+        y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "a) Tundra" ) +
   scale_color_manual( values= c(   "#94b594" ))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+   coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -464,14 +441,14 @@ fig_tund_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-fig_tund_d
+fig_tund_ra
 
 
 
 
 # wetlsnd
 
-sb_wetland_d <- sb_density %>%
+sb_wetland_ra <- sb_ratio %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))  %>%
   filter(Realm == "Wetland") %>%
   mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
@@ -479,58 +456,56 @@ sb_wetland_d <- sb_density %>%
                            grepl("Boreal", Biome) ~ "Temperate and Boreal",
                            grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
 
-sb_wetland_d
+sb_wetland_ra
 
-summary(mod_wetland_d)
+summary(mod_wetland_ra)
 
-wetland_d <- conditional_effects(mod_wetland_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
+wetland_ra <- conditional_effects(mod_wetland_ra, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted')  # conditional effects
 
-wetland_d
+wetland_ra
 
-wetland_d_df <-
-  as.data.frame(wetland_d$`Biome:Habitat_degraded`)
+wetland_ra_raf <-
+  as.data.frame(wetland_ra$`Biome:Habitat_degraded`)
 
-head(wetland_d_df)
+head(wetland_ra_raf)
 
-wetland_d_ce <- wetland_d_df %>%
+wetland_ra_ce <- wetland_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Realm = "Wetland",
+  mutate( Model = "Wetland",
           Estimate = round(estimate__ , 2),
-          `Lower_CI` = round(lower__ , 2),
-          `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+          `Lower CI` = round(lower__ , 2),
+          `Upper CI` = round(upper__ , 2),
+  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
 
-wetland_d_ce
-write.csv(wetland_d_ce,  "Data/wetland_d_ce.csv")
+wetland_ra_ce
+sb_wetland_ra
 
-sb_wetland_d
-
-fig_wetland_d <- ggplot() + 
+fig_wetland_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_wetland_d,
-             aes(x = Biome, y = Seed_density_m2, 
+  geom_point(data = sb_wetland_ra,
+             aes(x = Biome, y = ratio_seeds_species, 
                  colour = Realm , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
-  geom_point(data = wetland_d_ce,
-             aes(x =  Biome, y = Estimate, colour =  Realm, group= Habitat_degraded, 
+  geom_point(data = wetland_ra_ce,
+             aes(x =  Biome, y = Estimate, colour =  Model, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
-  geom_errorbar(data = wetland_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Realm, 
+  geom_errorbar(data = wetland_ra_ce,
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Model, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   scale_color_manual( values= c(  "#20B2AA" ))+
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+        y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "f) Wetlands" ) +
   #scale_color_manual( values= c(  "#20B2AA"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+   coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -540,34 +515,33 @@ fig_wetland_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-fig_wetland_d
+fig_wetland_ra
 
 
-
-
-legend_d <- ggplot() + 
+legend_ra <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
-  geom_point(data = sb_wetland_d,
-             aes(x = Biome, y = Seed_density_m2, 
-                  group= Habitat_degraded , shape= Habitat_degraded,
+  geom_point(data = sb_wetland_ra,
+             aes(x = Biome, y = ratio_seeds_species, 
+                 group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
-  geom_point(data = wetland_d_ce,
+  geom_point(data = wetland_ra_ce,
              aes(x =  Biome, y = Estimate,  group= Habitat_degraded, 
-                 shape = Habitat_degraded), alpha = 0.7 ,
+                 shape = Habitat_degraded ), alpha = 0.7,
              position = position_dodge(width = 1), size = 3) +
-  geom_errorbar(data = wetland_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, 
+  geom_errorbar(data = wetland_ra_ce,
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
+ # scale_color_manual( values= c(  "#20B2AA" ))+
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')), shape = "Habitat",
+       y = expression(paste('Ratio (Seeds/Species)')) , shape = "Habitat",
        subtitle=  "f) Wetlands" ) +
   scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  16, 17) ) +
   #scale_color_manual( values= c(  "#20B2AA"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  coord_cartesian( ylim = c(0,350)) +
+  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -577,7 +551,7 @@ legend_d <- ggplot() +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
 
-legend_d
+legend_ra
 
 
 # extract legends
@@ -588,11 +562,10 @@ g_legend<-function(a.gplot){
   legend <- tmp$grobs[[leg]]
   return(legend)}
 
-legend_d <- g_legend(legend_d)
+legend_ra <- g_legend(legend_ra)
 
+ratio_fig <- (fig_tund_ra + fig_forest_ra + fig_grass_ra) /
+  ( fig_med_de_ra + fig_arable_ra) /
+  ( fig_wetland_ra + fig_aq_ra  )/ (legend_ra) + plot_layout(heights = c(10, 10,  10,  1))
 
-density_fig <- (fig_tund_d + fig_forest_d + fig_grass_d) /
-               ( fig_med_de_d + fig_arable_d) /
-                ( fig_wetland_d + fig_aq_d  )/ (legend_d) + plot_layout(heights = c(10, 10,  10,  1))
-
-density_fig
+ratio_fig

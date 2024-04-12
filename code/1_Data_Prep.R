@@ -59,29 +59,61 @@ sb_calc <- sb %>% mutate( log_total_seeds = log(Total_seeds),
 head(sb_calc)
 summary(sb_calc)
 
+
+sb_calc %>% select(Biome_zone, Biome_broad, Habitat_broad) %>% distinct() %>% arrange(Habitat_broad, Biome_broad, Biome_zone) #%>% filter(Habitat_broad == "Grassland")
+
+
+sb_calc %>%  filter(Habitat_broad == "Grassland",
+                    # Biome_zone == "Mediterranean and Desert",
+                    # Biome_broad == "Tropical and Subtropical Grasslands, Savannas and Shrublands"
+                    )  %>% select(Habitat_broad, Biome_zone, Biome_broad) %>% distinct()
+
+
 # write over biomes when habitat is arable or aquatic
 sb_mod <- sb_calc %>% 
   mutate(Biome_broad_hab = case_when(Habitat_broad %in% c("Arable", "Aquatic") ~ Habitat_broad ,
             
                                     TRUE ~ Biome_broad)) %>%
   mutate(Lat_deg_abs = abs(Lat_deg)) %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome_broad) ~ "Deserts",
-                           grepl("Mediterranean", Biome_broad) ~ "Mediterranean",
+  mutate(Biome = case_when(grepl("Deserts", Biome_broad_hab) ~ "Deserts and Xeric Shrublands",
+                           grepl("Mediterranean", Biome_broad_hab) ~ "Mediterranean Forests, Woodlands and Scrub",
                            grepl("Tropical", Biome_broad) ~ "Tropical",
-                           Biome_zone == "Mediterranean and Desert" & grepl("Montane", Biome_broad_hab) ~ "Mediterranean",
+                           Biome_zone == "Mediterranean and Desert" & grepl("Montane", Biome_broad_hab) ~ "Mediterranean Forests, Woodlands and Scrub",
+                           #Biome_zone == "Mediterranean and Desert" & grepl("Tropical", Biome_broad) ~ "Mediterranean",
+                           Habitat_broad == "Grassland" & Biome_zone ==  "Boreal" ~ "Temperate",
                            TRUE ~ Biome_zone)) %>% 
+  mutate(Biome = case_when(
+                           Biome_zone == "Mediterranean and Desert" & grepl("Tropical", Biome_broad_hab) ~ "Mediterranean Forests, Woodlands and Scrub",
+                           TRUE ~ Biome)) %>%
   mutate(Realm = case_when(
     Habitat_broad == "Forest" & Biome_zone ==  "Mediterranean and Desert" ~ Biome_zone,
     Habitat_broad == "Grassland" & Biome == "Tropical" ~ "Grassland", 
     Habitat_broad == "Grassland" & Biome_zone ==  "Mediterranean and Desert" ~  Biome_zone,
     Biome_zone ==  "Tundra" ~  Biome_zone,
-    Habitat_broad == "Grassland" & Biome_zone ==  "Boreal" ~  "Tundra",
-    TRUE ~ Habitat_broad)) %>% arrange(Realm, Biome) 
+    Habitat_broad == "Grassland" & Biome_zone ==  "Boreal" ~ Habitat_broad,
+    TRUE ~ Habitat_broad)) %>% 
+  
+  mutate(Biome = case_when( Realm == "Arable" & grepl("Deserts", Biome) ~ "Mediterranean and Desert",
+                                                              Realm == "Arable" & grepl("Temperate", Biome) ~ "Temperate and Boreal",
+                                                              Realm == "Arable" & grepl("Boreal", Biome) ~ "Temperate and Boreal",
+                                                              Realm == "Arable" & grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome)) %>%
+  mutate(Biome = case_when(Realm == "Wetland" & grepl("Deserts", Biome) ~ "Mediterranean and Desert",
+                           Realm == "Wetland" & grepl("Temperate", Biome) ~ "Temperate and Boreal",
+                           Realm == "Wetland" & grepl("Boreal", Biome) ~ "Temperate and Boreal",
+                           Realm == "Wetland" & grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome)) %>%
+  mutate(Biome = case_when(
+    Realm == "Grassland" & grepl("Temperate", Biome) ~ "Temperate and Boreal",
+    Realm == "Grassland" & grepl("Boreal", Biome) ~ "Temperate and Boreal", TRUE ~ Biome)) 
+  
+  
+  arrange(Realm, Biome) 
 
 head(sb_mod)
 
-
+sb_mod %>% select(Realm, Biome, Habitat_broad, Biome_zone, Biome_broad_hab) %>% distinct() %>% arrange(Realm, Biome, Habitat_broad, Biome_zone) 
 sb_mod %>% select(Realm, Biome) %>% distinct() %>% arrange(Realm, Biome) 
+
+
 
 sb_mod %>% select(Biome_broad, Habitat_broad) %>% distinct()
 sb_mod %>% select(Habitat_broad, Biome_zone, Biome_broad) %>% distinct() %>% arrange(Habitat_broad, Biome_zone, Biome_broad) 
