@@ -44,7 +44,7 @@ head(sb_density)
 
 
 
-setwd(paste0(path2wd, 'Biome_Fits/Habs/'))
+setwd(paste0(path2wd, 'Model_Fits/Habs/'))
 # Biomes run on cluster, load in Biome objects here
 load( 'den_aq.Rdata')
 load( 'den_ar.Rdata')
@@ -125,11 +125,7 @@ fig_aq_d
 #arable
 
 sb_arable_d <- sb_density %>%
-  filter(Realm == "Arable")  %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
-                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
-                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
-                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
+  filter(Realm == "Arable") 
 
 
 summary(mod_ar_d)
