@@ -55,11 +55,15 @@ load( 'rich_wetland.Rdata')
 
 
 # Tundra
-sb_tund_r <- sb_rich_area %>% filter(Realm == "Tundra") %>%  ungroup() 
+sb_tund_r <- sb_rich_area %>% filter(Realm == "Tundra")%>% filter(Habitat_broad == "Grassland")
 
 head(sb_tund_r)
 
 summary(mod_tund_r)
+
+pp_check(mod_tund_r)
+plot(mod_tund_r)
+conditional_effects(mod_tund_r)
 
 # make sure purr not loaded, and Biome is a character NOT A FACTOR
 tund_predict <-   tidyr::crossing( 
@@ -90,6 +94,8 @@ tund_predict_df <- tund_predict  %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate( Biome = "Tundra and Boreal")
+
+
 
 fig_tund_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -282,7 +288,7 @@ med_de_predict_df <- med_de_predict  %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts"))
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
 
 fig_med_de_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -312,11 +318,7 @@ fig_med_de_r
 
 
 # Arable
-sb_ar_r <- sb_rich_area %>% filter(Realm == "Arable")  %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
-                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
-                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
-                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
+sb_ar_r <- sb_rich_area %>% filter(Realm == "Arable")  
 
 head(sb_ar_r)
 
@@ -379,11 +381,7 @@ fig_ar_r
 
 
 # Wetland
-sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
-                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
-                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
-                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
+sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") 
 
 head(sb_wetland_r)
 
