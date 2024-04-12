@@ -126,11 +126,18 @@ fig_tund_r
 
 
 # Forest
-sb_forest_r <- sb_rich_area %>% filter(Realm == "Forest") %>%  ungroup() 
+sb_forest_r <- sb_rich_area %>% filter(Realm == "Forest") %>%  ungroup()
+
+nrow(sb_forest_r)
 
 summary(sb_forest_r)
 
 summary(mod_forest_r)
+
+pp_check(mod_forest_r)+ xlab( "Total Species") + ylab("Density") +
+  labs(title= "a) Species ~ area") + xlim(-200,300)+ ylim(0,0.025)+
+  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
+
 
 # make sure purr not loaded, and Biome is a character NOT A FACTOR
 forest_predict <-   tidyr::crossing( 
@@ -190,7 +197,7 @@ fig_forest_r
 
 # Grasslands
 sb_grass_r <- sb_rich_area %>% filter(Realm == "Grassland") %>%  ungroup() 
-
+nrow(sb_grass_r)
 head(sb_grass_r)
 
 summary(mod_grass_r)
@@ -382,7 +389,7 @@ fig_ar_r
 
 # Wetland
 sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") 
-
+nrow(sb_wetland_r)
 head(sb_wetland_r)
 
 summary(mod_wetland_r)

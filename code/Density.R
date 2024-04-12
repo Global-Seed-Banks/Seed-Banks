@@ -224,22 +224,22 @@ fig_forest_d <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = sb_forest_d,
              aes(x = Biome, y = Seed_density_m2, 
-                 colour = Realm , group= Habitat_degraded , shape= Habitat_degraded,
+                 colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
                  ), 
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = forest_d_ce,
-             aes(x =  Biome, y = Estimate, colour =  Realm, group= Habitat_degraded, 
+             aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                 shape = Habitat_degraded ),
   position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = forest_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Realm, 
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
        #y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "b) Forests" ) +
-  scale_color_manual( values= c(  "#1e3d14", "#788f33","#228B22" ))+
+ scale_color_manual( values= c(  "#1e3d14", "#788f33","#228B22" ))+
   coord_cartesian( ylim = c(0,15000)) +
   scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
