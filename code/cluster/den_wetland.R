@@ -17,12 +17,7 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Realm == "Wetland") %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
-                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
-                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
-                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
-
+  filter(Realm == "Wetland") 
 
 sb_dat$Habitat_degraded <- relevel(sb_dat$Habitat_degraded, ref = "1")
 

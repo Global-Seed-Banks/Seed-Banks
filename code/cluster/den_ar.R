@@ -17,12 +17,7 @@ sb_dat <- sb %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome_broad_hab) %>%
-  filter(Realm == "Arable") %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
-                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
-                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
-                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
-
+  filter(Realm == "Arable") 
 
 mod_ar_d <- brm(Seed_density_m2 ~  Biome + ( 1 | StudyID ),
                 family= lognormal(),
