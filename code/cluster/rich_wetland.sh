@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH -J rich_wetland
-#SBATCH --time=5:00:00
+#SBATCH --time=10:00:00
 #SBATCH --mem-per-cpu=8G
 #SBATCH --cpus-per-task=4
 

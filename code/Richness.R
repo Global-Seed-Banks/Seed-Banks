@@ -95,7 +95,7 @@ tund_predict_df <- tund_predict  %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate( Biome = "Tundra and Boreal")
 
-
+head(tund_predict_df)
 
 fig_tund_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -138,6 +138,10 @@ pp_check(mod_forest_r)+ xlab( "Total Species") + ylab("Density") +
   labs(title= "a) Species ~ area") + xlim(-200,300)+ ylim(0,0.025)+
   theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
 
+plot(mod_forest_r)
+
+pairs(mod_forest_r)
+
 
 # make sure purr not loaded, and Biome is a character NOT A FACTOR
 forest_predict <-   tidyr::crossing( 
@@ -167,6 +171,24 @@ forest_predict_df <- forest_predict  %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+
+head(forest_predict_df)
+
+# look at old paper tables for inspo on formatting nicely
+forest_rich <- forest_predict_df %>% select(Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate( Realm = "Forest" ,  Estimate = mean(predicted),
+          Lower_CI = quantile(predicted, probs=0.025),
+          Upper_CI = quantile(predicted, probs=0.975))  %>%
+  mutate( Habitat_state = case_when( Habitat_degraded == 0 ~ "Undisturbed habitat",
+                                     Habitat_degraded == 1 ~ "Degraded habitat",
+  )) %>%
+  dplyr::select(c( Realm, Biome, Habitat_state, Total_sample_area_m2, Estimate, Lower_CI, Upper_CI)) %>% distinct() 
+
+forest_rich
+
+write.csv(forest_rich,  "Data/forest_rich.csv")
+
 
 fig_forest_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
