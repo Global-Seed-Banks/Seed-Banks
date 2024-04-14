@@ -44,29 +44,38 @@ ggplot(data = world) +
 # Get the world polygon
 world <- map_data("world")
 
-sb %>% select(Realm, Biome, Biome_broad_hab) %>% distinct()
+sb %>% select(Realm, Biome) %>% distinct() %>% arrange(Realm, Biome)
 sb %>% select(Realm) %>% distinct()
 sb %>% select(Biome) %>% distinct()
 
 sb <- sb %>%   mutate(Realm_Biome = case_when(
   Realm == "Aquatic" ~ Realm,
-  Realm == "Arable" ~  Realm, 
+  Realm == "Arable" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Arable", 
+  Realm == "Arable" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Arable", 
+  Realm == "Arable" & Biome ==  "Tropical" ~  "Tropical Arable", 
   Realm == "Forest" & Biome ==  "Temperate" ~  "Temperate Forests",
   Realm == "Forest" & Biome ==  "Tropical" ~  "Tropical & Subtropical Forests",
   Realm == "Forest" & Biome ==  "Boreal" ~  "Boreal Forests/Taiga",
-  Realm == "Grassland" & Biome ==  "Temperate" ~  "Temperate Grasslands, Savannas and Shrublands",
-  Realm == "Grassland" & Biome ==  "Tropical" ~  "Tropical and Subtropical Grasslands, Savannas and Shrublands",
-  Realm == "Mediterranean and Desert" & Biome ==  "Deserts" ~  "Deserts and Xeric Shrublands",
-  Realm == "Mediterranean and Desert" & Biome ==  "Mediterranean" ~  "Mediterranean Forests, Woodlands and Scrub",
+  Realm == "Grassland" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Grasslands, Savannas & Shrublands",
+  Realm == "Grassland" & Biome ==  "Tropical" ~  "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+  Realm == "Mediterranean and Desert" & Biome ==  "Deserts and Xeric Shrublands" ~  "Deserts & Xeric Shrublands",
+  Realm == "Mediterranean and Desert" & Biome ==  "Mediterranean Forests, Woodlands and Scrub" ~  "Mediterranean Forests, Woodlands & Scrub",
   Realm ==  "Tundra" ~  Realm,
-  Realm ==  "Wetland" ~  "Wetlands")) %>% 
-  mutate(Realm_Biome = fct_relevel(Realm_Biome, "Tundra", "Boreal Forests/Taiga","Temperate Forests", "Temperate Grasslands, Savannas and Shrublands", 
-                             "Wetlands", "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands", 
-                             "Tropical & Subtropical Forests", "Tropical and Subtropical Grasslands, Savannas and Shrublands",
-                                                  "Aquatic", "Arable"))
+  Realm ==  "Wetland" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Wetlands",
+  Realm ==  "Wetland" & Biome ==  "Temperate and Boreal"~  "Temperate & Boreal Wetlands",
+  Realm ==  "Wetland"  & Biome ==  "Tropical" ~  "Tropical Wetlands",
+  )) %>% 
+  mutate(Realm_Biome = fct_relevel(Realm_Biome, "Tundra", "Boreal Forests/Taiga","Temperate Forests", "Temperate & Boreal Grasslands, Savannas & Shrublands", 
+                              "Temperate & Boreal Wetlands", 
+                             "Mediterranean Forests, Woodlands & Scrub", "Mediterranean & Desert Wetlands", "Deserts & Xeric Shrublands", 
+                             "Tropical & Subtropical Forests", "Tropical & Subtropical Grasslands, Savannas & Shrublands", "Tropical Wetlands",
+                             "Aquatic", "Temperate & Boreal Arable", "Mediterranean & Desert Arable", 
+                             "Tropical Arable"
+                             ))
 
 head(sb)
 nrow(sb)
+sb %>% select(Realm, Biome, Realm_Biome) %>% distinct()
 sb %>% select(Realm_Biome) %>% distinct()
 # old colors
 # "#3b7c70", "#fab255", "#b38711", "#d8b847", "#228B22","#20B2AA", "#94b594", "#1e3d14",   #tundra, "#788f33", "#da7901", 
@@ -82,14 +91,14 @@ gsbm <- sb %>%
                  ), size=3, #alpha=0.5
              ) +
   scale_color_manual( values= c( "#94b594", "#1e3d14",  
-                                 "#788f33",  "#d8b847",  "#20B2AA",#temp broad, temp con, temp grass
-                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
-                                 "#447fdd","#99610a" # aquatic, arable
+                                 "#788f33",  "#d8b847",  "#20B2AA", #temp broad, temp con, temp grass
+                                 "#da7901",  "#4E84C4","#fab255", "#228B22","#b38711","#293352", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" , "#E2C59F", "#AA3929" #aquatic, arable
   ))+
   scale_shape_manual(values = c(  16, 18, 
                                   18, 16, 1, 
-                                  18, 16,  18, 16, 
-                                  17, 15) ) +
+                                  18, 1, 16,  18, 16, 1,
+                                  17, 15, 15, 15) ) +
   coord_equal() +
   theme_void(base_size=18) +
   theme(
@@ -110,14 +119,14 @@ gsbm_legend <- sb %>%
                  shape= Realm_Biome,
                  color=`Realm_Biome`), size=3) +
   scale_color_manual( values= c( "#94b594", "#1e3d14",  
-                                 "#788f33",  "#d8b847",  "#20B2AA",#temp broad, temp con, temp grass
-                                 "#da7901", "#fab255", "#228B22","#b38711", # med forests, deserts, trop forests, trop grass
-                                 "#447fdd","#99610a" # aquatic, arable
+                                 "#788f33",  "#d8b847",  "#20B2AA", #temp broad, temp con, temp grass
+                                 "#da7901",  "#4E84C4","#fab255", "#228B22","#b38711","#293352", # med forests, deserts, trop forests, trop grass
+                                 "#447fdd","#99610a" , "#E2C59F", "#AA3929" #aquatic, arable
   ))+
   scale_shape_manual(values = c(  16, 18, 
                                   18, 16, 1, 
-                                  18, 16,  18, 16, 
-                                  17, 15) ) +
+                                  18, 1, 16,  18, 16, 1,
+                                  17, 15, 15, 15) ) +
   coord_equal() +
   theme_void(base_size=18) +
   theme(legend.position = 'bottom',

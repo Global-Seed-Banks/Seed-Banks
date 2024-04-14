@@ -96,7 +96,7 @@ fig_aq_d <- ggplot() +
                   shape= Habitat_degraded, color=Realm
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = aq_d_ce,
              aes(x =  Habitat_degraded, y = Estimate, color=Biome,
                  shape = Habitat_degraded ),
@@ -108,13 +108,14 @@ fig_aq_d <- ggplot() +
       # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "g) Aquatic" ) +
   scale_color_manual( values= c(    "#447fdd"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  coord_cartesian( ylim = c(0,25000)) +
+  scale_y_continuous(breaks=c(0,5000,10000,15000,20000,15000, 200000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank(), axis.text.x=element_blank()
+                                # axis.text.y=element_blank(), 
+                                 axis.text.x=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -125,7 +126,8 @@ fig_aq_d
 #arable
 
 sb_arable_d <- sb_density %>%
-  filter(Realm == "Arable") 
+  filter(Realm == "Arable") %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 
 summary(mod_ar_d)
@@ -145,7 +147,8 @@ arable_d_ce <- arable_d_df %>%
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Estimate, `Upper_CI`, `Lower_CI`) 
+  ) %>% select(Biome, Realm, Estimate, `Upper_CI`, `Lower_CI`) %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 arable_d_ce
 
@@ -158,27 +161,27 @@ fig_arable_d <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = sb_arable_d,
              aes(x = Biome, y = Seed_density_m2, 
-                 colour = Realm , 
+                 colour = Biome , 
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = arable_d_ce,
-             aes(x =  Biome, y = Estimate, colour =  Realm),
+             aes(x =  Biome, y = Estimate, colour =  Biome),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = arable_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Realm),
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
        #y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "e) Arable" ) +
-  scale_color_manual( values= c( "#99610a"  ))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  scale_color_manual( values= c("#99610a" , "#E2C59F", "#AA3929" ))+
+  coord_cartesian( ylim = c(0,20000)) +
+  scale_y_continuous(breaks=c(0,5000,10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank()
+                                 #axis.text.y=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -227,7 +230,7 @@ fig_forest_d <- ggplot() +
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
                  ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = forest_d_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                 shape = Habitat_degraded ),
@@ -240,13 +243,13 @@ fig_forest_d <- ggplot() +
        #y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "b) Forests" ) +
  scale_color_manual( values= c(  "#1e3d14", "#788f33","#228B22" ))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  coord_cartesian( ylim = c(0,8000)) +
+  scale_y_continuous(breaks=c(0,2500,5000,7000,10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank()
+                                 #axis.text.y=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -296,7 +299,7 @@ fig_grass_d <- ggplot() +
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = grass_d_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
@@ -309,13 +312,13 @@ fig_grass_d <- ggplot() +
       # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "c) Grasslands" ) +
   scale_color_manual( values= c(  "#d8b847", "#b38711"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  coord_cartesian( ylim = c(0,10000)) +
+  scale_y_continuous(breaks=c(0,2500,5000,7000,10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank()
+                                 #axis.text.y=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -352,8 +355,8 @@ med_de_d_ce <- med_de_d_df %>%
   ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts"))
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))%>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
 
 med_de_d_ce
 
@@ -369,7 +372,7 @@ fig_med_de_d <- ggplot() +
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = med_de_d_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
@@ -381,9 +384,9 @@ fig_med_de_d <- ggplot() +
   labs(x = '',
        y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "d) Mediterranean and Deserts" ) +
-  scale_color_manual( values= c(    "#da7901",  "#fab255"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  scale_color_manual( values= c(    "#fab255",  "#da7901"))+
+  coord_cartesian( ylim = c(0,8000)) +
+  scale_y_continuous(breaks=c(0,2500,5000,7000,10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -438,19 +441,21 @@ fig_tund_d <- ggplot() +
              aes(x = Habitat_degraded, y = Seed_density_m2, 
                  colour = Biome ,  shape= Habitat_degraded,
              ), 
-             size = 1.5, alpha = 0.2) +
+             size = 1.5, alpha = 0.2,
+             , 
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1) ) +
   geom_point(data = tund_d_ce,
              aes(x =  Habitat_degraded, y = Estimate, colour =  Biome, 
                  shape = Habitat_degraded ),size = 3) +
   geom_errorbar(data = tund_d_ce,
                 aes(x =   Habitat_degraded, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome),
                 size = 1, width = 0,  ) +
-  labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+  labs(x = '',y='',
+       #y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "a) Tundra" ) +
   scale_color_manual( values= c(   "#94b594" ))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  coord_cartesian( ylim = c(0,5000)) +
+  scale_y_continuous(breaks=c(0,1000,2500,4000,5000,10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -469,11 +474,7 @@ fig_tund_d
 
 sb_wetland_d <- sb_density %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))  %>%
-  filter(Realm == "Wetland") %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
-                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
-                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
-                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
+  filter(Realm == "Wetland") 
 
 sb_wetland_d
 
@@ -497,7 +498,8 @@ wetland_d_ce <- wetland_d_df %>%
   ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 wetland_d_ce
 write.csv(wetland_d_ce,  "Data/wetland_d_ce.csv")
@@ -508,25 +510,25 @@ fig_wetland_d <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = sb_wetland_d,
              aes(x = Biome, y = Seed_density_m2, 
-                 colour = Realm , group= Habitat_degraded , shape= Habitat_degraded,
+                 colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = wetland_d_ce,
-             aes(x =  Biome, y = Estimate, colour =  Realm, group= Habitat_degraded, 
+             aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = wetland_d_ce,
-                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Realm, 
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
-  scale_color_manual( values= c(  "#20B2AA" ))+
-  labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),
+  scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352"))+
+  labs(x = '', y= '',
+       #y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "f) Wetlands" ) +
   #scale_color_manual( values= c(  "#20B2AA"))+
-  coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  coord_cartesian( ylim = c(0,25000)) +
+  scale_y_continuous(breaks=c(0,5000,10000,15000,20000,25000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -548,7 +550,7 @@ legend_d <- ggplot() +
                   group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = wetland_d_ce,
              aes(x =  Biome, y = Estimate,  group= Habitat_degraded, 
                  shape = Habitat_degraded), alpha = 0.7 ,
@@ -592,3 +594,4 @@ density_fig <- (fig_tund_d + fig_forest_d + fig_grass_d) /
                 ( fig_wetland_d + fig_aq_d  )/ (legend_d) + plot_layout(heights = c(10, 10,  10,  1))
 
 density_fig
+

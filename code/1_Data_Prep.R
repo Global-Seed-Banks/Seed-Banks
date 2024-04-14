@@ -92,7 +92,7 @@ sb_mod <- sb_calc %>%
     Biome_zone ==  "Tundra" ~  Biome_zone,
     Habitat_broad == "Grassland" & Biome_zone ==  "Boreal" ~ Habitat_broad,
     TRUE ~ Habitat_broad)) %>% 
-  
+  # specific
   mutate(Biome = case_when( Realm == "Arable" & grepl("Deserts", Biome) ~ "Mediterranean and Desert",
                                                               Realm == "Arable" & grepl("Temperate", Biome) ~ "Temperate and Boreal",
                                                               Realm == "Arable" & grepl("Boreal", Biome) ~ "Temperate and Boreal",

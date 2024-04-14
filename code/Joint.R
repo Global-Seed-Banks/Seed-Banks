@@ -397,7 +397,8 @@ med_de_joint <- med_de_d_ce %>%
   mutate(d_Estimate = Estimate,
          d_Upper_CI = `Upper_CI`,
          d_Lower_CI = `Lower_CI`) %>% 
-  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(med_de_r1_df)
+  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(med_de_r1_df)%>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
 
 med_de_joint
 
@@ -482,7 +483,8 @@ ar_joint <- ar_d_ce %>%
   mutate(d_Estimate = Estimate,
          d_Upper_CI = `Upper_CI`,
          d_Lower_CI = `Lower_CI`) %>% 
-  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(ar_r1_df)
+  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(ar_r1_df)%>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 ar_joint
 
@@ -491,13 +493,13 @@ fig_ar_joint <- ggplot()+
   geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
   # overall effects
   geom_point(data = ar_joint,
-             aes(x = r_Estimate, y = d_Estimate, colour = Realm, 
+             aes(x = r_Estimate, y = d_Estimate, colour = Biome, 
              ), size = 3) +
   geom_errorbar(data = ar_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Realm  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
   geom_errorbarh(data = ar_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Realm )) +
-  scale_color_manual( values= c( "#99610a"  ))+
+                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+  scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
         subtitle = "e) Arable"
@@ -573,7 +575,8 @@ wetland_joint <- wetland_d_ce %>%
   mutate(d_Estimate = Estimate,
          d_Upper_CI = `Upper_CI`,
          d_Lower_CI = `Lower_CI`) %>% 
-  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(wetland_r1_df)
+  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(wetland_r1_df)%>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 wetland_joint
 
@@ -582,13 +585,13 @@ fig_wetland_joint <- ggplot()+
   geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
   # overall effects
   geom_point(data = wetland_joint,
-             aes(x = r_Estimate, y = d_Estimate, colour = Realm, shape = Habitat_degraded
+             aes(x = r_Estimate, y = d_Estimate, colour = Biome, shape = Habitat_degraded
              ), size = 3) +
   geom_errorbar(data = wetland_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Realm  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
   geom_errorbarh(data = wetland_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Realm )) +
-  scale_color_manual( values= c(  "#20B2AA" ))+
+                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+  scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352" ))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness / ',m^2,'',sep = ''))) ,
         subtitle = "f) Wetlands"

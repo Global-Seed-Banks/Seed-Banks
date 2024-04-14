@@ -90,7 +90,7 @@ fig_aq_ra <- ggplot() +
                  shape= Habitat_degraded, color=Realm
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = aq_ra_ce,
              aes(x =  Habitat_degraded, y = Estimate, color=Model,
                  shape = Habitat_degraded ),
@@ -102,13 +102,14 @@ fig_aq_ra <- ggplot() +
        #  y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "g) Aquatic" ) +
   scale_color_manual( values= c(    "#447fdd"))+
-   coord_cartesian( ylim = c(0,350)) +
-  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
+   coord_cartesian( ylim = c(0,450)) +
+  scale_y_continuous(breaks=c(0,100,200, 300, 400))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank(), axis.text.x=element_blank()
+                                 #axis.text.y=element_blank(), 
+                                 axis.text.x=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -152,27 +153,27 @@ fig_arable_ra <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = sb_arable_ra,
              aes(x = Biome, y = ratio_seeds_species, 
-                 colour = Realm , 
+                 colour = Biome , 
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = arable_ra_ce,
-             aes(x =  Biome, y = Estimate, colour =  Model),
+             aes(x =  Biome, y = Estimate, colour =  Biome),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = arable_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Model),
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
        #  y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "e) Arable" ) +
-  scale_color_manual( values= c( "#99610a"  ))+
-   coord_cartesian( ylim = c(0,350)) +
-  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
+  scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929" ))+
+   coord_cartesian( ylim = c(0,300)) +
+  scale_y_continuous(breaks=c(0,100,200,  300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank()
+                                 #axis.text.y=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -218,7 +219,7 @@ fig_forest_ra <- ggplot() +
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = forest_ra_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
@@ -231,13 +232,13 @@ fig_forest_ra <- ggplot() +
       # y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "b) Forests" ) +
   scale_color_manual( values= c(  "#1e3d14", "#788f33","#228B22" ))+
-   coord_cartesian( ylim = c(0,350)) +
+   coord_cartesian( ylim = c(0,150)) +
   scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank()
+                                 #axis.text.y=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -284,7 +285,7 @@ fig_grass_ra <- ggplot() +
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = grass_ra_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
@@ -297,13 +298,13 @@ fig_grass_ra <- ggplot() +
        #  y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "c) Grasslands" ) +
   scale_color_manual( values= c(  "#d8b847", "#b38711"))+
-   coord_cartesian( ylim = c(0,350)) +
+   coord_cartesian( ylim = c(0,200)) +
   scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.y=element_blank()
+                                # axis.text.y=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -353,7 +354,7 @@ fig_med_de_ra <- ggplot() +
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = med_de_ra_ce,
              aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
@@ -366,7 +367,7 @@ fig_med_de_ra <- ggplot() +
         y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "d) Mediterranean and Deserts" ) +
   scale_color_manual( values= c(    "#da7901",  "#fab255"))+
-   coord_cartesian( ylim = c(0,350)) +
+   coord_cartesian( ylim = c(0,200)) +
   scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
@@ -419,7 +420,8 @@ fig_tund_ra <- ggplot() +
              aes(x = Habitat_degraded, y = ratio_seeds_species, 
                  colour = Realm ,  shape= Habitat_degraded,
              ), 
-             size = 1.5, alpha = 0.2) +
+             size = 1.5, alpha = 0.2, 
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = tund_ra_ce,
              aes(x =  Habitat_degraded, y = Estimate, colour =  Model, 
                  shape = Habitat_degraded ),size = 3) +
@@ -430,13 +432,13 @@ fig_tund_ra <- ggplot() +
         y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "a) Tundra" ) +
   scale_color_manual( values= c(   "#94b594" ))+
-   coord_cartesian( ylim = c(0,350)) +
+   coord_cartesian( ylim = c(0,100)) +
   scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
-                                 axis.text.x=element_blank()
+                                 axis.text.x=element_blank(),   axis.title.y=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
 
@@ -450,11 +452,7 @@ fig_tund_ra
 
 sb_wetland_ra <- sb_ratio %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))  %>%
-  filter(Realm == "Wetland") %>%
-  mutate(Biome = case_when(grepl("Deserts", Biome) ~ "Mediterranean and Desert",
-                           grepl("Temperate", Biome) ~ "Temperate and Boreal",
-                           grepl("Boreal", Biome) ~ "Temperate and Boreal",
-                           grepl("Mediterranean", Biome) ~ "Mediterranean and Desert", TRUE ~ Biome))
+  filter(Realm == "Wetland") 
 
 sb_wetland_ra
 
@@ -487,29 +485,30 @@ fig_wetland_ra <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = sb_wetland_ra,
              aes(x = Biome, y = ratio_seeds_species, 
-                 colour = Realm , group= Habitat_degraded , shape= Habitat_degraded,
+                 colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = wetland_ra_ce,
-             aes(x =  Biome, y = Estimate, colour =  Model, group= Habitat_degraded, 
+             aes(x =  Biome, y = Estimate, colour =  Biome, group= Habitat_degraded, 
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = wetland_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Model, 
+                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
-  scale_color_manual( values= c(  "#20B2AA" ))+
+  scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352" ))+
   labs(x = '',
         y = expression(paste('Ratio (Seeds/Species)')) ,
        subtitle=  "f) Wetlands" ) +
   #scale_color_manual( values= c(  "#20B2AA"))+
-   coord_cartesian( ylim = c(0,350)) +
-  scale_y_continuous(breaks=c(0,50,100,200, 250, 300))+
+   coord_cartesian( ylim = c(0,400)) +
+  scale_y_continuous(breaks=c(0,100,200,  300, 400))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
                                  strip.background = element_blank(), legend.position="none",
+                                 axis.title.y=element_blank()
                                  #axis.text.x=element_blank()
   ) + 
   scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
@@ -525,7 +524,7 @@ legend_ra <- ggplot() +
                  group= Habitat_degraded , shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2, 
-             position = position_jitterdodge(jitter.width = 0.25, jitter.height=0.45, dodge.width = 1)) +
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = wetland_ra_ce,
              aes(x =  Biome, y = Estimate,  group= Habitat_degraded, 
                  shape = Habitat_degraded ), alpha = 0.7,

@@ -142,6 +142,22 @@ plot(mod_forest_r)
 
 pairs(mod_forest_r)
 
+#residuals
+head(sb_forest_r)
+forest_r <- residuals(mod_forest_r)
+forest_r <- as.data.frame(forest_r)
+head(forest_r)
+forest_r_plot <- cbind(sb_forest_r, forest_r$Estimate)
+head(forest_r_plot)
+
+par(mfrow=c(2,3))
+with(forest_r_plot, plot(as.factor(Biome), forest_r$Estimate))
+with(forest_r_plot, plot(Habitat_degraded, forest_r$Estimate))
+with(forest_r_plot, plot(Centred_log_total_sample_area_m2, forest_r$Estimate))
+with(forest_r_plot, plot(Centred_log_number_sites, forest_r$Estimate))
+with(forest_r_plot, plot(StudyID, forest_r$Estimate))
+with(forest_r_plot, plot(RowID, forest_r$Estimate))
+
 
 # make sure purr not loaded, and Biome is a character NOT A FACTOR
 forest_predict <-   tidyr::crossing( 
@@ -347,7 +363,8 @@ fig_med_de_r
 
 
 # Arable
-sb_ar_r <- sb_rich_area %>% filter(Realm == "Arable")  
+sb_ar_r <- sb_rich_area %>% filter(Realm == "Arable")   %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 head(sb_ar_r)
 
@@ -379,20 +396,21 @@ ar_predict_df <- ar_predict  %>%
   select(-data) %>% unnest(cols= c(predicted)) %>%
   mutate( predicted = .prediction) %>%
   select(-.prediction) %>% ungroup() %>%
-  mutate(Realm = "Arable")
+  mutate(Realm = "Arable") %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 fig_ar_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   stat_halfeye(data = ar_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
-               aes(x = Biome , y = predicted,  fill= Realm),
+               aes(x = Biome , y = predicted,  fill= Biome),
                point_interval = mean_qi,  .width = c(0.50, 0.9), 
                alpha=0.4, position = position_dodge(width = 1)) +
   stat_halfeye(data = ar_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
-               aes(x = Biome , y = predicted,  fill= Realm, 
+               aes(x = Biome , y = predicted,  fill= Biome, 
                ),
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
-  scale_fill_manual( values= c( "#99610a" 
+  scale_fill_manual( values= c("#99610a" , "#E2C59F", "#AA3929"
   )) +   coord_cartesian( ylim = c(0,90)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
@@ -410,9 +428,13 @@ fig_ar_r
 
 
 # Wetland
-sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") 
+sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") %>% 
+  mutate(Biome = fct_relevel(Biome, "Temperate and Boreal", "Mediterranean and Desert", "Tropical"))
+
 nrow(sb_wetland_r)
 head(sb_wetland_r)
+sb_wetland_r %>% select(Biome) %>% distinct()
+
 
 summary(mod_wetland_r)
 
@@ -444,21 +466,22 @@ wetland_predict_df <- wetland_predict  %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate(Realm = "Wetland")
+  mutate(Realm = "Wetland") %>% 
+  mutate(Biome = fct_relevel(Biome, "Temperate and Boreal", "Mediterranean and Desert", "Tropical"))
 
 fig_wetland_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   stat_halfeye(data = wetland_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
-               aes(x = Biome , y = predicted,  fill= Realm, group = Habitat_degraded, shape=Habitat_degraded),
+               aes(x = Biome , y = predicted,  fill= Biome, group = Habitat_degraded, shape=Habitat_degraded),
                point_interval = mean_qi,  .width = c(0.50, 0.9), 
                alpha=0.4, position = position_dodge(width = 1)) +
   stat_halfeye(data = wetland_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 15.00  ) ,
-               aes(x = Biome , y = predicted,  fill= Realm, group = Habitat_degraded,
+               aes(x = Biome , y = predicted,  fill= Biome, group = Habitat_degraded,
                    shape= Habitat_degraded,
                ),
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
-  scale_fill_manual( values= c(  "#20B2AA" 
+  scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352"
   )) +   coord_cartesian( ylim = c(0,90)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
