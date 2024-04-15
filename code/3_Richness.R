@@ -94,11 +94,19 @@ tund_predict_df <- tund_predict  %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate( Biome = "Tundra and Boreal")
+  mutate( Realm = "Tundra", Biome = "Tundra") 
 
 summary(tund_predict_df)
 nrow(tund_predict_df) 
 tund_predict_df %>% select(.draw, Habitat_degraded) %>% mutate(max_draw = max(.draw))
+
+tund_div <- tund_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate = mean(predicted),
+         Lower_CI = quantile(predicted, probs=0.025),
+         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  select(-predicted) %>% distinct()
 
 fig_tund_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -189,9 +197,20 @@ forest_predict_df <- forest_predict  %>%
   mutate( predicted = .prediction) %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Forest")
 
 head(forest_predict_df)
+
+forest_div <- forest_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate = mean(predicted),
+         Lower_CI = quantile(predicted, probs=0.025),
+         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  select(-predicted) %>% distinct()
+
+forest_div
 
 # look at old paper tables for inspo on formatting nicely
 forest_rich <- forest_predict_df %>% select(Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
@@ -270,7 +289,18 @@ grass_predict_df <- grass_predict  %>%
   mutate( predicted = .prediction) %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Grasslands")
+
+grass_div <- grass_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate = mean(predicted),
+         Lower_CI = quantile(predicted, probs=0.025),
+         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  select(-predicted) %>% distinct()
+
+grass_div
 
 fig_grass_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -336,7 +366,18 @@ med_de_predict_df <- med_de_predict  %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))%>%
+  mutate(Realm = "Mediterranean and Desert")
+
+med_de_div <- med_de_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate = mean(predicted),
+         Lower_CI = quantile(predicted, probs=0.025),
+         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  select(-predicted) %>% distinct()
+
+med_de_div
 
 fig_med_de_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -400,7 +441,18 @@ ar_predict_df <- ar_predict  %>%
   mutate( predicted = .prediction) %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Realm = "Arable") %>%
-  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))%>%
+  mutate(Realm = "Arable", Habitat_degraded = "1")
+
+ar_div <- ar_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate = mean(predicted),
+         Lower_CI = quantile(predicted, probs=0.025),
+         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  select(-predicted) %>% distinct()
+
+ar_div
 
 fig_ar_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -472,6 +524,17 @@ wetland_predict_df <- wetland_predict  %>%
   mutate(Realm = "Wetland") %>% 
   mutate(Biome = fct_relevel(Biome, "Temperate and Boreal", "Mediterranean and Desert", "Tropical"))
 
+wetland_div <- wetland_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate = mean(predicted),
+         Lower_CI = quantile(predicted, probs=0.025),
+         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  select(-predicted) %>% distinct()
+
+wetland_div
+
+
 fig_wetland_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   stat_halfeye(data = wetland_predict_df %>% filter(Number_sites == 1, Total_sample_area_m2 == 0.01  ) ,
@@ -534,7 +597,17 @@ aq_predict_df <- aq_predict  %>%
   select(-.prediction) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate( Biome = "Aquatic")
+  mutate( Biome = "Aquatic", Realm = "Aquatic")
+
+aq_div <- aq_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate = mean(predicted),
+         Lower_CI = quantile(predicted, probs=0.025),
+         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  select(-predicted) %>% distinct()
+
+aq_div
 
 fig_aq_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -632,10 +705,26 @@ g_legend<-function(a.gplot){
 legend_g <- g_legend(legend_g)
 legend_a <- g_legend(legend_a)
 
-
-
 richness_fig <- (fig_tund_r + fig_forest_r + fig_grass_r) /
   ( fig_med_de_r + fig_ar_r) /
   ( fig_wetland_r + fig_aq_r  )/ (legend_g) / (legend_a) + plot_layout(heights = c(10, 10,  10, 2.5, 1))
 
 richness_fig
+
+table_s7 <- tund_div %>% bind_rows(forest_div, grass_div, med_de_div, ar_div, wetland_div, aq_div) %>%
+  mutate(Estimate = round(Estimate, 0),
+         Lower_CI = round(Lower_CI, 0),
+         Upper_CI = round(Upper_CI, 0),
+         )
+table_s7
+
+
+table_s7ab_prep <- table_s7 %>%
+  unite("CI", Lower_CI:Upper_CI, sep=",") %>%
+  mutate(CI = paste0("(", CI, ")"),) %>%
+  unite("Richness", Estimate:CI, sep=" ") %>%
+  spread(Total_sample_area_m2, Richness)
+
+
+print(table_s7ab_prep, n=Inf)
+  

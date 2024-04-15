@@ -259,7 +259,8 @@ fig_s2c
 
 # med_de_
 sb_med_de_r <- sb_rich_area %>%  
-  filter(Realm == "Mediterranean and Desert")
+  filter(Realm == "Mediterranean and Desert")%>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>% arrange(Biome)
 
 med_de_fitted <-   tidyr::crossing( 
   sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%
@@ -287,7 +288,7 @@ med_de_fitted_df <- med_de_fitted  %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
   filter(Number_sites == 1) %>% mutate() %>%
-  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>% arrange(Biome)
 
 head(med_de__fitted_df)
 

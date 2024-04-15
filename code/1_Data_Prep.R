@@ -206,7 +206,7 @@ summary(sb_prep)
 nrow(sb_prep) # n records
 
 nrow( sb_prep %>% select( # n studies
-  studyID
+  StudyID
 ) %>% distinct() )
 
 
@@ -222,10 +222,10 @@ sb_prep %>% select(Biome_zone, Biome_broad, Habitat_broad, Biome_broad_hab, ) %>
 
 # table s1
 sb_gathered <- sb_prep %>% select(
-  rowID, 
-  studyID,
-  Centred_log_Total_Sample_Area_m2, 
-  Biome_Broad_Hab, Number_sites, Total_seeds, Total_species, Seed_density_m2, ratio_seeds_species) %>%
+  RowID, 
+  StudyID,
+  Centred_log_total_sample_area_m2, 
+  Realm, Biome, Number_sites, Total_seeds, Total_species, Seed_density_m2, ratio_seeds_species) %>%
   gather(metric, response, Total_seeds:ratio_seeds_species) %>%
   filter(!is.na(response),
         # !is.na(Centred_log_Total_Sample_Area_m2),
@@ -244,8 +244,8 @@ nrow( sb_gathered %>% filter(metric == "Seed_density_m2"))
 nrow( sb_gathered %>% filter(metric == "ratio_seeds_species"))
 
 # number of observations used in each model
-nrow( sb_gathered %>% filter(metric == "Total_species") %>% filter(!is.na(Centred_log_Total_Sample_Area_m2) ))
-nrow( sb_gathered %>% filter(metric == "Total_seeds")  %>% filter(!is.na(Centred_log_Total_Sample_Area_m2)  ))
+nrow( sb_gathered %>% filter(metric == "Total_species") %>% filter(!is.na(Centred_log_total_sample_area_m2) ))
+nrow( sb_gathered %>% filter(metric == "Total_seeds")  %>% filter(!is.na(Centred_log_total_sample_area_m2)  ))
 nrow( sb_gathered %>% filter(metric == "Seed_density_m2")  %>% filter(response != 0 ))
 nrow( sb_gathered %>% filter(metric == "ratio_seeds_species")  %>% filter(response != 0 ))
 

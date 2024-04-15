@@ -573,3 +573,4 @@ ratio_fig
 table_3 <- tund_ra_ce %>% bind_rows(forest_ra_ce, grass_ra_ce, med_de_ra_ce, arable_ra_ce, wetland_ra_ce, aq_ra_ce)
 
 table_3
+write.csv(table_3, "table_3.csv")

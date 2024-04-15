@@ -231,7 +231,6 @@ geom_line(data = rich.fitted.df,
 fig_rich.biome_broad
 
 
-
 # custom legend
 legend.data <- rich.fitted.df %>%   mutate(Number_Sites = factor(Number_Sites)) %>%
   mutate(Number_Sites = fct_relevel(Number_Sites, c("1","20","100")))
