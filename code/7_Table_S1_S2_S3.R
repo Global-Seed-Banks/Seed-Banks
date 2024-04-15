@@ -113,7 +113,7 @@ sb_gathered <- sb_prep %>% select(
   RowID, 
   StudyID,
   Centred_log_total_sample_area_m2, 
-  Realm, Biome, Number_sites, Total_seeds, Total_species, Seed_density_m2, ratio_seeds_species) %>%
+  Realm, Biome, Habitat_degraded, Number_sites, Total_seeds, Total_species, Seed_density_m2, ratio_seeds_species) %>%
   # filter(Seed_density_m2 != 0, ratio_seeds_species != 0) %>%
   gather(metric, response, Total_seeds:ratio_seeds_species) %>%
   filter(!is.na(response),
@@ -122,23 +122,85 @@ sb_gathered <- sb_prep %>% select(
          #response == 0 
   ) 
 head(sb_gathered)
+nrow(sb_gathered)
+sb_gathered %>% select(metric)  %>% group_by(metric) %>% count()
 
 # first two columns (need sample area) table s3
-biome_count_ss <- sb_gathered %>% # number of data points within every biome
-  filter(!is.na(Centred_log_total_sample_area_m2)) %>%
-  select(Realm, metric) %>%
-  filter(metric %in% c("Total_seeds" , "Total_species") ) %>%
-  dplyr::group_by(Realm, metric) %>%
-  count() %>% spread(metric, n) %>%
+
+table_s3a <- sb_prep %>% select(
+  RowID, 
+  StudyID,
+  Centred_log_total_sample_area_m2, 
+  Realm, Biome, Habitat_degraded, Number_sites, Total_species
+) %>%
+  filter(!is.na(Total_species)) %>%
+  dplyr::group_by(Realm, Biome, Habitat_degraded) %>%
+  count() %>%
   mutate( Realm = as.factor(Realm)) %>%
- # mutate( Biome = as.factor(Biome)) %>%
   mutate(Realm = fct_relevel(Realm, "Tundra", "Forest", "Grassland", "Mediterranean and Desert",
                              "Arable", "Wetland", "Aquatic"
-  )) %>%  arrange(Realm)
+  )) %>%  arrange(Realm) %>% mutate(n_obs_species = n) %>%
+  select(Realm, Biome, Habitat_degraded, n_obs_species) 
 
-biome_count_ss
+print(table_s3a, n=Inf)
 
-write.csv(biome_count_ss,  "biome_count_ss.csv")
+table_s3b <- sb_prep %>% select(
+  RowID, 
+  StudyID,
+  Centred_log_total_sample_area_m2, 
+  Realm, Biome, Habitat_degraded, Number_sites, Total_seeds,  #Seed_density_m2, ratio_seeds_species
+) %>%
+  filter(!is.na(Total_seeds)) %>%
+  dplyr::group_by(Realm, Biome, Habitat_degraded) %>%
+  count() %>%
+  mutate( Realm = as.factor(Realm)) %>%
+  mutate(Realm = fct_relevel(Realm, "Tundra", "Forest", "Grassland", "Mediterranean and Desert",
+                             "Arable", "Wetland", "Aquatic"
+  )) %>%  arrange(Realm)%>% mutate(n_obs_seeds = n) %>%
+  select(Realm, Biome, Habitat_degraded, n_obs_seeds)
+
+print(table_s3b, n=Inf)
+
+table_s3c <- sb_prep %>% select(
+  RowID, 
+  StudyID,
+  Centred_log_total_sample_area_m2, 
+  Realm, Biome, Habitat_degraded, Number_sites,  Seed_density_m2, #ratio_seeds_species
+) %>%
+  filter(!is.na(Seed_density_m2)) %>%
+  dplyr::group_by(Realm, Biome, Habitat_degraded) %>%
+  count() %>%
+  mutate( Realm = as.factor(Realm)) %>%
+  mutate(Realm = fct_relevel(Realm, "Tundra", "Forest", "Grassland", "Mediterranean and Desert",
+                             "Arable", "Wetland", "Aquatic"
+  )) %>%  arrange(Realm)%>% mutate(n_obs_density = n) %>%
+  select(Realm, Biome, Habitat_degraded, n_obs_density)
+
+print(table_s3c, n=Inf)
+
+
+table_s3d <- sb_prep %>% select(
+  RowID, 
+  StudyID,
+  Centred_log_total_sample_area_m2, 
+  Realm, Biome, Habitat_degraded, Number_sites,  ratio_seeds_species
+) %>%
+  filter(!is.na(ratio_seeds_species)) %>%
+  dplyr::group_by(Realm, Biome, Habitat_degraded) %>%
+  count() %>%
+  mutate( Realm = as.factor(Realm)) %>%
+  mutate(Realm = fct_relevel(Realm, "Tundra", "Forest", "Grassland", "Mediterranean and Desert",
+                             "Arable", "Wetland", "Aquatic"
+  )) %>%  arrange(Realm)%>% mutate(n_obs_ratio = n) %>%
+  select(Realm, Biome, Habitat_degraded, n_obs_ratio)
+
+print(table_s3d, n=Inf)
+
+table_s3 <- table_s3a %>% left_join(table_s3b) %>% left_join(table_s3c) %>% left_join(table_s3d)
+
+
+write.csv(table_s3,  "table_s3.csv")
+
 
 # last two columns- dont need sample area and remove 0's table s2
 biome_count_dr <- sb_gathered %>% # number of data points within every biome
