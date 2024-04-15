@@ -41,6 +41,7 @@ sb_rich_area <- sb_prep %>%
           Method = as.factor(Method)) %>% arrange(Biome) 
 
 
+sb_rich_area %>% select(Realm) %>% distinct()
 
 setwd(paste0(path2wd, 'Model_Fits/Habs/'))
 # models run on cluster, load in model objects here
@@ -95,7 +96,9 @@ tund_predict_df <- tund_predict  %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate( Biome = "Tundra and Boreal")
 
-head(tund_predict_df)
+summary(tund_predict_df)
+nrow(tund_predict_df) 
+tund_predict_df %>% select(.draw, Habitat_degraded) %>% mutate(max_draw = max(.draw))
 
 fig_tund_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -110,7 +113,7 @@ fig_tund_r <- ggplot() +
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(  "#94b594" 
-  )) +   coord_cartesian( ylim = c(0,90)) +
+  )) +   coord_cartesian( ylim = c(0,40)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "a) Tundra" ) +
@@ -219,7 +222,7 @@ stat_halfeye(data = forest_predict_df %>% filter(Number_sites == 1, Total_sample
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(  "#1e3d14",   "#788f33", "#228B22"
-  )) +   coord_cartesian( ylim = c(0,90)) +
+  )) +   coord_cartesian( ylim = c(0,60)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "b) Forests" ) +
@@ -282,7 +285,7 @@ fig_grass_r <- ggplot() +
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c( "#d8b847", "#b38711"
-  )) +   coord_cartesian( ylim = c(0,90)) +
+  )) +   coord_cartesian( ylim = c(0,50)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "c) Grasslands" ) +
@@ -348,7 +351,7 @@ fig_med_de_r <- ggplot() +
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(   "#da7901",  "#fab255"
-  )) +   coord_cartesian( ylim = c(0,90)) +
+  )) +   coord_cartesian( ylim = c(0,100)) +
   labs(x = '', #y='',
         y = 'Species richness \n in the soil seedbank',
        subtitle=  "d) Mediterranean and Deserts" ) +
@@ -411,7 +414,7 @@ fig_ar_r <- ggplot() +
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c("#99610a" , "#E2C59F", "#AA3929"
-  )) +   coord_cartesian( ylim = c(0,90)) +
+  )) +   coord_cartesian( ylim = c(0,40)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "e) Arable" ) +
@@ -482,7 +485,7 @@ fig_wetland_r <- ggplot() +
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352"
-  )) +   coord_cartesian( ylim = c(0,90)) +
+  )) +   coord_cartesian( ylim = c(0,70)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "f) Wetlands" ) +
@@ -546,7 +549,7 @@ fig_aq_r <- ggplot() +
                point_interval = mean_qi,  .width = c(0.50, 0.9), point_size=5, 
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(  "#447fdd"
-  )) +   coord_cartesian( ylim = c(0,90)) +
+  )) +   coord_cartesian( ylim = c(0,35)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "g) Aquatic" ) +

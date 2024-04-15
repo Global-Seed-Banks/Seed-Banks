@@ -43,8 +43,8 @@ head(sb_ratio)
 
 
 
-setwd(paste0(path2wd, 'Model_Fits/Habs/'))
-# models run on cluster, load in model objects here
+setwd(paste0(path2wd, 'Realm_Fits/Habs/'))
+# Realms run on cluster, load in Realm objects here
 load( 'ratio_aq.Rdata')
 load( 'ratio_ar.Rdata')
 load( 'ratio_forest.Rdata')
@@ -72,11 +72,11 @@ head(aq_ra_raf)
 
 aq_ra_ce <- aq_ra_raf %>%
   select( Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Model = "Aquatic",
+  mutate( Realm = "Aquatic", Biome = "Aquatic",
           Estimate = round(estimate__ , 2),
-          `Lower CI` = round(lower__ , 2),
-          `Upper CI` = round(upper__ , 2),
-  ) %>% select(Model,  Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
@@ -92,11 +92,11 @@ fig_aq_ra <- ggplot() +
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = aq_ra_ce,
-             aes(x =  Habitat_degraded, y = Estimate, color=Model,
+             aes(x =  Habitat_degraded, y = Estimate, color=Realm,
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = aq_ra_ce,
-                aes(x =   Habitat_degraded, ymin = `Lower CI`, ymax = `Upper CI`, color=Model),
+                aes(x =   Habitat_degraded, ymin = `Lower_CI`, ymax = `Upper_CI`, color=Realm),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
        #  y = expression(paste('Ratio (Seeds/Species)')) ,
@@ -140,11 +140,11 @@ head(arable_ra_raf)
 
 arable_ra_ce <- arable_ra_raf %>%
   select(Biome, estimate__, lower__, upper__) %>%
-  mutate( Model = "Arable",
+  mutate( Realm = "Arable", Habitat_degraded = "1",
           Estimate = round(estimate__ , 2),
-          `Lower CI` = round(lower__ , 2),
-          `Upper CI` = round(upper__ , 2),
-  ) %>% select(Model, Biome, Estimate, `Upper CI`, `Lower CI`) 
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) 
 
 arable_ra_ce
 sb_arable_ra
@@ -161,7 +161,7 @@ fig_arable_ra <- ggplot() +
              aes(x =  Biome, y = Estimate, colour =  Biome),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = arable_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome),
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
        #  y = expression(paste('Ratio (Seeds/Species)')) ,
@@ -200,11 +200,11 @@ head(forest_ra_raf)
 
 forest_ra_ce <- forest_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Model = "Forest",
+  mutate( Realm = "Forest",
           Estimate = round(estimate__ , 2),
-          `Lower CI` = round(lower__ , 2),
-          `Upper CI` = round(upper__ , 2),
-  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
@@ -225,7 +225,7 @@ fig_forest_ra <- ggplot() +
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = forest_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
@@ -266,11 +266,11 @@ head(grass_ra_raf)
 
 grass_ra_ce <- grass_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Model = "Grassland",
+  mutate( Realm = "Grassland",
           Estimate = round(estimate__ , 2),
-          `Lower CI` = round(lower__ , 2),
-          `Upper CI` = round(upper__ , 2),
-  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
@@ -291,7 +291,7 @@ fig_grass_ra <- ggplot() +
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = grass_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '', y='',
@@ -334,11 +334,11 @@ head(med_de_ra_raf)
 
 med_de_ra_ce <- med_de_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Model = "Mediterranean Forests, Woodlands and Scrub",
+  mutate( Realm = "Mediterranean and Desert",
           Estimate = round(estimate__ , 2),
-          `Lower CI` = round(lower__ , 2),
-          `Upper CI` = round(upper__ , 2),
-  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
@@ -360,7 +360,7 @@ fig_med_de_ra <- ggplot() +
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = med_de_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '',
@@ -403,11 +403,11 @@ head(tund_ra_raf)
 
 tund_ra_ce <- tund_ra_raf %>%
   select(Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Model = "Tundra",
+  mutate( Realm = "Tundra", Biome = "Tundra",
           Estimate = round(estimate__ , 2),
-          `Lower CI` = round(lower__ , 2),
-          `Upper CI` = round(upper__ , 2),
-  ) %>% select(Model, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
 
@@ -423,10 +423,10 @@ fig_tund_ra <- ggplot() +
              size = 1.5, alpha = 0.2, 
              position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
   geom_point(data = tund_ra_ce,
-             aes(x =  Habitat_degraded, y = Estimate, colour =  Model, 
+             aes(x =  Habitat_degraded, y = Estimate, colour =  Realm, 
                  shape = Habitat_degraded ),size = 3) +
   geom_errorbar(data = tund_ra_ce,
-                aes(x =   Habitat_degraded, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Model),
+                aes(x =   Habitat_degraded, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Realm),
                 size = 1, width = 0,  ) +
   labs(x = '',
         y = expression(paste('Ratio (Seeds/Species)')) ,
@@ -469,11 +469,11 @@ head(wetland_ra_raf)
 
 wetland_ra_ce <- wetland_ra_raf %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Model = "Wetland",
+  mutate( Realm = "Wetland",
           Estimate = round(estimate__ , 2),
-          `Lower CI` = round(lower__ , 2),
-          `Upper CI` = round(upper__ , 2),
-  ) %>% select(Model, Biome, Habitat_degraded, Estimate, `Upper CI`, `Lower CI`) %>% 
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
@@ -494,7 +494,7 @@ fig_wetland_ra <- ggplot() +
                  shape = Habitat_degraded ),
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = wetland_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, colour =  Biome, 
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, colour =  Biome, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352" ))+
@@ -530,7 +530,7 @@ legend_ra <- ggplot() +
                  shape = Habitat_degraded ), alpha = 0.7,
              position = position_dodge(width = 1), size = 3) +
   geom_errorbar(data = wetland_ra_ce,
-                aes(x =   Biome, ymin = `Lower CI`, ymax = `Upper CI`, 
+                aes(x =   Biome, ymin = `Lower_CI`, ymax = `Upper_CI`, 
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
  # scale_color_manual( values= c(  "#20B2AA" ))+
@@ -568,3 +568,8 @@ ratio_fig <- (fig_tund_ra + fig_forest_ra + fig_grass_ra) /
   ( fig_wetland_ra + fig_aq_ra  )/ (legend_ra) + plot_layout(heights = c(10, 10,  10,  1))
 
 ratio_fig
+
+
+table_3 <- tund_ra_ce %>% bind_rows(forest_ra_ce, grass_ra_ce, med_de_ra_ce, arable_ra_ce, wetland_ra_ce, aq_ra_ce)
+
+table_3

@@ -112,12 +112,12 @@ tund_r1_df <- tund_r1  %>%
   select(-c(.prediction, .draw, .row, .chain, .iteration)) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate( Biome = "Tundra and Boreal") %>%
+  mutate(Realm = "Tundra",  Biome = "Tundra") %>%
   dplyr::group_by(Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
           `r_Upper_CI` = quantile(predicted, probs=0.975, na.rm =TRUE ),
           `r_Lower_CI` = quantile(predicted, probs=0.025, na.rm =TRUE ),
-  ) %>%  select(c(Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
 
 head(tund_r1_df)
 
@@ -286,7 +286,7 @@ grass_r1_df <- grass_r1  %>%
   select(-c(.prediction, .draw, .row, .chain, .iteration)) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate( Realm = "Grassland") %>%
+  mutate( Realm = "Grasslands") %>%
   dplyr::group_by(Biome, Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
           `r_Upper_CI` = quantile(predicted, probs=0.975, na.rm =TRUE ),
@@ -376,8 +376,8 @@ med_de_r1_df <- med_de_r1  %>%
   select(-c(.prediction, .draw, .row, .chain, .iteration)) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate( Realm = "Mediterranean Forests, Woodlands and Scrub") %>%
-  mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts")) %>%
+  mutate( Realm = "Mediterranean and Desert") %>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>%
   dplyr::group_by(Biome, Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
           `r_Upper_CI` = quantile(predicted, probs=0.975, na.rm =TRUE ),
@@ -467,10 +467,11 @@ ar_r1_df <- ar_r1  %>%
   mutate( predicted = .prediction) %>%
   select(-c(.prediction, .draw, .row, .chain, .iteration)) %>% ungroup() %>%
   dplyr::group_by(Biome) %>%
+  mutate(Realm = "Arable", Habitat_degraded = "1") %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
           `r_Upper_CI` = quantile(predicted, probs=0.975, na.rm =TRUE ),
           `r_Lower_CI` = quantile(predicted, probs=0.025, na.rm =TRUE ),
-  ) %>%  select(c(Biome, Biome, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
 
 head(ar_r1_df)
 
@@ -642,12 +643,13 @@ aq_r1_df <- aq_r1  %>%
   select(-c(.prediction, .draw, .row, .chain, .iteration)) %>% ungroup() %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
-  mutate( Biome = "Aquatic") %>%
+  mutate( Realm = "Aquatic", Biome = "Aquatic") %>%
   dplyr::group_by(Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
           `r_Upper_CI` = quantile(predicted, probs=0.975, na.rm =TRUE ),
           `r_Lower_CI` = quantile(predicted, probs=0.025, na.rm =TRUE ),
-  ) %>%  select(c(Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+  ) %>%  
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
 
 head(aq_r1_df)
 
@@ -738,5 +740,27 @@ joint_fig <- (fig_tund_joint + fig_forest_joint + fig_grass_joint) /
 
 joint_fig
 
+
+table_s7c <- tund_r1_df %>% bind_rows(forest_r1_df, grass_r1_df, med_de_r1_df, 
+                                    ar_r1_df, wetland_r1_df, aq_r1_df) %>%
+  mutate(Estimate = round(r_Estimate, 0),
+         Lower_CI = round(r_Lower_CI, 0),
+         Upper_CI = round(r_Upper_CI, 0), ) %>%
+  unite("CI", Lower_CI:Upper_CI, sep=",") %>%
+  mutate(CI = paste0("(", CI, ")"),) %>%
+  unite("1", Estimate:CI, sep=" ")  %>% select(-c(r_Estimate, r_Lower_CI, r_Upper_CI))
+
+print(table_s7c, n=Inf)
+
+scales_div <- table_s7ab_prep %>% left_join(table_s7c) %>%
+  mutate(Realm = as.factor(Realm)) %>%
+  mutate(Realm = fct_relevel(Realm, "Tundra", "Forest", "Grasslands", "Mediterranean and Desert",
+                                  "Arable", "Wetland", "Aquatic"
+  )) %>% arrange(Realm) %>% ungroup() %>% select(Realm, Biome, Habitat_degraded, `0.01`, `1`, `15`)
+
+print(scales_div, n=Inf)
+
+
+write.csv(scales_div, "table_S7.csv")
 
 

@@ -109,9 +109,11 @@ gsbm <- sb %>%
   scale_x_continuous(expand = c(0.006, 0.006)) #+ guides(col = guide_legend(ncol = 3))
 
 gsbm
+#WET
+# "#20B2AA", "#4E84C4", "#293352", 
+#ARABLE
 
-
-
+#"#99610a" , "#E2C59F", "#AA3929"
 gsbm_legend <- sb %>%
   ggplot() +
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +

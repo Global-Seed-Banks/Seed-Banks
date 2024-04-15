@@ -75,19 +75,16 @@ head(aq_d_df)
 
 aq_d_ce <- aq_d_df %>%
   select( Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Biome = "Aquatic",
+  mutate( Realm = "Aquatic", Biome = "Aquatic",
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome,  Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+  ) %>% select(Realm, Biome,  Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
 
 aq_d_ce
 
-write.csv(aq_d_ce,  "Data/aq_d_ce.csv")
-
-sb_aq_d
 
 fig_aq_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -143,19 +140,15 @@ head(arable_d_df)
 
 arable_d_ce <- arable_d_df %>%
   select(Biome, estimate__, lower__, upper__) %>%
-  mutate( Realm = "Arable",
+  mutate( Realm = "Arable", Habitat_degraded = "1",
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Estimate, `Upper_CI`, `Lower_CI`) %>%
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>%
   mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 arable_d_ce
 
-write.csv(arable_d_ce,  "Data/arable_d_ce.csv")
-
-
-sb_arable_d
 
 fig_arable_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -212,16 +205,14 @@ forest_d_ce <- forest_d_df %>%
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
 forest_d_ce
 
-write.csv(forest_d_ce,  "Data/forest_d_ce.csv")
 
-sb_forest_d
 
 fig_forest_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -281,16 +272,13 @@ grass_d_ce <- grass_d_df %>%
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+  ) %>% select(Realm, Biome,  Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
 grass_d_ce
 
-write.csv(grass_d_ce,  "Data/grass_d_ce.csv")
-
-sb_grass_d
 
 fig_grass_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -348,11 +336,11 @@ head(med_de_d_df)
 
 med_de_d_ce <- med_de_d_df %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Realm = "Mediterranean Forests, Woodlands and Scrub",
+  mutate( Realm = "Mediterranean and Desert",
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))%>%
@@ -360,10 +348,6 @@ med_de_d_ce <- med_de_d_df %>%
 
 med_de_d_ce
 
-write.csv(med_de_d_ce,  "Data/med_de_d_ce.csv")
-
-
-sb_med_de_d
 
 fig_med_de_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -421,19 +405,17 @@ head(tund_d_df)
 
 tund_d_ce <- tund_d_df %>%
   select(Habitat_degraded, estimate__, lower__, upper__) %>%
-  mutate( Biome = "Tundra and Boreal",
+  mutate( Realm = "Tundra", Biome = "Tundra",
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
 
 tund_d_ce
 
-write.csv(tund_d_ce,  "Data/tund_d_ce.csv")
 
-sb_tund_d
 
 fig_tund_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -442,7 +424,6 @@ fig_tund_d <- ggplot() +
                  colour = Biome ,  shape= Habitat_degraded,
              ), 
              size = 1.5, alpha = 0.2,
-             , 
              position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1) ) +
   geom_point(data = tund_d_ce,
              aes(x =  Habitat_degraded, y = Estimate, colour =  Biome, 
@@ -495,16 +476,14 @@ wetland_d_ce <- wetland_d_df %>%
           Estimate = round(estimate__ , 2),
           `Lower_CI` = round(lower__ , 2),
           `Upper_CI` = round(upper__ , 2),
-  ) %>% select(Biome, Realm, Habitat_degraded, Estimate, `Upper_CI`, `Lower_CI`) %>% 
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 wetland_d_ce
-write.csv(wetland_d_ce,  "Data/wetland_d_ce.csv")
 
-sb_wetland_d
 
 fig_wetland_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -595,3 +574,9 @@ density_fig <- (fig_tund_d + fig_forest_d + fig_grass_d) /
 
 density_fig
 
+
+
+table_2 <- tund_d_ce %>% bind_rows(forest_d_ce, grass_d_ce, med_de_d_ce, arable_d_ce, wetland_d_ce, aq_d_ce)
+
+table_2
+write.csv(table_2, "table_2.csv")
