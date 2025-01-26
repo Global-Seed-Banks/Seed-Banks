@@ -12,7 +12,7 @@ library(grid)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/Dropbox/GSB/",
+                  "emmaladouceur" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 

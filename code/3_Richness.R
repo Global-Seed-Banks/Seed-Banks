@@ -16,7 +16,7 @@ library(grid)
 user <- Sys.info()["user"]
 
 path2wd <- switch(user,
-                  "el50nico" = "~/Dropbox/GSB/",
+                  "emmaladouceur" = "~/Dropbox/GSB/",
                   # " " = " " # Petr puts his computer username and file path here
 )
 
@@ -124,7 +124,7 @@ fig_tund_r <- ggplot() +
   )) +   coord_cartesian( ylim = c(0,40)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "a) Tundra" ) +
+       subtitle=  "e) Tundra" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -244,7 +244,7 @@ stat_halfeye(data = forest_predict_df %>% filter(Number_sites == 1, Total_sample
   )) +   coord_cartesian( ylim = c(0,60)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "b) Forests" ) +
+       subtitle=  "a) Forests" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -318,7 +318,7 @@ fig_grass_r <- ggplot() +
   )) +   coord_cartesian( ylim = c(0,50)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "c) Grasslands" ) +
+       subtitle=  "b) Grasslands" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -394,7 +394,8 @@ fig_med_de_r <- ggplot() +
   scale_fill_manual( values= c(   "#da7901",  "#fab255"
   )) +   coord_cartesian( ylim = c(0,100)) +
   labs(x = '', #y='',
-        y = 'Species richness \n in the soil seedbank',
+       y='',
+       # y = 'Species richness \n in the soil seedbank',
        subtitle=  "d) Mediterranean and Deserts" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
@@ -469,7 +470,7 @@ fig_ar_r <- ggplot() +
   )) +   coord_cartesian( ylim = c(0,40)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "e) Arable" ) +
+       subtitle=  "f) Arable" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -551,7 +552,7 @@ fig_wetland_r <- ggplot() +
   )) +   coord_cartesian( ylim = c(0,70)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "f) Wetlands" ) +
+       subtitle=  "c) Wetlands" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -705,11 +706,26 @@ g_legend<-function(a.gplot){
 legend_g <- g_legend(legend_g)
 legend_a <- g_legend(legend_a)
 
-richness_fig <- (fig_tund_r + fig_forest_r + fig_grass_r) /
-  ( fig_med_de_r + fig_ar_r) /
-  ( fig_wetland_r + fig_aq_r  )/ (legend_g) / (legend_a) + plot_layout(heights = c(10, 10,  10, 2.5, 1))
+# richness_fig <- (fig_tund_r + fig_forest_r + fig_grass_r) /
+#   ( fig_med_de_r + fig_ar_r) /
+#   ( fig_wetland_r + fig_aq_r  )/ (legend_g) / (legend_a) + plot_layout(heights = c(10, 10,  10, 2.5, 1))
+# 
+# richness_fig
+
+leg <- grid.arrange( arrangeGrob( legend_g , legend_a), ncol = 1, nrow = 9,
+                     heights = c(0.10, 0.10, 0.10,0.10, 1, 0.10, 1, 0.10, 0.10),
+                     layout_matrix = rbind(c(NA), c(NA), c(NA), c(NA), c(1), c(NA), c(2), c(NA), c(NA))
+                     )
+
+richness_fig <- grid.arrange(arrangeGrob(fig_forest_r, fig_grass_r,
+                                         fig_wetland_r, leg, 
+                                         fig_med_de_r, fig_tund_r,
+                                         fig_ar_r, fig_aq_r,  ncol = 2, nrow=4,
+                                         left = textGrob("Species richness in the soil seedbank", rot = 90, gp = gpar(fontsize = 18))))  
+
 
 richness_fig
+
 
 table_s7 <- tund_div %>% bind_rows(forest_div, grass_div, med_de_div, ar_div, wetland_div, aq_div) %>%
   mutate(Estimate = round(Estimate, 0),
