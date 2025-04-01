@@ -149,7 +149,8 @@ fig_tund_joint <- ggplot()+
                  aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
   scale_color_manual( values= c(  "#94b594"  )) + 
   labs( y = expression(paste('Average seed density (',m^2,')')),
-        x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
+        x = "", 
+       # x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
         subtitle = "a) Tundra"
         ) +
   theme_classic(base_size=16) +
@@ -301,6 +302,7 @@ grass_d_ce <- read.csv(paste0(path2wd, 'Data/grass_d_ce.csv'))
 grass_d_ce
 
 grass_joint <- grass_d_ce %>% 
+  select(-Realm) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(d_Estimate = Estimate,
@@ -480,7 +482,7 @@ ar_d_ce <- read.csv(paste0(path2wd, 'Data/arable_d_ce.csv'))
 
 ar_d_ce
 
-ar_joint <- ar_d_ce %>% 
+ar_joint <- arable_d_ce %>% 
   mutate(d_Estimate = Estimate,
          d_Upper_CI = `Upper_CI`,
          d_Lower_CI = `Lower_CI`) %>% 

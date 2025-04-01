@@ -88,6 +88,7 @@ aq_d_ce
 
 fig_aq_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = aq_s, aes(yintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
   geom_point(data = sb_aq_d,
              aes(x = Habitat_degraded, y = Seed_density_m2, 
                   shape= Habitat_degraded, color=Realm
@@ -106,7 +107,7 @@ fig_aq_d <- ggplot() +
        subtitle=  "g) Aquatic" ) +
   scale_color_manual( values= c(    "#447fdd"))+
   coord_cartesian( ylim = c(0,25000)) +
-  scale_y_continuous(breaks=c(0,5000,10000,15000,20000,15000, 200000))+
+  scale_y_continuous(breaks=c(0,5000, 10000,15000,20000,15000, 200000,25000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -152,6 +153,7 @@ arable_d_ce
 
 fig_arable_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = ar_s, aes(yintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
   geom_point(data = sb_arable_d,
              aes(x = Biome, y = Seed_density_m2, 
                  colour = Biome , 
@@ -169,7 +171,7 @@ fig_arable_d <- ggplot() +
        subtitle=  "e) Arable" ) +
   scale_color_manual( values= c("#99610a" , "#E2C59F", "#AA3929" ))+
   coord_cartesian( ylim = c(0,20000)) +
-  scale_y_continuous(breaks=c(0,5000,10000,15000,20000,15000))+
+  scale_y_continuous(breaks=c(0,2000,5000, 10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -216,6 +218,7 @@ forest_d_ce
 
 fig_forest_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = t_s, aes(yintercept = mean), size = 1.2, color = "#0c7156", alpha = 0.7) +
   geom_point(data = sb_forest_d,
              aes(x = Biome, y = Seed_density_m2, 
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
@@ -282,6 +285,7 @@ grass_d_ce
 
 fig_grass_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = t_s, aes(yintercept = mean), size = 1.2, color = "#0c7156", alpha = 0.7) +
   geom_point(data = sb_grass_d,
              aes(x = Biome, y = Seed_density_m2, 
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
@@ -319,7 +323,8 @@ fig_grass_d
 
 sb_med_de_d <- sb_density %>%
   filter(Realm == "Mediterranean and Desert") %>%
-  mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts"))
+  #mutate(Biome = fct_relevel(Biome, "Mediterranean", "Deserts"))
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
 
 sb_med_de_d
 
@@ -351,6 +356,7 @@ med_de_d_ce
 
 fig_med_de_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = t_s, aes(yintercept = mean), size = 1.2, color = "#0c7156", alpha = 0.7) +
   geom_point(data = sb_med_de_d,
              aes(x = Biome, y = Seed_density_m2, 
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
@@ -419,6 +425,7 @@ tund_d_ce
 
 fig_tund_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = t_s, aes(yintercept = mean), size = 1.2, color = "#0c7156", alpha = 0.7) +
   geom_point(data = sb_tund_d,
              aes(x = Habitat_degraded, y = Seed_density_m2, 
                  colour = Biome ,  shape= Habitat_degraded,
@@ -434,7 +441,7 @@ fig_tund_d <- ggplot() +
   labs(x = '',y='',
        #y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "a) Tundra" ) +
-  scale_color_manual( values= c(   "#94b594" ))+
+  scale_color_manual( values= c( "#94b594",    "#94b594" ))+
   coord_cartesian( ylim = c(0,5000)) +
   scale_y_continuous(breaks=c(0,1000,2500,4000,5000,10000,15000,20000,15000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -455,7 +462,8 @@ fig_tund_d
 
 sb_wetland_d <- sb_density %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))  %>%
-  filter(Realm == "Wetland") 
+  filter(Realm == "Wetland") %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
 sb_wetland_d
 
@@ -487,6 +495,7 @@ wetland_d_ce
 
 fig_wetland_d <- ggplot() + 
   geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = w_s, aes(yintercept = mean), size = 1.2, color = "#208cc0", alpha = 0.7, linetype="dotted") +
   geom_point(data = sb_wetland_d,
              aes(x = Biome, y = Seed_density_m2, 
                  colour = Biome , group= Habitat_degraded , shape= Habitat_degraded,
@@ -539,12 +548,12 @@ legend_d <- ggplot() +
                     group= Habitat_degraded),
                 size = 1, width = 0, position = position_dodge(width = 1),  ) +
   labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')), shape = "Habitat",
+       y = expression(paste('Seed density (',m^2,')')), shape = "State",
        subtitle=  "f) Wetlands" ) +
   scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  16, 17) ) +
   #scale_color_manual( values= c(  "#20B2AA"))+
   coord_cartesian( ylim = c(0,15000)) +
-  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,15000))+
+  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,25000))+
   theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                  plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
                                  plot.title = element_text(size=18, hjust=0.5),
@@ -556,6 +565,31 @@ legend_d <- ggplot() +
 
 legend_d
 
+group_means <- t_s  %>% bind_rows(ar_s,w_s, aq_s )
+write.csv(group_means, "~/Dropbox/GSB/Data/means.csv")
+
+legend_line <- ggplot() + 
+ # geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = group_means, aes(yintercept = mean, color = Group, linetype=Group, group=Group), size = 1.2, alpha = 0.7) +
+  labs(x = '',
+       y = expression(paste('Seed density (',m^2,')')),  
+       subtitle=  "f) Wetlands" ) +
+  scale_color_manual( name = "Realm Mean",labels = c("Natural Terrestrial", "Arable", "Wetlands", "Aquatic"),
+                      values= c( "#0c7156","#472c0b",   "#208cc0","#003967") )+
+  scale_linetype_manual(name="Realm Mean",labels = c("Natural Terrestrial", "Arable", "Wetlands", "Aquatic"),
+                          values= c("solid", "longdash", "dotted", "twodash" ) )+
+  #scale_color_manual( values= c(  "#20B2AA"))+
+  theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                 plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                                 plot.title = element_text(size=18, hjust=0.5),
+                                 strip.background = element_blank(), legend.position="bottom",
+                                 legend.key.width = unit(3,"cm")
+                                 #axis.text.x=element_blank()
+  ) 
+
+
+legend_line
+
 
 # extract legends
 # Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
@@ -566,11 +600,12 @@ g_legend<-function(a.gplot){
   return(legend)}
 
 legend_d <- g_legend(legend_d)
+legend_line <- g_legend(legend_line)
 
 
 density_fig <- (fig_tund_d + fig_forest_d + fig_grass_d) /
                ( fig_med_de_d + fig_arable_d) /
-                ( fig_wetland_d + fig_aq_d  )/ (legend_d) + plot_layout(heights = c(10, 10,  10,  1))
+                ( fig_wetland_d + fig_aq_d  )/ (legend_d)/ (legend_line) + plot_layout(heights = c(10, 10,  10,  1.5, 1.5))
 
 density_fig
 
@@ -580,3 +615,4 @@ table_2 <- tund_d_ce %>% bind_rows(forest_d_ce, grass_d_ce, med_de_d_ce, arable_
 
 table_2
 write.csv(table_2, "table_2.csv")
+

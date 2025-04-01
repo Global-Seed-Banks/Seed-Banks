@@ -285,12 +285,13 @@ print(sb_biomes)
 write.csv(sb_biomes,  "sb_biomes.csv")
 
 head(sb_gathered)
+head(sb_prep)
 # table s3
 sb_gathered <- sb_prep %>% select(
-  rowID, 
-  studyID,
-  Centred_log_Total_Sample_Area_m2, 
-  Biome_Broad_Hab, Number_sites, Total_seeds, Total_species, Seed_density_m2, ratio_seeds_species) %>%
+  RowID, 
+  StudyID,
+  Centred_log_total_sample_area_m2, 
+  Biome_broad_hab, Number_sites, Total_seeds, Total_species, Seed_density_m2, ratio_seeds_species) %>%
  # filter(Seed_density_m2 != 0, ratio_seeds_species != 0) %>%
   gather(metric, response, Total_seeds:ratio_seeds_species) %>%
   filter(!is.na(response),
@@ -342,7 +343,7 @@ write.csv(biome_count_dr,  "biome_count_dr.csv")
 
 
 sb_gathered %>% filter(metric == "Total_species",
-                       !is.na(Centred_log_Total_Sample_Area_m2) ) %>%
+                       !is.na(Centred_log_total_sample_area_m2) ) %>%
   mutate( N_site_cats = 
                         case_when( (Number_sites == 1) ~ "1 site",
                                   (Number_sites >= 2 & Number_sites <= 20) ~ "2-20 sites",
@@ -372,17 +373,17 @@ sb_gathered %>% filter(metric == "Total_seeds",
 options( scipen = 999 )
 
 colnames(sb_prep)
-
+head((sb_prep)
 # get a summary of min and max values
 # keep country and study details so we can cite them as examples
 # cute stories to tell at beginning of methods
-sb_deets <- sb_prep %>% group_by(Biome_Broad_Hab, Country, studyID, rowID) %>%
+sb_deets <- sb_prep %>% group_by(Biome_broad_hab, Country, StudyID, RowID) %>%
   summarise(`min-Total_number_samples` = min(as.numeric(Total_number_samples), na.rm = TRUE),
             `max-Total_number_samples` = max(as.numeric(Total_number_samples),na.rm = TRUE),
             `min-Number_sites` = min(as.numeric(Number_sites), na.rm = TRUE),
             `max-Number_sites` = max(as.numeric(Number_sites),na.rm = TRUE),
-            `min-Sample_Area_mm2` = min(as.numeric(Sample_Area_mm2),na.rm = TRUE),
-            `max-Sample_Area_mm2` = max(as.numeric(Sample_Area_mm2), na.rm = TRUE),
+            `min-Sample_area_mm2` = min(as.numeric(Sample_area_mm2),na.rm = TRUE),
+            `max-Sample_area_mm2` = max(as.numeric(Sample_area_mm2), na.rm = TRUE),
              `max-ratio_seeds_species` = max(as.numeric(ratio_seeds_species), na.rm = TRUE),
             `min-ratio_seeds_species` = min(as.numeric(ratio_seeds_species), na.rm = TRUE),
             `max-Total_Sample_Area_m2` = max(as.numeric(Total_Sample_Area_m2), na.rm = TRUE),
