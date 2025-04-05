@@ -103,10 +103,17 @@ tund_predict_df %>% select(.draw, Habitat_degraded) %>% mutate(max_draw = max(.d
 tund_div <- tund_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
   group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
-  mutate(Estimate = mean(predicted),
-         Lower_CI = quantile(predicted, probs=0.025),
-         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+             Lower_90 = quantile(predicted, probs = 0.05),
+             Upper_90 = quantile(predicted, probs = 0.95),
+             Lower_50 = quantile(predicted, probs = 0.25),
+             Upper_50 = quantile(predicted, probs = 0.75)
+         ) %>% 
   select(-predicted) %>% distinct()
+
+head(tund_div)
 
 fig_tund_r <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
@@ -124,7 +131,7 @@ fig_tund_r <- ggplot() +
   )) +   coord_cartesian( ylim = c(0,40)) +
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "e) Tundra" ) +
+       subtitle=  "a) Tundra" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -205,9 +212,14 @@ head(forest_predict_df)
 forest_div <- forest_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
   group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
-  mutate(Estimate = mean(predicted),
-         Lower_CI = quantile(predicted, probs=0.025),
-         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
   select(-predicted) %>% distinct()
 
 forest_div
@@ -242,9 +254,10 @@ stat_halfeye(data = forest_predict_df %>% filter(Number_sites == 1, Total_sample
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(  "#1e3d14",   "#788f33", "#228B22"
   )) +   coord_cartesian( ylim = c(0,60)) +
+  scale_x_discrete(labels = c("Boreal", "Temperate", "Tropical & \nSubtropical"))+
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "a) Forests" ) +
+       subtitle=  "b) Forests" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -295,9 +308,14 @@ grass_predict_df <- grass_predict  %>%
 grass_div <- grass_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
   group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
-  mutate(Estimate = mean(predicted),
-         Lower_CI = quantile(predicted, probs=0.025),
-         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
   select(-predicted) %>% distinct()
 
 grass_div
@@ -316,9 +334,10 @@ fig_grass_r <- ggplot() +
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c( "#d8b847", "#b38711"
   )) +   coord_cartesian( ylim = c(0,50)) +
+  scale_x_discrete( labels = c("Temperate & \nBoreal", "Tropical & \nSubtropical") )+
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "b) Grasslands" ) +
+       subtitle=  "c) Grasslands & Savannas" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -372,9 +391,14 @@ med_de_predict_df <- med_de_predict  %>%
 med_de_div <- med_de_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
   group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
-  mutate(Estimate = mean(predicted),
-         Lower_CI = quantile(predicted, probs=0.025),
-         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
   select(-predicted) %>% distinct()
 
 med_de_div
@@ -393,10 +417,11 @@ fig_med_de_r <- ggplot() +
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(   "#da7901",  "#fab255"
   )) +   coord_cartesian( ylim = c(0,100)) +
+  scale_x_discrete(  labels = c("Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands") )+
   labs(x = '', #y='',
        y='',
        # y = 'Species richness \n in the soil seedbank',
-       subtitle=  "d) Mediterranean and Deserts" ) +
+       subtitle=  "d) Mediterranean & Desert" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -448,9 +473,14 @@ ar_predict_df <- ar_predict  %>%
 ar_div <- ar_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
   group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
-  mutate(Estimate = mean(predicted),
-         Lower_CI = quantile(predicted, probs=0.025),
-         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
   select(-predicted) %>% distinct()
 
 ar_div
@@ -468,9 +498,10 @@ fig_ar_r <- ggplot() +
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c("#99610a" , "#E2C59F", "#AA3929"
   )) +   coord_cartesian( ylim = c(0,40)) +
+  scale_x_discrete( labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical") )+
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "f) Arable" ) +
+       subtitle=  "e) Arable" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -528,9 +559,14 @@ wetland_predict_df <- wetland_predict  %>%
 wetland_div <- wetland_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
   group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
-  mutate(Estimate = mean(predicted),
-         Lower_CI = quantile(predicted, probs=0.025),
-         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
   select(-predicted) %>% distinct()
 
 wetland_div
@@ -550,9 +586,10 @@ fig_wetland_r <- ggplot() +
                alpha=0.4, position = position_dodge(width = 1)) +
   scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352"
   )) +   coord_cartesian( ylim = c(0,70)) +
+  scale_x_discrete( labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
   labs(x = '', y='',
        # y = expression(paste('Seed density (',m^2,')')),
-       subtitle=  "c) Wetlands" ) +
+       subtitle=  "f) Wetlands & Flooded Grasslands" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
@@ -591,7 +628,6 @@ aq_predict <-   tidyr::crossing(
 # re_formula = NULL,
 # allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
 
-
 aq_predict_df <- aq_predict  %>% 
   select(-data) %>% unnest(cols= c(predicted)) %>%
   mutate( predicted = .prediction) %>%
@@ -603,9 +639,14 @@ aq_predict_df <- aq_predict  %>%
 aq_div <- aq_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
   group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
-  mutate(Estimate = mean(predicted),
-         Lower_CI = quantile(predicted, probs=0.025),
-         Upper_CI = quantile(predicted, probs=0.975)) %>% 
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
   select(-predicted) %>% distinct()
 
 aq_div
@@ -717,10 +758,24 @@ leg <- grid.arrange( arrangeGrob( legend_g , legend_a), ncol = 1, nrow = 9,
                      layout_matrix = rbind(c(NA), c(NA), c(NA), c(NA), c(1), c(NA), c(2), c(NA), c(NA))
                      )
 
-richness_fig <- grid.arrange(arrangeGrob(fig_forest_r, fig_grass_r,
-                                         fig_wetland_r, leg, 
-                                         fig_med_de_r, fig_tund_r,
-                                         fig_ar_r, fig_aq_r,  ncol = 2, nrow=4,
+
+top_row<- (fig_tund_r+ fig_forest_r+ fig_grass_r)
+top_row
+mid_row<- (fig_med_de_r+ fig_ar_r)
+mid_row
+
+low_row<- (fig_wetland_r + fig_aq_r )
+low_row
+ 
+
+richness_fig <- (top_row / mid_row / low_row / legend_a/legend_g) + plot_layout(heights = c(10, 10,  10,  2,2))
+richness_fig
+#12X16 Landscape
+
+richness_fig <- grid.arrange(arrangeGrob(top_row,
+                                         mid_row, low_row,
+                                         leg,
+                                         ncol = 1, nrow=4,
                                          left = textGrob("Species richness in the soil seedbank", rot = 90, gp = gpar(fontsize = 18))))  
 
 
@@ -728,19 +783,28 @@ richness_fig
 
 
 table_s7 <- tund_div %>% bind_rows(forest_div, grass_div, med_de_div, ar_div, wetland_div, aq_div) %>%
-  mutate(Estimate = round(Estimate, 0),
-         Lower_CI = round(Lower_CI, 0),
-         Upper_CI = round(Upper_CI, 0),
+  mutate(Estimate = round(Estimate_, 0),
+         Lower_95 = round(Lower_95, 0),
+         Upper_95 = round(Upper_95, 0),
+         Lower_90 = round(Lower_90, 0),
+         Upper_90 = round(Upper_90, 0),
+         Lower_50 = round(Lower_50, 0),
+         Upper_50 = round(Upper_50, 0),
          )
 table_s7
 
+print(table_s7, n=Inf)
 
-table_s7ab_prep <- table_s7 %>%
-  unite("CI", Lower_CI:Upper_CI, sep=",") %>%
-  mutate(CI = paste0("(", CI, ")"),) %>%
-  unite("Richness", Estimate:CI, sep=" ") %>%
-  spread(Total_sample_area_m2, Richness)
+write.csv(table_s7,"~/Dropbox/GSB/Data/table_richness.csv")
+
+# table_s7ab_prep <- table_s7 %>%
+#   unite("CI", Lower_CI:Upper_CI, sep=",") %>%
+#   mutate(CI = paste0("(", CI, ")"),) %>%
+#   unite("Richness", Estimate:CI, sep=" ") %>%
+#   spread(Total_sample_area_m2, Richness)
+# 
+# 
+# print(table_s7ab_prep, n=Inf)
 
 
-print(table_s7ab_prep, n=Inf)
   

@@ -196,8 +196,8 @@ aq_s <-fitted_values %>% filter(Group == "Aquatic") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.005),
-    upper = quantile(Estimate, 0.99)
+    lower = quantile(Estimate, 0.05),
+    upper = quantile(Estimate, 0.95)
   )
 aq_s
 
@@ -221,8 +221,8 @@ t_s <-fitted_values %>% filter(Group == "Terrestrial") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.005),
-    upper = quantile(Estimate, 0.99)
+    lower = quantile(Estimate, 0.05),
+    upper = quantile(Estimate, 0.95)
   )
 t_s
 
@@ -231,8 +231,8 @@ w_s <-fitted_values %>%  filter(Group == "Wetlands") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.005),
-    upper = quantile(Estimate, 0.99)
+    lower = quantile(Estimate, 0.05),
+    upper = quantile(Estimate, 0.95)
   )
 w_s
 
@@ -260,8 +260,8 @@ ar_s <-fitted_values %>% filter(Group == "Arable") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.005),
-    upper = quantile(Estimate, 0.99)
+    lower = quantile(Estimate, 0.05),
+    upper = quantile(Estimate, 0.95)
   )
 ar_s
 
