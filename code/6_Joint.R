@@ -115,9 +115,11 @@ tund_r1_df <- tund_r1  %>%
   mutate(Realm = "Tundra",  Biome = "Tundra") %>%
   dplyr::group_by(Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
-          `r_Upper_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
-          `r_Lower_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
-  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+          `r_Upper_90_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
+          `r_Lower_90_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_50_CI` = quantile(predicted, probs=0.25, na.rm =TRUE ),
+          `r_Lower_50_CI` = quantile(predicted, probs=0.75, na.rm =TRUE ),
+  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>% distinct() %>% ungroup()
 
 head(tund_r1_df)
 
@@ -130,9 +132,18 @@ tund_joint <- tund_d_90_ce %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(d_Estimate = Estimate,
-                     d_Upper_CI = `Upper_CI`,
-                     d_Lower_CI = `Lower_CI`) %>% 
-  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(tund_r1_df)
+                     d_Upper_90_CI = `Upper_CI`,
+                     d_Lower_90_CI = `Lower_CI`) %>% 
+  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% 
+  left_join(
+    tund_d_50_ce %>% 
+      mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+      mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+      mutate(d_Estimate = Estimate,
+             d_Upper_50_CI = `Upper_CI`,
+             d_Lower_50_CI = `Lower_CI`) %>% 
+      select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  
+  ) %>%  left_join(tund_r1_df)
 
 tund_joint
 
@@ -142,11 +153,15 @@ fig_tund_joint <- ggplot()+
   # overall effects
   geom_point(data = tund_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, shape = Habitat_degraded,
-             ), size = 3) +
+             ), size = 5) +
   geom_errorbar(data = tund_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = tund_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`,  colour = Biome ), height = 0) +
+  geom_errorbar(data = tund_joint,
+                aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
+  geom_errorbarh(data = tund_joint,
+                 aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   scale_color_manual( values= c(  "#94b594"  )) + 
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x = "", 
@@ -203,9 +218,11 @@ forest_r1_df <- forest_r1  %>%
   mutate( Realm = "Forest") %>%
   dplyr::group_by(Biome, Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
-          `r_Upper_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
-          `r_Lower_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
-  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+          `r_Upper_90_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
+          `r_Lower_90_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_50_CI` = quantile(predicted, probs=0.25, na.rm =TRUE ),
+          `r_Lower_50_CI` = quantile(predicted, probs=0.75, na.rm =TRUE ),
+  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>% distinct() %>% ungroup()
 
 head(forest_r1_df)
 
@@ -218,9 +235,18 @@ forest_joint <- forest_d_90_ce %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(d_Estimate = Estimate,
-                                   d_Upper_CI = `Upper_CI`,
-                                   d_Lower_CI = `Lower_CI`) %>% 
-  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(forest_r1_df)
+                                   d_Upper_90_CI = `Upper_CI`,
+                                   d_Lower_90_CI = `Lower_CI`) %>% 
+  select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  %>% 
+  left_join(
+    forest_d_50_ce %>% 
+      mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+      mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+      mutate(d_Estimate = Estimate,
+             d_Upper_50_CI = `Upper_CI`,
+             d_Lower_50_CI = `Lower_CI`) %>% 
+      select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  
+  ) %>% left_join(forest_r1_df)
 
 forest_joint
 
@@ -230,11 +256,15 @@ fig_forest_joint <- ggplot()+
   # overall effects
   geom_point(data = forest_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, shape = Habitat_degraded,
-             ), size = 3) +
+             ), size = 5) +
   geom_errorbar(data = forest_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = forest_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`,  colour = Biome ), height = 0) +
+  geom_errorbar(data = forest_joint,
+                aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
+  geom_errorbarh(data = forest_joint,
+                 aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   scale_color_manual( values= c(  "#1e3d14", "#788f33","#228B22" ),
                       labels = c("Boreal", "Temperate", "Tropical & \nSubtropical")
                       )+
@@ -292,9 +322,12 @@ grass_r1_df <- grass_r1  %>%
   mutate( Realm = "Grasslands") %>%
   dplyr::group_by(Biome, Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
-          `r_Upper_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
-          `r_Lower_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
-  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+          `r_Upper_90_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
+          `r_Lower_90_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_50_CI` = quantile(predicted, probs=0.25, na.rm =TRUE ),
+          `r_Lower_50_CI` = quantile(predicted, probs=0.75, na.rm =TRUE ),
+  ) %>%  
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>% distinct() %>% ungroup()
 
 head(grass_r1_df)
 
@@ -308,9 +341,19 @@ grass_joint <- grass_d_90_ce %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(d_Estimate = Estimate,
-         d_Upper_CI = `Upper_CI`,
-         d_Lower_CI = `Lower_CI`) %>% 
-  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(grass_r1_df)
+         d_Upper_90_CI = `Upper_CI`,
+         d_Lower_90_CI = `Lower_CI`) %>% 
+  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% 
+  left_join(
+    grass_d_50_ce %>% 
+      select(-Realm) %>%
+      mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+      mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+      mutate(d_Estimate = Estimate,
+             d_Upper_50_CI = `Upper_CI`,
+             d_Lower_50_CI = `Lower_CI`) %>% 
+      select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  
+  )  %>% left_join(grass_r1_df)
 
 grass_joint
 
@@ -320,11 +363,15 @@ fig_grass_joint <- ggplot()+
   # overall effects
   geom_point(data = grass_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, shape = Habitat_degraded
-             ), size = 3) +
+             ), size = 5) +
   geom_errorbar(data = grass_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = grass_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`,  colour = Biome ), height = 0) +
+  geom_errorbar(data = grass_joint,
+                aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
+  geom_errorbarh(data = grass_joint,
+                 aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   scale_color_manual( values= c(  "#d8b847", "#b38711"),
                       labels = c("Temperate & \nBoreal", "Tropical & \nSubtropical"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
@@ -385,9 +432,11 @@ med_de_r1_df <- med_de_r1  %>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>%
   dplyr::group_by(Biome, Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
-          `r_Upper_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
-          `r_Lower_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
-  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+          `r_Upper_90_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
+          `r_Lower_90_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_50_CI` = quantile(predicted, probs=0.25, na.rm =TRUE ),
+          `r_Lower_50_CI` = quantile(predicted, probs=0.75, na.rm =TRUE ),
+  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>% distinct() %>% ungroup()
 
 head(med_de_r1_df)
 
@@ -400,9 +449,18 @@ med_de_joint <- med_de_d_90_ce %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(d_Estimate = Estimate,
-         d_Upper_CI = `Upper_CI`,
-         d_Lower_CI = `Lower_CI`) %>% 
-  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(med_de_r1_df)%>%
+         d_Upper_90_CI = `Upper_CI`,
+         d_Lower_90_CI = `Lower_CI`) %>% 
+  select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% 
+  left_join(
+    med_de_d_50_ce %>% 
+      mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+      mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+      mutate(d_Estimate = Estimate,
+             d_Upper_50_CI = `Upper_CI`,
+             d_Lower_50_CI = `Lower_CI`) %>% 
+      select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  
+  )  %>% left_join(med_de_r1_df)%>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
 
 med_de_joint
@@ -413,11 +471,15 @@ fig_med_de_joint <- ggplot()+
   # overall effects
   geom_point(data = med_de_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, shape = Habitat_degraded
-             ), size = 3) +
+             ), size = 5) +
   geom_errorbar(data = med_de_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = med_de_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`,  colour = Biome ), height = 0) +
+  geom_errorbar(data = med_de_joint,
+                aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
+  geom_errorbarh(data = med_de_joint,
+                 aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   labs( y = expression(paste('Average seed density / ',m^2,'')),
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
         subtitle=  "d) Mediterranean & Desert" ) +
@@ -475,9 +537,11 @@ ar_r1_df <- ar_r1  %>%
   dplyr::group_by(Biome) %>%
   mutate(Realm = "Arable", Habitat_degraded = "1") %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
-          `r_Upper_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
-          `r_Lower_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
-  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+          `r_Upper_90_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
+          `r_Lower_90_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_50_CI` = quantile(predicted, probs=0.25, na.rm =TRUE ),
+          `r_Lower_50_CI` = quantile(predicted, probs=0.75, na.rm =TRUE ),
+  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>% distinct() %>% ungroup()
 
 head(ar_r1_df)
 
@@ -488,8 +552,17 @@ ar_d_90_ce
 
 ar_joint <- arable_d_90_ce %>% 
   mutate(d_Estimate = Estimate,
-         d_Upper_CI = `Upper_CI`,
-         d_Lower_CI = `Lower_CI`) %>% 
+         d_Upper_90_CI = `Upper_CI`,
+         d_Lower_90_CI = `Lower_CI`)  %>% 
+  left_join(
+    arable_d_50_ce %>% 
+      mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+      mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+      mutate(d_Estimate = Estimate,
+             d_Upper_50_CI = `Upper_CI`,
+             d_Lower_50_CI = `Lower_CI`) %>% 
+      select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  
+  ) %>% 
   select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(ar_r1_df)%>%
   mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
@@ -501,11 +574,15 @@ fig_ar_joint <- ggplot()+
   # overall effects
   geom_point(data = ar_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, 
-             ), size = 3) +
+             ), size = 5) +
   geom_errorbar(data = ar_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = ar_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`,  colour = Biome ), height = 0) +
+  geom_errorbar(data = ar_joint,
+                aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
+  geom_errorbarh(data = ar_joint,
+                 aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"),
                       labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
@@ -566,9 +643,11 @@ wetland_r1_df <- wetland_r1  %>%
   mutate( Realm = "Wetland") %>%
   dplyr::group_by(Biome, Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
-          `r_Upper_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
-          `r_Lower_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
-  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+          `r_Upper_90_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
+          `r_Lower_90_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_50_CI` = quantile(predicted, probs=0.25, na.rm =TRUE ),
+          `r_Lower_50_CI` = quantile(predicted, probs=0.75, na.rm =TRUE ),
+  ) %>%  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>% distinct() %>% ungroup()
 
 head(wetland_r1_df)
 
@@ -581,8 +660,17 @@ wetland_joint <- wetland_d_90_ce %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(d_Estimate = Estimate,
-         d_Upper_CI = `Upper_CI`,
-         d_Lower_CI = `Lower_CI`) %>% 
+         d_Upper_90_CI = `Upper_CI`,
+         d_Lower_90_CI = `Lower_CI`) %>% 
+  left_join(
+    wetland_d_50_ce %>% 
+      mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+      mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+      mutate(d_Estimate = Estimate,
+             d_Upper_50_CI = `Upper_CI`,
+             d_Lower_50_CI = `Lower_CI`) %>% 
+      select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  
+  )  %>% 
   select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(wetland_r1_df)%>%
   mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
@@ -594,11 +682,15 @@ fig_wetland_joint <- ggplot()+
   # overall effects
   geom_point(data = wetland_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, shape = Habitat_degraded
-             ), size = 3) +
+             ), size = 5) +
   geom_errorbar(data = wetland_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = wetland_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`,  colour = Biome ),height=0) +
+  geom_errorbar(data = wetland_joint,
+                aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
+  geom_errorbarh(data = wetland_joint,
+                 aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352" ), 
                       labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
@@ -654,10 +746,12 @@ aq_r1_df <- aq_r1  %>%
   mutate( Realm = "Aquatic", Biome = "Aquatic") %>%
   dplyr::group_by(Habitat_degraded) %>%
   mutate( r_Estimate = round( mean(predicted, na.rm =TRUE ) ,0),
-          `r_Upper_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
-          `r_Lower_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_90_CI` = quantile(predicted, probs=0.95, na.rm =TRUE ),
+          `r_Lower_90_CI` = quantile(predicted, probs=0.05, na.rm =TRUE ),
+          `r_Upper_50_CI` = quantile(predicted, probs=0.25, na.rm =TRUE ),
+          `r_Lower_50_CI` = quantile(predicted, probs=0.75, na.rm =TRUE ),
   ) %>%  
-  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_CI, r_Lower_CI)) %>% distinct() %>% ungroup()
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>% distinct() %>% ungroup()
 
 head(aq_r1_df)
 
@@ -670,8 +764,17 @@ aq_joint <- aq_d_90_ce %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(d_Estimate = Estimate,
-         d_Upper_CI = `Upper_CI`,
-         d_Lower_CI = `Lower_CI`) %>% 
+         d_Upper_90_CI = `Upper_CI`,
+         d_Lower_90_CI = `Lower_CI`)  %>% 
+  left_join(
+    aq_d_50_ce %>% 
+      mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+      mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+      mutate(d_Estimate = Estimate,
+             d_Upper_50_CI = `Upper_CI`,
+             d_Lower_50_CI = `Lower_CI`) %>% 
+      select(-c(Estimate, `Upper_CI`, `Lower_CI` ))  
+  ) %>% 
   select(-c(Estimate, `Upper_CI`, `Lower_CI` )) %>% left_join(aq_r1_df)
 
 aq_joint
@@ -682,11 +785,15 @@ fig_aq_joint <- ggplot()+
   # overall effects
   geom_point(data = aq_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, shape = Habitat_degraded,
-             ), size = 3) +
+             ), size = 5) +
   geom_errorbar(data = aq_joint,
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI`,  colour = Biome  )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = aq_joint,
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`,  colour = Biome )) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`,  colour = Biome ), height = 0 ) +
+  geom_errorbar(data = aq_joint,
+                aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
+  geom_errorbarh(data = aq_joint,
+                 aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   scale_color_manual( values= c(    "#447fdd"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness / ',m^2,'',sep = ''))) ,
@@ -712,9 +819,9 @@ fig_legend_joint <- ggplot()+
              aes(x = r_Estimate, y = d_Estimate,  shape = Habitat_degraded,
              ), size = 3) +
   geom_errorbar(data = forest_joint %>% filter(Biome == "Tropical"),
-                aes(x = r_Estimate , ymin = `d_Lower_CI`, ymax =  `d_Upper_CI` )) +
+                aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI` )) +
   geom_errorbarh(data = forest_joint %>% filter(Biome == "Tropical"),
-                 aes(y = d_Estimate , xmin = `r_Lower_CI`, xmax =  `r_Upper_CI`)) +
+                 aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`)) +
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
         subtitle = "b) Forests", shape = "Habitat"
@@ -749,18 +856,34 @@ joint_fig <- (fig_tund_joint + fig_forest_joint + fig_grass_joint) /
 joint_fig
 
 
+table_joint <- tund_joint %>% bind_rows(forest_joint, grass_joint, med_de_joint, 
+                                      ar_joint, wetland_joint, aq_joint) 
+
+head(table_joint)
+print(table_joint, n=Inf)
+
+write.csv(table_joint, "~/Dropbox/GSB/Data/joint.csv")
+
+
+
 table_s7c <- tund_r1_df %>% bind_rows(forest_r1_df, grass_r1_df, med_de_r1_df, 
                                     ar_r1_df, wetland_r1_df, aq_r1_df) %>%
   mutate(Estimate = round(r_Estimate, 0),
-         Lower_CI = round(r_Lower_CI, 0),
-         Upper_CI = round(r_Upper_CI, 0), ) %>%
-  unite("CI", Lower_CI:Upper_CI, sep=",") %>%
-  mutate(CI = paste0("(", CI, ")"),) %>%
-  unite("1", Estimate:CI, sep=" ")  %>% select(-c(r_Estimate, r_Lower_CI, r_Upper_CI))
+         Lower_90 = round(r_Lower_90_CI, 0),
+         Upper_90 = round(r_Upper_90_CI, 0), 
+         Lower_50 = round(r_Lower_50_CI, 0),
+         Upper_50 = round(r_Upper_50_CI, 0)
+         ) %>%
+  unite("90_CI", Lower_90:Upper_90, sep=",") %>%
+  unite("50_CI", Lower_50:Upper_50, sep=",") %>%
+  select(-c(r_Estimate, r_Lower_90_CI, r_Upper_90_CI, r_Upper_50_CI, r_Lower_50_CI )) %>%
+  mutate(CI = paste0("(", `50_CI`, " , ", `90_CI`, ")") ) %>%
+    select(-c(`90_CI`, `50_CI`)) %>%
+  unite("1", Estimate:CI, sep=" ")
 
 print(table_s7c, n=Inf)
 
-scales_div <- table_s7ab_prep %>% left_join(table_s7c) %>%
+scales_div <- table_s7 %>% left_join(table_s7c) %>%
   mutate(Realm = as.factor(Realm)) %>%
   mutate(Realm = fct_relevel(Realm, "Tundra", "Forest", "Grasslands", "Mediterranean and Desert",
                                   "Arable", "Wetland", "Aquatic"
@@ -769,6 +892,6 @@ scales_div <- table_s7ab_prep %>% left_join(table_s7c) %>%
 print(scales_div, n=Inf)
 
 
-write.csv(scales_div, "table_S7.csv")
+write.csv(scales_div, "~/Dropbox/GSB/Data/Table_Fig_2_Fig_4.csv")
 
 

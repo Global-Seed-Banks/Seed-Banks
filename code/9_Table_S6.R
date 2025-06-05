@@ -45,14 +45,17 @@ tund_r_p <-  tund_r_draws %>%
   )) %>% mutate(Realm ="Tundra") %>% gather(Group, Estimate, tund_r_tund_deg:tund_r_tund_und) %>%
   group_by(Realm, Group) %>% 
   mutate(slope = mean(Estimate),
-         slope_lower = quantile(Estimate, probs=0.025),
-         slope_upper = quantile(Estimate, probs=0.975)) %>%
+         slope_lower_90 = quantile(Estimate, probs=0.05),
+         slope_upper_90 = quantile(Estimate, probs=0.95),
+         slope_lower_50 = quantile(Estimate, probs=0.25),
+         slope_upper_50 = quantile(Estimate, probs=0.75)
+         ) %>%
   mutate( Biome = "Tundra"
   ) %>%
   mutate( Habitat_degraded = case_when( Group = grepl("deg", Group) ~ "1", 
                                         Group = grepl("_und", Group) ~ "0", 
   )) %>%
-  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower,slope_upper)) %>% distinct() 
+  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower_50, slope_upper_50, slope_lower_90, slope_upper_90)) %>% distinct() 
 
 head(tund_r_p)
 
@@ -79,8 +82,10 @@ forest_r_p <-  forest_r_draws %>%
   )) %>% mutate(Realm ="Forest") %>% gather(Group, Estimate, forest_r_boreal_deg:forest_r_tropical_und) %>%
   group_by(Realm, Group) %>% 
   mutate(slope = mean(Estimate),
-         slope_lower = quantile(Estimate, probs=0.025),
-         slope_upper = quantile(Estimate, probs=0.975)) %>%
+         slope_lower_90 = quantile(Estimate, probs=0.05),
+         slope_upper_90 = quantile(Estimate, probs=0.95),
+         slope_lower_50 = quantile(Estimate, probs=0.25),
+         slope_upper_50 = quantile(Estimate, probs=0.75)) %>%
   mutate( Biome = case_when( Group = grepl("boreal", Group) ~ "Boreal", 
                              Group = grepl("temperate", Group) ~ "Temperate", 
                              Group = grepl("tropical", Group) ~ "Tropical", 
@@ -88,7 +93,7 @@ forest_r_p <-  forest_r_draws %>%
   mutate( Habitat_degraded = case_when( Group = grepl("deg", Group) ~ "1", 
                              Group = grepl("und", Group) ~ "0", 
   )) %>%
-  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower,slope_upper)) %>% distinct() 
+  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower_50, slope_upper_50, slope_lower_90, slope_upper_90)) %>% distinct() 
 
 head(forest_r_p)
 
@@ -113,8 +118,10 @@ grass_r_p <-  grass_r_draws %>%
   )) %>% mutate(Realm ="Grassland") %>% gather(Group, Estimate, grass_r_temperate_deg:grass_r_tropical_und) %>%
   group_by(Realm, Group) %>% 
   mutate(slope = mean(Estimate),
-         slope_lower = quantile(Estimate, probs=0.025),
-         slope_upper = quantile(Estimate, probs=0.975)) %>%
+         slope_lower_90 = quantile(Estimate, probs=0.05),
+         slope_upper_90 = quantile(Estimate, probs=0.95),
+         slope_lower_50 = quantile(Estimate, probs=0.25),
+         slope_upper_50 = quantile(Estimate, probs=0.75)) %>%
   mutate( Biome = case_when( 
                              Group = grepl("temperate", Group) ~ "Temperate and Boreal", 
                              Group = grepl("tropical", Group) ~ "Tropical", 
@@ -122,7 +129,7 @@ grass_r_p <-  grass_r_draws %>%
   mutate( Habitat_degraded = case_when( Group = grepl("deg", Group) ~ "1", 
                                         Group = grepl("und", Group) ~ "0", 
   )) %>%
-  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower,slope_upper)) %>% distinct() 
+  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower_50, slope_upper_50, slope_lower_90, slope_upper_90)) %>% distinct() 
 
 head(grass_r_p)
 
@@ -146,8 +153,10 @@ med_de_r_p <-  med_de_r_draws %>%
   )) %>% mutate(Realm ="Mediterranean and Desert") %>% gather(Group, Estimate, med_de_r_desert_deg:med_de_r_mediterra_und) %>%
   group_by(Realm, Group) %>% 
   mutate(slope = mean(Estimate),
-         slope_lower = quantile(Estimate, probs=0.025),
-         slope_upper = quantile(Estimate, probs=0.975)) %>%
+         slope_lower_90 = quantile(Estimate, probs=0.05),
+         slope_upper_90 = quantile(Estimate, probs=0.95),
+         slope_lower_50 = quantile(Estimate, probs=0.25),
+         slope_upper_50 = quantile(Estimate, probs=0.75)) %>%
   mutate( Biome = case_when( 
     Group = grepl("desert", Group) ~ "Deserts and Xeric Shrublands", 
     Group = grepl("mediterra", Group) ~ "Mediterranean Forests, Woodlands and Scrub", 
@@ -155,7 +164,7 @@ med_de_r_p <-  med_de_r_draws %>%
   mutate( Habitat_degraded = case_when( Group = grepl("deg", Group) ~ "1", 
                                         Group = grepl("und", Group) ~ "0", 
   )) %>%
-  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower,slope_upper)) %>% distinct() 
+  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower_50, slope_upper_50, slope_lower_90, slope_upper_90)) %>% distinct() 
 
 head(med_de_r_p)
 
@@ -179,15 +188,17 @@ ar_r_p <-  ar_r_draws %>%
   )) %>% mutate(Realm ="Arable") %>% gather(Group, Estimate, ar_r_med_de:ar_r_tropical) %>%
   group_by(Realm, Group) %>% 
   mutate(slope = mean(Estimate),
-         slope_lower = quantile(Estimate, probs=0.025),
-         slope_upper = quantile(Estimate, probs=0.975)) %>%
+         slope_lower_90 = quantile(Estimate, probs=0.05),
+         slope_upper_90 = quantile(Estimate, probs=0.95),
+         slope_lower_50 = quantile(Estimate, probs=0.25),
+         slope_upper_50 = quantile(Estimate, probs=0.75)) %>%
   mutate( Biome = case_when( 
     Group = grepl("med_de", Group) ~ "Mediterranean and Desert", 
     Group = grepl("temperate", Group) ~ "Temperate and Boreal", 
     Group = grepl("tropical", Group) ~ "Tropical", 
   )) %>%
   mutate( Habitat_degraded = "1") %>%
-  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower,slope_upper)) %>% distinct() 
+  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower_50, slope_upper_50, slope_lower_90, slope_upper_90)) %>% distinct() 
 
 head(ar_r_p)
 
@@ -214,8 +225,10 @@ wetland_r_p <-  wetland_r_draws %>%
   )) %>% mutate(Realm ="Wetland") %>% gather(Group, Estimate, wetland_r_mediterra_deg:wetland_r_tropical_und) %>%
   group_by(Realm, Group) %>% 
   mutate(slope = mean(Estimate),
-         slope_lower = quantile(Estimate, probs=0.025),
-         slope_upper = quantile(Estimate, probs=0.975)) %>%
+         slope_lower_90 = quantile(Estimate, probs=0.05),
+         slope_upper_90 = quantile(Estimate, probs=0.95),
+         slope_lower_50 = quantile(Estimate, probs=0.25),
+         slope_upper_50 = quantile(Estimate, probs=0.75)) %>%
   mutate( Biome = case_when( 
     Group = grepl("mediterra", Group) ~ "Mediterranean and Desert", 
     Group = grepl("temperate", Group) ~ "Temperate and Boreal", 
@@ -224,7 +237,7 @@ wetland_r_p <-  wetland_r_draws %>%
   mutate( Habitat_degraded = case_when( Group = grepl("deg", Group) ~ "1", 
                                         Group = grepl("und", Group) ~ "0", 
   )) %>%
-  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower,slope_upper)) %>% distinct() 
+  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower_50, slope_upper_50, slope_lower_90, slope_upper_90)) %>% distinct() 
 
 head(wetland_r_p)
 
@@ -247,21 +260,25 @@ aq_r_p <-  aq_r_draws %>%
   )) %>% mutate(Realm ="Aquatic") %>% gather(Group, Estimate, aq_r_aq_deg:aq_r_aq_und) %>%
   group_by(Realm, Group) %>% 
   mutate(slope = mean(Estimate),
-         slope_lower = quantile(Estimate, probs=0.025),
-         slope_upper = quantile(Estimate, probs=0.975)) %>%
+         slope_lower_90 = quantile(Estimate, probs=0.05),
+         slope_upper_90 = quantile(Estimate, probs=0.95),
+         slope_lower_50 = quantile(Estimate, probs=0.25),
+         slope_upper_50 = quantile(Estimate, probs=0.75)) %>%
   mutate( Biome = "Aquatic"
   ) %>%
   mutate( Habitat_degraded = case_when( Group = grepl("deg", Group) ~ "1", 
                                         Group = grepl("_und", Group) ~ "0", 
   )) %>%
-  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower,slope_upper)) %>% distinct() 
+  dplyr::select(c(Realm, Biome, Habitat_degraded, Group, slope,slope_lower_50, slope_upper_50, slope_lower_90, slope_upper_90)) %>% distinct() 
 
 head(aq_r_p)
 
 
 r_slopes <- tund_r_p %>% bind_rows(forest_r_p, grass_r_p, med_de_r_p, ar_r_p,
                                    wetland_r_p, aq_r_p) %>% 
-  mutate( slope = round(slope,4), slope_lower = round(slope_lower,4), slope_upper = round(slope_upper,4),)
+  mutate( slope = round(slope,4), slope_lower_50 = round(slope_lower_50,4), slope_upper_50 = round(slope_upper_50,4), slope_lower_90 = round(slope_lower_90,4), slope_upper_90 = round(slope_upper_90,4),
+          
+          )
 
 table_1 <- r_slopes
 
@@ -273,34 +290,40 @@ head(table_4)
 head(table_5)
 head(table_6)
 
-table_1_dat <- table_1 %>%  unite("Richness-area slope", slope_lower:slope_upper, sep="-") %>%
-  mutate(`Richness-area slope` = paste0("(", `Richness-area slope`, ")") ) %>%
-  #select(-c(X, Model))  %>%
-  unite("Richness-area slope", slope:`Richness-area slope`, sep=" ") %>% ungroup() %>%
-  select(-Group)
+table_1_dat <- table_1 %>%  unite("Slope 50% Credible Interval", slope_lower_50:slope_upper_50, sep="-") %>%
+  unite("Slope 90% Credible Interval", slope_lower_90:slope_upper_90, sep="-") %>%
+  mutate(`Intervals` = paste0("(", `Slope 50% Credible Interval`, " , " ,`Slope 90% Credible Interval`, ")") ) %>%
+  ungroup() %>%
+  select(-c(Group, `Slope 50% Credible Interval`, `Slope 90% Credible Interval`)) %>%
+  unite("Slope and Intervals", slope:`Intervals`, sep=" ") %>% ungroup() 
 
 table_1_dat
 
+write.csv(table_1_dat, "~/Dropbox/GSB/Data/Table_Fig_2_Slopes.csv")
+
+
 head(table_2)
 
-table_2_dat <- table_2 %>%   unite("Seed density", Lower_CI:Upper_CI, sep="-") %>%
-  mutate(`Seed density` = paste0("(", `Seed density`, ")") ) %>%
+table_2_dat <- table_2 %>%   unite("50% Credible Interval", Lower_CI_50:Upper_CI_50, sep="-") %>%
+  unite("90% Credible Interval", Lower_CI_90:Upper_CI_90, sep="-") #%>%
+  #mutate(`Seed density` = paste0("(", `Seed density`, ")") ) %>%
  # select(-c(X, Model)) %>%
-  unite("Seed density", Estimate:`Seed density`, sep=" ")
+  #unite("Seed density", Estimate:`Seed density`, sep=" ")
 
 table_2_dat
 
-table_3_dat <- table_3 %>%   unite("Seed-species ratio", Lower_CI:Upper_CI, sep="-") %>%
-  mutate(`Seed-species ratio` = paste0("(", `Seed-species ratio`, ")") ) %>%
-  #select(-c(X, Model)) %>%
-  unite("Seed-species ratio", Estimate:`Seed-species ratio`, sep=" ")
-
-table_3_dat
-
-table_S6 <- table_1_dat %>% left_join(table_2_dat) %>% left_join(table_3_dat)
-
-print(table_S6, n=Inf)
-
-write.csv(table_S6, "table_S6.csv")
+# on hold
+# table_3_dat <- table_3 %>%   unite("Seed-species ratio", Lower_CI:Upper_CI, sep="-") %>%
+#   mutate(`Seed-species ratio` = paste0("(", `Seed-species ratio`, ")") ) %>%
+#   #select(-c(X, Model)) %>%
+#   unite("Seed-species ratio", Estimate:`Seed-species ratio`, sep=" ")
+# 
+# table_3_dat
+# 
+# table_S6 <- table_1_dat %>% left_join(table_2_dat) %>% left_join(table_3_dat)
+# 
+# print(table_S6, n=Inf)
+# 
+# write.csv(table_S6, "table_S6.csv")
 
 

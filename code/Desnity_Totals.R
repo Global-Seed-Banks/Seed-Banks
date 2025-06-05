@@ -94,7 +94,7 @@ summary(mod_ar_d)
 
 
 aq_fitted <- cbind(mod_aq_d$data,
-                             fitted(mod_aq_d, re_formula = NA
+                             fitted(mod_aq_d, re_formula = NA,, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                              )) %>% 
   as_tibble() %>% inner_join(sb_aq_d %>% distinct(Seed_density_m2,Habitat_degraded, Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
@@ -109,7 +109,7 @@ ggplot(aq_fitted, aes(x = Estimate, y = Habitat_degraded, fill = Habitat_degrade
   theme(legend.position = "none") 
 
 ar_fitted <- cbind(mod_ar_d$data,
-                   fitted(mod_ar_d, re_formula = NA
+                   fitted(mod_ar_d, re_formula = NA, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                    )) %>% 
   as_tibble() %>% inner_join(sb_arable_d %>% distinct(Seed_density_m2,  Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
@@ -119,7 +119,7 @@ ar_fitted
 
 
 f_fitted <- cbind(mod_forest_d$data,
-                   fitted(mod_forest_d, re_formula = NA
+                   fitted(mod_forest_d, re_formula = NA, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                    )) %>% 
   as_tibble() %>% inner_join(sb_forest_d %>% distinct(Seed_density_m2,  Habitat_degraded, Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
@@ -127,7 +127,7 @@ f_fitted <- cbind(mod_forest_d$data,
 
 
 g_fitted <- cbind(mod_grass_d$data,
-                  fitted(mod_grass_d, re_formula = NA
+                  fitted(mod_grass_d, re_formula = NA, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                   )) %>% 
   as_tibble() %>% inner_join(sb_grass_d %>% distinct(Seed_density_m2,  Habitat_degraded, Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
@@ -135,14 +135,14 @@ g_fitted <- cbind(mod_grass_d$data,
 
 
 m_fitted <- cbind(mod_med_de_d$data,
-                  fitted(mod_med_de_d, re_formula = NA
+                  fitted(mod_med_de_d, re_formula = NA, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                   )) %>% 
   as_tibble() %>% inner_join(sb_med_de_d %>% distinct(Seed_density_m2,  Habitat_degraded, Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
   ) %>% mutate(Model = "Med") %>% mutate(Group = "Terrestrial")
 
 t_fitted <- cbind(mod_tund_d$data,
-                  fitted(mod_tund_d, re_formula = NA
+                  fitted(mod_tund_d, re_formula = NA, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                   )) %>% 
   as_tibble() %>% inner_join(sb_tund_d %>% distinct(Seed_density_m2,  Habitat_degraded, Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
@@ -150,7 +150,7 @@ t_fitted <- cbind(mod_tund_d$data,
 
 
 w_fitted <- cbind(mod_wetland_d$data,
-                  fitted(mod_wetland_d, re_formula = NA
+                  fitted(mod_wetland_d, re_formula = NA, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                   )) %>% 
   as_tibble() %>% inner_join(sb_wetland_d %>% distinct(Seed_density_m2,  Habitat_degraded, Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
@@ -196,9 +196,12 @@ aq_s <-fitted_values %>% filter(Group == "Aquatic") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.05),
-    upper = quantile(Estimate, 0.95)
-  )
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+    ) %>% distinct()
+
 aq_s
 
 aq_fig <- ggplot() +
@@ -221,9 +224,11 @@ t_s <-fitted_values %>% filter(Group == "Terrestrial") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.05),
-    upper = quantile(Estimate, 0.95)
-  )
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+  ) %>% distinct()
 t_s
 
 w_s <-fitted_values %>%  filter(Group == "Wetlands") %>%
@@ -231,9 +236,11 @@ w_s <-fitted_values %>%  filter(Group == "Wetlands") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.05),
-    upper = quantile(Estimate, 0.95)
-  )
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+  ) %>% distinct()
 w_s
 
 head(fitted_values %>% filter(Group == "Arable"))
@@ -260,9 +267,11 @@ ar_s <-fitted_values %>% filter(Group == "Arable") %>%
   summarise(
     median = median(Estimate),
     mean = mean(Estimate),
-    lower = quantile(Estimate, 0.05),
-    upper = quantile(Estimate, 0.95)
-  )
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+  ) %>% distinct()
 ar_s
 
 ar_fig <- ggplot() +
@@ -286,3 +295,25 @@ ar_fig
 
 
 aq_fig + t_fig + ar_fig
+
+
+group_means <- t_s  %>% bind_rows(ar_s,w_s, aq_s ) %>%
+  mutate(mean = round(mean, 0),
+         median = round(median, 0),
+         lower_90 = round(lower_90, 0),
+         upper_90 = round(upper_90, 0),
+         lower_50 = round(lower_50, 0),
+         upper_50 = round(upper_50, 0),
+  ) %>%
+  unite("50% Credible Interval", lower_50:upper_50, sep="-") %>%
+  unite("90% Credible Interval", lower_90:upper_90, sep="-") 
+
+
+head(group_means)
+write.csv(group_means, "~/Dropbox/GSB/Data/Table_Fig_3_Realm_Means.csv")
+
+
+
+
+
+

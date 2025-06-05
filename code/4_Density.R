@@ -671,8 +671,7 @@ legend_d <- ggplot() +
 
 legend_d
 
-group_means <- t_s  %>% bind_rows(ar_s,w_s, aq_s )
-write.csv(group_means, "~/Dropbox/GSB/Data/means.csv")
+
 
 legend_line <- ggplot() + 
  # geom_hline(yintercept = 0,linetype="longdash") +
@@ -828,8 +827,20 @@ tund_d_50_clean <- tund_d_50_ce %>%
 tund_d_ce <- tund_d_90_clean %>%
   left_join(tund_d_50_clean)
 
-table_2 <- tund_d_ce %>% bind_rows(forest_d_ce, grass_d_ce, med_de_d_ce, arable_d_ce, wetland_d_ce, aq_d_ce)
+table_2 <- tund_d_ce %>% bind_rows(forest_d_ce, grass_d_ce, med_de_d_ce, arable_d_ce, wetland_d_ce, aq_d_ce) %>%
+  mutate(Estimate = round(Estimate, 0),
+         Lower_90 = round(Lower_CI_90, 0),
+         Upper_90 = round(Upper_CI_90, 0),
+         Lower_50 = round(Lower_CI_50, 0),
+         Upper_50 = round(Upper_CI_50, 0),
+  ) %>%
+  unite("50% Credible Interval", Lower_50:Upper_50, sep="-") %>%
+  unite("90% Credible Interval", Lower_90:Upper_90, sep="-") %>%
+  mutate(`Intervals` = paste0("(", `50% Credible Interval`, " , " , `90% Credible Interval`, ")") ) %>%
+  select(Realm, Biome, Habitat_degraded, Estimate, Intervals) %>%
+  unite("Density and Intervals", Estimate:`Intervals`, sep=" ") %>% ungroup() 
+  
 
 table_2
-write.csv(table_2, "~/Dropbox/GSB/Data/table_density.csv")
+write.csv(table_2, "~/Dropbox/GSB/Data/Table_Fig_3.csv")
 

@@ -419,8 +419,8 @@ fig_med_de_r <- ggplot() +
   )) +   coord_cartesian( ylim = c(0,100)) +
   scale_x_discrete(  labels = c("Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands") )+
   labs(x = '', #y='',
-       y='',
-       # y = 'Species richness \n in the soil seedbank',
+       #y='',
+        y = 'Species richness \n in the soil seedbank',
        subtitle=  "d) Mediterranean & Desert" ) +
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
@@ -790,7 +790,17 @@ table_s7 <- tund_div %>% bind_rows(forest_div, grass_div, med_de_div, ar_div, we
          Upper_90 = round(Upper_90, 0),
          Lower_50 = round(Lower_50, 0),
          Upper_50 = round(Upper_50, 0),
-         )
+         ) %>%
+  unite("50% Credible Interval", Lower_50:Upper_50, sep="-") %>%
+  unite("90% Credible Interval", Lower_90:Upper_90, sep="-") %>%
+  unite("95% Credible Interval", Lower_95:Upper_95, sep="-") %>%
+  select(-c(Estimate_, `95% Credible Interval`)) %>%
+  mutate(`Intervals` = paste0("(", `50% Credible Interval`, " , " , `90% Credible Interval`, ")") ) %>%
+  unite("Richness and Intervals", Estimate:`Intervals`, sep=" ") %>% ungroup() %>%
+  select(-c(`90% Credible Interval`, `50% Credible Interval`)) %>%
+  spread(Total_sample_area_m2, `Richness and Intervals`)
+
+
 table_s7
 
 print(table_s7, n=Inf)
