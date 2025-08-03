@@ -1,4 +1,4 @@
-# Soil seed bank richness, abundance and density across spatial scales and global biomes
+# Divergent patterns of richness and density in the global soil seed bank
 
 Code by Emma Ladouceur & Alistair Auffret
 
