@@ -3,7 +3,9 @@
 Code by Emma Ladouceur & Alistair Auffret
 
 ### Data
-* All you need is **gsb_db.csv**
+*Auffret, Alistair G., Emma Ladouceur, Natalie S. Haussmann, Eirini Daouti, Tatiana G. Elumeeva, Ineta Kačergytė, Jonas Knape, et al. 2024. “ A Global Database of Soil Seed Bank Richness, Density, and Abundance.” Ecology 105(11). https://doi.org/10.1002/ecy.4438*
+
+* All you need is **sb_pub.csv**
 
 * **GIS** folder contains a world map downloaded from the [European Commission](https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries) used for plotting.
 
@@ -28,4 +30,3 @@ Code by Emma Ladouceur & Alistair Auffret
 * **8-11** Supplementary Tables, Figures and extras
 
 * **cluster** All statistical models were run on a HPC Cluster. Submit scripts and R scripts for each statistical model found in this folder and the models saved as .RData files. Model objects can be found within the data repository.
-
