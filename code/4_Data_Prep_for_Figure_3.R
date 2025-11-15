@@ -248,7 +248,8 @@ head(fitted_values %>% filter(Group == "Arable"))
 t_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group != "Aquatic") %>% filter(Group != "Arable"), aes(x = Estimate, y = Realm, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
   theme_ridges() +  # Theme for ridgeline plot
-  geom_vline(data = t_s, aes(xintercept = mean), size = 1.2, color = "black") +
+  geom_vline(data = t_s, aes(xintercept = mean), size = 1.2, color = "#0c7156") +
+  geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
@@ -258,7 +259,8 @@ t_fig <- ggplot() +
  # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",   "#da7901", "#fab255", "#20B2AA", "#4E84C4", "#293352"))+
   labs(title = "Natural Areas", x = "Posterior Sample Value", y = "") +
-  theme(legend.position = "bottom") 
+  theme(legend.position = "bottom")  +
+  guides(color = guide_legend(nrow = 4))
 
 t_fig
 

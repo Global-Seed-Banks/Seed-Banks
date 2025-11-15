@@ -449,7 +449,7 @@ fig_med_de_d <- ggplot() +
   labs(x = '',
        y = expression(paste('Seed density (',m^2,')')),
        subtitle=  "d) Mediterranean & Desert" ) +
-  scale_color_manual( values= c(    "#fab255",  "#da7901"))+
+  scale_color_manual( values= c(    "#da7901",  "#fab255"))+
   scale_x_discrete(  labels = c("Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands") )+
   coord_cartesian( ylim = c(0,8000)) +
   scale_y_continuous(breaks=c(0,2500,5000,7000,10000,15000,20000,15000))+
@@ -478,7 +478,7 @@ summary(mod_tund_d)
 tund_d_90 <- conditional_effects(mod_tund_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
 tund_d_50 <- conditional_effects(mod_tund_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
-tund_d
+
 
 tund_d_df_90 <-
   as.data.frame(tund_d_90$`Habitat_degraded`)
@@ -560,7 +560,7 @@ summary(mod_wetland_d)
 wetland_d_90 <- conditional_effects(mod_wetland_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
 wetland_d_50 <- conditional_effects(mod_wetland_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
-wetland_d
+
 
 wetland_d_df_90 <-
   as.data.frame(wetland_d_90$`Biome:Habitat_degraded`)
