@@ -1,0 +1,761 @@
+
+
+#rm(list = ls())
+
+
+#packages
+library(tidyverse)
+library(brms)
+library(tidybayes)
+library(bayesplot)
+library(patchwork)
+library(gridExtra)
+library(grid)
+
+user <- Sys.info()["user"]
+
+path2wd <- switch(user,
+                  "emmaladouceur" = "~/Dropbox/GSB/",
+                  # " " = " " # Petr puts his computer username and file path here
+)
+
+
+setwd(path2wd)
+
+sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
+
+nrow(sb_prep)
+
+sb_rich_area <- sb_prep %>% 
+  filter(!is.na(Total_species),
+         # !Total_species == 0,
+         !is.na(Centred_log_total_sample_area_m2) #,
+         #Number_sites == 1 
+  ) %>%
+  # treat all random effects as factors
+  mutate( Habitat_degraded = as.factor(Habitat_degraded),
+          Habitat_broad = as.factor(Habitat_broad),
+          StudyID = as.factor(StudyID),
+          RowID = as.factor(RowID),
+          Method = as.factor(Method)) %>% arrange(Biome) 
+
+
+sb_rich_area %>% select(Realm) %>% distinct()
+
+setwd(paste0(path2wd, 'Model_Fits/Habs/'))
+# models run on cluster, load in model objects here
+load( 'rich_aq.Rdata')
+load( 'rich_ar.Rdata')
+load( 'rich_forest.Rdata')
+load( 'rich_grass.Rdata')
+load( 'rich_med_de.Rdata')
+load( 'rich_po_alp.Rdata')
+load( 'rich_wetland.Rdata')
+
+
+
+# Tundra
+sb_tund_r <- sb_rich_area %>% filter(Realm == "Tundra")%>% filter(Habitat_broad == "Grassland")
+
+head(sb_tund_r)
+
+summary(mod_tund_r)
+
+pp_check(mod_tund_r)
+plot(mod_tund_r)
+conditional_effects(mod_tund_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+tund_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_tund_r %>% group_by( Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded ) %>%
+  nest(data = c( Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_tund_r, newdata= .x, re_formula = NA, probs = c(0.025, 0.975)  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+tund_predict_df <- tund_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Total_sample_area_m2 = as.factor(Total_sample_area_m2)) %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate( Realm = "Tundra", Biome = "Tundra") %>% filter(Number_sites == 1) %>%
+  mutate( Total_sample_area_m2 = recode_factor(
+    Total_sample_area_m2,  `0.01` = "α",`15` = "γ" )) %>%
+  mutate( Habitat_degraded = recode_factor( Habitat_degraded,
+                                            `0` = "Undisturbed habitat",  `1` = "Degraded habitat"  )) %>%
+  mutate(Group = "Terrestrial")
+
+head(tund_predict_df)
+colnames(tund_predict_df)
+nrow(tund_predict_df)
+
+tund_div <- tund_predict_df %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>% 
+  select(-predicted) %>% distinct()%>%
+  mutate(Group = "Terrestrial")
+
+head(tund_div)
+
+
+
+#Forest
+sb_forest_r <- sb_rich_area %>% filter(Realm == "Forest") %>%  ungroup()
+
+forest_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_forest_r %>% group_by(Biome, Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_forest_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+forest_predict_df <- forest_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Total_sample_area_m2 = as.factor(Total_sample_area_m2)) %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  filter(Number_sites == 1) %>%
+  mutate( Total_sample_area_m2 = recode_factor(
+    Total_sample_area_m2,  `0.01` = "α",`15` = "γ" )) %>%
+  mutate( Habitat_degraded = recode_factor( Habitat_degraded,
+                                            `0` = "Undisturbed habitat",  `1` = "Degraded habitat"  )) %>%
+  mutate(Realm = "Forest")  %>%
+  filter(!is.na(Total_sample_area_m2)) %>%        # ensure no NA in y
+  mutate(Total_sample_area_m2 = factor(Total_sample_area_m2)   ) %>%
+  mutate(Group = "Terrestrial")
+
+head(forest_predict_df)
+
+forest_div <- forest_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
+  select(-predicted) %>% distinct()%>%
+  mutate(Group = "Terrestrial")
+
+forest_div
+
+#Grass
+sb_grass_r <- sb_rich_area %>% filter(Realm == "Grassland") %>%  ungroup()
+
+grass_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_grass_r %>% group_by(Biome, Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_grass_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+grass_predict_df <- grass_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Total_sample_area_m2 = as.factor(Total_sample_area_m2)) %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  filter(Number_sites == 1) %>%
+  mutate( Total_sample_area_m2 = recode_factor(
+    Total_sample_area_m2,  `0.01` = "α",`15` = "γ" )) %>%
+  mutate( Habitat_degraded = recode_factor( Habitat_degraded,
+                                            `0` = "Undisturbed habitat",  `1` = "Degraded habitat"  )) %>%
+  mutate(Realm = "Grassland")  %>%
+  filter(!is.na(Total_sample_area_m2)) %>%        # ensure no NA in y
+  mutate(Total_sample_area_m2 = factor(Total_sample_area_m2)   ) %>%
+  mutate(Group = "Terrestrial")
+
+head(grass_predict_df)
+
+grass_div <- grass_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
+  select(-predicted) %>% distinct()%>%
+  mutate(Group = "Terrestrial")
+
+grass_div
+
+
+
+# Med Desert
+sb_med_de_r <- sb_rich_area %>%  
+  filter(Realm == "Mediterranean and Desert")
+
+head(sb_med_de_r)
+
+summary(mod_med_de_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+med_de_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_med_de_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+med_de_predict_df <- med_de_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))%>%
+  mutate(Realm = "Mediterranean and Desert")%>%
+  mutate(Total_sample_area_m2 = as.factor(Total_sample_area_m2)) %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  filter(Number_sites == 1) %>%
+  mutate( Total_sample_area_m2 = recode_factor(
+    Total_sample_area_m2,  `0.01` = "α",`15` = "γ" )) %>%
+  mutate( Habitat_degraded = recode_factor( Habitat_degraded,
+                                            `0` = "Undisturbed habitat",  `1` = "Degraded habitat"  )) %>%
+  filter(!is.na(Total_sample_area_m2)) %>%        # ensure no NA in y
+  mutate(Total_sample_area_m2 = factor(Total_sample_area_m2)   ) %>%
+  mutate(Group = "Terrestrial")
+
+med_de_div <- med_de_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
+  select(-predicted) %>% distinct()%>%
+  mutate(Group = "Terrestrial")
+
+med_de_div
+
+
+# Arable
+sb_ar_r <- sb_rich_area %>% filter(Realm == "Arable")   %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
+
+head(sb_ar_r)
+
+summary(mod_ar_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+ar_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_ar_r %>% group_by(Biome) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome,  Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_ar_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+ar_predict_df <- ar_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Realm = "Arable") %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))%>%
+  mutate(Realm = "Arable", Habitat_degraded = "1") %>%
+  mutate(Total_sample_area_m2 = as.factor(Total_sample_area_m2)) %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  #mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  filter(Number_sites == 1) %>%
+  mutate( Total_sample_area_m2 = recode_factor(
+    Total_sample_area_m2,  `0.01` = "α",`15` = "γ" )) %>%
+  mutate( Habitat_degraded = recode_factor( Habitat_degraded,
+                                             `1` = "Degraded habitat"  )) %>%
+  filter(!is.na(Total_sample_area_m2)) %>%        # ensure no NA in y
+  mutate(Total_sample_area_m2 = factor(Total_sample_area_m2)   ) %>%
+  mutate(Group = "Arable")
+
+ar_div <- ar_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
+  select(-predicted) %>% distinct()%>%
+  mutate(Group = "Arable")
+
+ar_div
+
+
+
+# Wetland
+sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") %>% 
+  mutate(Biome = fct_relevel(Biome, "Temperate and Boreal", "Mediterranean and Desert", "Tropical"))
+
+nrow(sb_wetland_r)
+head(sb_wetland_r)
+sb_wetland_r %>% select(Biome) %>% distinct()
+
+
+summary(mod_wetland_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+wetland_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_wetland_r %>% group_by(Biome, Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome ) %>%
+  nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_wetland_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+
+wetland_predict_df <- wetland_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Wetland") %>% 
+  mutate(Biome = fct_relevel(Biome, "Temperate and Boreal", "Mediterranean and Desert", "Tropical")) %>%
+  mutate(Total_sample_area_m2 = as.factor(Total_sample_area_m2)) %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  filter(Number_sites == 1) %>%
+  mutate( Total_sample_area_m2 = recode_factor(
+    Total_sample_area_m2,  `0.01` = "α",`15` = "γ" )) %>%
+  mutate( Habitat_degraded = recode_factor( Habitat_degraded,
+                                            `0` = "Undisturbed habitat",  `1` = "Degraded habitat"  )) %>%
+  filter(!is.na(Total_sample_area_m2)) %>%        # ensure no NA in y
+  mutate(Total_sample_area_m2 = factor(Total_sample_area_m2)   ) %>%
+  mutate(Group = "Wetlands")
+
+wetland_div <- wetland_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
+  select(-predicted) %>% distinct()%>%
+  mutate(Group = "Wetlands")
+
+wetland_div
+
+
+#Aquatic
+
+sb_aq_r <- sb_rich_area %>% filter(Realm == "Aquatic") %>%  ungroup() 
+
+head(sb_aq_r)
+
+summary(mod_aq_r)
+
+# make sure purr not loaded, and Biome is a character NOT A FACTOR
+aq_predict <-   tidyr::crossing( 
+  Number_sites = c(1, 20, 100),
+  sb_aq_r %>% group_by( Habitat_degraded) %>%  
+    dplyr::summarise(Total_sample_area_m2 = c( seq( 0.010000, 15.000000, length.out = 2) ) ), 
+)  %>%
+  mutate( log_number_sites = log(Number_sites),
+          log_total_sample_area_m2 = log(Total_sample_area_m2),
+          Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+          Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE) ) %>%
+  select(-c( log_number_sites, log_total_sample_area_m2 ) ) %>%
+  arrange( Total_sample_area_m2, Number_sites ) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded ) %>%
+  nest(data = c( Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_aq_r, newdata= .x, re_formula = NA  ))) 
+
+
+# re_formula = NULL,
+# allow_new_levels = TRUE, sample_new_levels = "uncertainty" 
+
+aq_predict_df <- aq_predict  %>% 
+  select(-data) %>% unnest(cols= c(predicted)) %>%
+  mutate( predicted = .prediction) %>%
+  select(-.prediction) %>% ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate( Biome = "Aquatic", Realm = "Aquatic") %>%
+  mutate(Total_sample_area_m2 = as.factor(Total_sample_area_m2)) %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  filter(Number_sites == 1) %>%
+  mutate( Total_sample_area_m2 = recode_factor(
+    Total_sample_area_m2,  `0.01` = "α",`15` = "γ" )) %>%
+  mutate( Habitat_degraded = recode_factor( Habitat_degraded,
+                                            `0` = "Undisturbed habitat",  `1` = "Degraded habitat"  )) %>%
+  filter(!is.na(Total_sample_area_m2)) %>%        # ensure no NA in y
+  mutate(Total_sample_area_m2 = factor(Total_sample_area_m2)   ) %>%
+  mutate(Group = "Aquatic")
+
+aq_div <- aq_predict_df %>% filter(Number_sites == 1) %>% 
+  select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
+  group_by(Realm, Biome, Habitat_degraded, Total_sample_area_m2) %>%
+  mutate(Estimate_ = mean(predicted),
+         Lower_95 = quantile(predicted, probs=0.025),
+         Upper_95 = quantile(predicted, probs=0.975),
+         Lower_90 = quantile(predicted, probs = 0.05),
+         Upper_90 = quantile(predicted, probs = 0.95),
+         Lower_50 = quantile(predicted, probs = 0.25),
+         Upper_50 = quantile(predicted, probs = 0.75)
+  ) %>%
+  select(-predicted) %>% distinct()%>%
+  mutate(Group = "Aquatic")
+
+aq_div
+
+
+
+predict_dat <- tund_predict_df %>% bind_rows(aq_predict_df) %>%
+  bind_rows(ar_predict_df) %>%
+  bind_rows(wetland_predict_df) %>%
+  bind_rows(med_de_predict_df) %>%
+  bind_rows(grass_predict_df) %>%
+  bind_rows(forest_predict_df) %>%
+  mutate(Realm_Biome = case_when(
+    Realm == "Aquatic" ~ Realm,
+    Realm == "Arable" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Arable", 
+    Realm == "Arable" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Arable", 
+    Realm == "Arable" & Biome ==  "Tropical" ~  "Tropical Arable", 
+    Realm == "Forest" & Biome ==  "Temperate" ~  "Temperate Forests",
+    Realm == "Forest" & Biome ==  "Tropical" ~  "Tropical & Subtropical Forests",
+    Realm == "Forest" & Biome ==  "Boreal" ~  "Boreal Forests/Taiga",
+    Realm == "Grassland" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Grasslands, Savannas & Shrublands",
+    Realm == "Grassland" & Biome ==  "Tropical" ~  "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+    Realm == "Mediterranean and Desert" & Biome ==  "Deserts and Xeric Shrublands" ~  "Deserts & Xeric Shrublands",
+    Realm == "Mediterranean and Desert" & Biome ==  "Mediterranean Forests, Woodlands and Scrub" ~  "Mediterranean Forests, Woodlands & Scrub",
+    Realm ==  "Tundra" ~  Realm,
+    Realm ==  "Wetland" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Wetlands",
+    Realm ==  "Wetland" & Biome ==  "Temperate and Boreal"~  "Temperate & Boreal Wetlands",
+    Realm ==  "Wetland"  & Biome ==  "Tropical" ~  "Tropical Wetlands",
+  )) %>% 
+  mutate(Realm_Biome = fct_relevel(Realm_Biome, 
+                                   "Tundra", "Boreal Forests/Taiga",  "Temperate Forests",  "Tropical & Subtropical Forests",
+                                   "Temperate & Boreal Grasslands, Savannas & Shrublands", "Tropical & Subtropical Grasslands, Savannas & Shrublands", 
+                                   "Mediterranean Forests, Woodlands & Scrub",  "Deserts & Xeric Shrublands", 
+                                   "Temperate & Boreal Arable", "Mediterranean & Desert Arable",    "Tropical Arable",
+                                   "Temperate & Boreal Wetlands", "Mediterranean & Desert Wetlands","Tropical Wetlands",
+                                   "Aquatic",
+  )) %>%   mutate(Realm = fct_relevel(Realm, 
+                                      "Tundra", "Forest", "Grassland", "Mediterranean and Desert", "Arable", "Wetland", "Aquatic"
+  )) %>% mutate(Estimate = predicted)
+
+head(predict_dat)
+View(predict_dat)
+
+div_dat <- tund_div %>% bind_rows(forest_div, grass_div, med_de_div, ar_div, wetland_div, aq_div) %>%
+  mutate(Realm_Biome = case_when(
+    Realm == "Aquatic" ~ Realm,
+    Realm == "Arable" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Arable", 
+    Realm == "Arable" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Arable", 
+    Realm == "Arable" & Biome ==  "Tropical" ~  "Tropical Arable", 
+    Realm == "Forest" & Biome ==  "Temperate" ~  "Temperate Forests",
+    Realm == "Forest" & Biome ==  "Tropical" ~  "Tropical & Subtropical Forests",
+    Realm == "Forest" & Biome ==  "Boreal" ~  "Boreal Forests/Taiga",
+    Realm == "Grassland" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Grasslands, Savannas & Shrublands",
+    Realm == "Grassland" & Biome ==  "Tropical" ~  "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+    Realm == "Mediterranean and Desert" & Biome ==  "Deserts and Xeric Shrublands" ~  "Deserts & Xeric Shrublands",
+    Realm == "Mediterranean and Desert" & Biome ==  "Mediterranean Forests, Woodlands and Scrub" ~  "Mediterranean Forests, Woodlands & Scrub",
+    Realm ==  "Tundra" ~  Realm,
+    Realm ==  "Wetland" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Wetlands",
+    Realm ==  "Wetland" & Biome ==  "Temperate and Boreal"~  "Temperate & Boreal Wetlands",
+    Realm ==  "Wetland"  & Biome ==  "Tropical" ~  "Tropical Wetlands",
+  )) %>% 
+  mutate(Realm_Biome = fct_relevel(Realm_Biome,
+                                   "Tundra", "Boreal Forests/Taiga",  "Temperate Forests",  "Tropical & Subtropical Forests",
+                                   "Temperate & Boreal Grasslands, Savannas & Shrublands", "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+                                   "Mediterranean Forests, Woodlands & Scrub",  "Deserts & Xeric Shrublands",
+                                   "Temperate & Boreal Arable", "Mediterranean & Desert Arable",    "Tropical Arable",
+                                   "Temperate & Boreal Wetlands", "Mediterranean & Desert Wetlands","Tropical Wetlands",
+                                   "Aquatic",
+  )) %>%   mutate(Realm = fct_relevel(Realm, 
+                                       "Tundra", "Forest", "Grassland", "Mediterranean and Desert", "Arable", "Wetlands", "Aquatic"
+   )) %>% mutate(Estimate = Estimate_)
+
+head(div_dat)
+View(div_dat)
+
+t_div_fig <- ggplot() +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome),
+                      alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity", fill = "#C0C0C0") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome),  alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity", fill = "#C0C0C0") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome,  fill = Realm_Biome),
+                      alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome, fill = Realm_Biome),  alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_point(data = div_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)),
+             aes(x = mean, y = Realm_Biome), alpha = 0.5, color = "#C0C0C0", shape=17, size=1.5) +
+  geom_point(data = div_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") %>% 
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = Realm_Biome), alpha = 0.5, color = "#C0C0C0", shape=17, size=4) +
+  geom_point(data = div_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)),
+             aes(x = mean, y = Realm_Biome, color=Realm_Biome), alpha = 0.5,  shape=16, size=1.5) +
+  geom_point(data = div_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") %>% 
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = Realm_Biome, color=Realm_Biome), alpha = 0.5, shape=16, size=4) +
+
+   scale_y_discrete(limits=rev)+
+  # xlim(0,50)+
+  scale_color_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",  "#da7901","#fab255" ),
+                      labels = c("Tundra", "Forest: Boreal", "Forest: Temperate", "Forest: Tropical & \nSubtropical",
+                                 "Grasslands & Savannas: \nTemperate & Boreal", "Grasslands & Savannas: \nTropical & Subtropical", "Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
+  # # # # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
+  scale_fill_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",   "#da7901", "#fab255"),
+                     labels = c("Tundra", "Forest: Boreal", "Forest: Temperate", "Forest: Tropical & \nSubtropical",
+                                "Grasslands & Savannas: \nTemperate & Boreal", "Grasslands & Savannas: \nTropical & Subtropical", "Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
+  labs(#title = "Natural Terrestrial Areas",
+    x = "Species richness in the soil seedbank",
+    y = "Biome") +
+   theme_bw(base_size = 18) +
+  theme(
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
+
+
+t_div_fig
+
+
+
+ar_div_fig <- ggplot() +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Arable")  %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome,  fill = Realm_Biome),
+                      alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Arable") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome, fill = Realm_Biome),  
+                      alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_point(data = div_dat %>% filter(Group == "Arable") %>%  filter(Total_sample_area_m2 == "α") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)),
+             aes(x = mean, y = Realm_Biome, color=Realm_Biome), alpha = 0.5,  shape=15, size=1.5) +
+  geom_point(data = div_dat %>% filter(Group == "Arable") %>% filter(Total_sample_area_m2 == "γ") %>% 
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = Realm_Biome, color=Realm_Biome), alpha = 0.5, shape=15, size=4) +
+  
+  scale_y_discrete(limits=rev)+
+  # xlim(0,50)+
+  scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929" ),
+                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical") )+
+  # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
+  scale_fill_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"),
+                     labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
+  labs(#title = "Natural Terrestrial Areas",
+    x = "Species richness in the soil seedbank",
+    y = "Biome") +
+  theme_bw(base_size = 18) +
+  theme(
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
+
+
+ar_div_fig
+
+
+
+w_div_fig <- ggplot() +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome),
+                      alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity", fill = "#C0C0C0") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome),  alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity", fill = "#C0C0C0") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome,  fill = Realm_Biome),
+                      alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Realm_Biome,   height = ..density.., color = Realm_Biome, fill = Realm_Biome),  alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_point(data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)),
+             aes(x = mean, y = Realm_Biome), alpha = 0.5, color = "#C0C0C0", shape=17, size=1.5) +
+  geom_point(data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") %>% 
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = Realm_Biome), alpha = 0.5, color = "#C0C0C0", shape=17, size=4) +
+  geom_point(data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)),
+             aes(x = mean, y = Realm_Biome, color=Realm_Biome), alpha = 0.5,  shape=16, size=1.5) +
+  geom_point(data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") %>% 
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = Realm_Biome, color=Realm_Biome), alpha = 0.5, shape=16, size=4) +
+  
+  scale_y_discrete(limits=rev)+
+  # xlim(0,50)+
+  scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352","#447fdd" ),
+                      labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
+  # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
+  scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352","#447fdd"),
+                     labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
+  labs(#title = "Natural Wetlands Areas",
+    x = "Species richness in the soil seedbank",
+    y = "Biome") +
+  theme_bw(base_size = 18) +
+  theme(
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    #axis.title.x = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
+
+
+w_div_fig
+
+
+aq_div_fig <- ggplot() +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>%  filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Habitat_degraded,   height = ..density.., color = Habitat_degraded,  fill = Habitat_degraded),
+                      alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Habitat_degraded,   height = ..density.., color = Habitat_degraded, fill = Habitat_degraded),  alpha = 0.35, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_point(data = div_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") %>%
+               group_by(Biome, Habitat_degraded) %>% summarise(mean = mean(Estimate)),
+             aes(x = mean, y = Habitat_degraded, color=Habitat_degraded, shape=Habitat_degraded), alpha = 0.5,  size=1.5) +
+  geom_point(data = div_dat %>% filter(Group == "Aquatic")  %>% filter(Total_sample_area_m2 == "γ") %>% 
+               group_by(Biome, Habitat_degraded) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = Habitat_degraded, color=Habitat_degraded, shape=Habitat_degraded), alpha = 0.5, size=4) +
+  
+  #scale_y_discrete(limits=rev)+
+  # xlim(0,50)+
+  scale_color_manual( values= c("#447fdd" , "#447fdd" ),
+                      labels = c("Undisturbed", "Degraded"))+
+  scale_fill_manual( values= c( "#447fdd", "#C0C0C0"),
+                     labels = c("Undisturbed", "Degraded"))+
+  scale_shape_manual( values= c( 16, 17),
+                      labels = c("Undisturbed", "Degraded"))+
+  labs(#title = "Natural Aquatic Areas",
+    x = "Species richness in the soil seedbank",
+    y = "State") +
+  theme_bw(base_size = 18) +
+  theme(
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    #axis.title.x = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
+
+aq_div_fig
+
+(t_div_fig + ar_div_fig)/(w_div_fig + aq_div_fig) +
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.tag = element_text(size = 16))
+#13X18

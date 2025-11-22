@@ -1,5 +1,5 @@
 
-rm(list = ls())
+#rm(list = ls())
 
 
 #packages
@@ -94,13 +94,14 @@ summary(mod_ar_d)
 
 
 aq_fitted <- cbind(mod_aq_d$data,
-                             fitted(mod_aq_d, re_formula = NA,, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
+                             fitted(mod_aq_d, re_formula = NA, probs = c(0.25, 0.75, 0.05, 0.95, 0.025, 0.975)
                              )) %>% 
-  as_tibble() %>% inner_join(sb_aq_d %>% distinct(Seed_density_m2,Habitat_degraded, Biome, Realm),
+  as_tibble() %>% inner_join(sb_aq_d %>% distinct(Seed_density_m2, Habitat_degraded, Biome, Realm),
                              #by= c("Field", "Year", "log_YSA", "log_alpha_rich_p")
   ) %>% mutate(Model = "Aquatic") %>% mutate(Group = "Aquatic")
 
 head(aq_fitted)
+View(aq_fitted)
 
 ggplot(aq_fitted, aes(x = Estimate, y = Habitat_degraded, fill = Habitat_degraded, color = Habitat_degraded)) +
   geom_density_ridges(alpha = 0.7) +
@@ -207,17 +208,37 @@ aq_s
 aq_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group %in% c("Aquatic")), aes(x = Estimate, y = Habitat_degraded, fill = Habitat_degraded, color = Habitat_degraded), alpha = 0.7, bandwidth =600) +
   theme_ridges() +  # Theme for ridgeline plot
-  geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "black") +
+  geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
+  geom_point(data = fitted_values %>% filter(Group %in% c("Aquatic")) %>%
+               group_by(Habitat_degraded) %>% summarise(mean = mean(Estimate))
+               , aes(x = mean, y = Habitat_degraded, shape = Habitat_degraded, color = Habitat_degraded), size=5)+
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
   xlim(0,15000)+
-  scale_color_manual( values= c( "#447fdd",    "#447fdd", "#20B2AA", "#4E84C4", "#293352" ))+
-  scale_fill_manual( values= c( "#447fdd",    "#447fdd", "#20B2AA", "#4E84C4", "#293352" ))+
-  labs(title = "Aquatic", x = "Posterior Sample Value", y = "Habitat Degraded") +
-  theme(legend.position = "bottom") 
+  scale_color_manual( values= c("#447fdd" , "#447fdd" ),
+                      labels = c("Undisturbed", "Degraded"))+
+  scale_fill_manual( values= c( "#447fdd", "#C0C0C0"),
+                     labels = c("Undisturbed", "Degraded"))+
+  scale_shape_manual( values= c( 16,17),
+                     labels = c("Undisturbed", "Degraded"))+
+  labs(#subtitle = "d) Aquatic", 
+    x = expression(paste('Seed density (',m^2,')')), y = "State") +
+  # --- Theme ---
+  theme_bw(base_size = 18) +
+  theme(
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
 
 aq_fig
+
+
+head(fitted_values)
 
 t_s <-fitted_values %>% filter(Group == "Terrestrial") %>% 
   group_by(Group) %>%
@@ -261,18 +282,33 @@ ar_s
 
 ar_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group == "Arable"), aes(x = Estimate, y = Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth = 600) +
-  theme_ridges() +  # Theme for ridgeline plot
-   geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color = "black") +
+  geom_point(data = fitted_values %>% filter(Group %in% c("Arable")) %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate))
+             , aes(x = mean, y = Biome,  color = Realm_Biome), size=5, shape = 15)+
+   geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
   scale_y_discrete(limits=rev)+
   xlim(0,15000)+
-  scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929" ))+
+  scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929" ),
+                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical") )+
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
-  scale_fill_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"))+
-  labs(title = "Arable", x = "Posterior Sample Value", y = "") +
-  theme(legend.position = "bottom") 
+  scale_fill_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"),
+                     labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
+  labs(#subtitle = "b) Arable", 
+       x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
+  # --- Theme ---
+  theme_bw(base_size = 18) +
+  theme(
+    axis.title.x = element_blank(),
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
 
 ar_fig
 
@@ -297,14 +333,23 @@ group_means <- t_s  %>% bind_rows(ar_s,w_s, aq_s ) %>%
 head(group_means)
 write.csv(group_means, "~/Dropbox/GSB/Data/Table_Fig_3_Realm_Means.csv")
 
-
+head(fitted_values)
 fitted_values %>% select(Group) %>% distinct()
 
+#,  fill = "#C0C0C0"
 t_fig <- ggplot() +
-  geom_density_ridges(data = fitted_values %>% filter(Group == "Terrestrial") , 
-                      aes(x = Estimate, y = Realm, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
+  geom_density_ridges(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") , 
+                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, bandwidth =600, fill = "#C0C0C0") +
+  geom_density_ridges(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") ,
+                      aes(x = Estimate, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
   theme_ridges() +  # Theme for ridgeline plot
   geom_vline(data = t_s, aes(xintercept = mean), size = 1.2, color = "#0c7156") +
+  geom_point(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)), 
+                      aes(x = mean, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, fill = "#C0C0C0", shape=17, size=5) +
+  geom_point(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
+                      aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, shape=16, size=5) +
   # geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0",linetype="dotted") +
   # geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
   # geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
@@ -312,147 +357,82 @@ t_fig <- ggplot() +
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
   scale_y_discrete(limits=rev)+
-  xlim(0,15000)+
-  scale_color_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",  "#da7901","#fab255" ))+
-  # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
-  scale_fill_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",   "#da7901", "#fab255"))+
-  labs(title = "Natural Terrestrial Areas", x = expression(paste('Seed density (',m^2,')')),
+  xlim(0,9000)+
+  scale_color_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",  "#da7901","#fab255" ),
+                      labels = c("Tundra", "Forest: Boreal", "Forest: Temperate", "Forest: Tropical & \nSubtropical",
+                                 "Grasslands & Savannas: \nTemperate & Boreal", "Grasslands & Savannas: \nTropical & Subtropical", "Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
+  # # # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
+   scale_fill_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",   "#da7901", "#fab255"),
+                      labels = c("Tundra", "Forest: Boreal", "Forest: Temperate", "Forest: Tropical & \nSubtropical",
+                      "Grasslands & Savannas: \nTemperate & Boreal", "Grasslands & Savannas: \nTropical & Subtropical", "Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
+   labs(#title = "Natural Terrestrial Areas", 
+    x = expression(paste('Seed density (',m^2,')')),
        y = "") +
-  theme(legend.position = "bottom", legend.title = element_blank())  +
-  guides(color = guide_legend(nrow = 3))
+  labs(#subtitle = "a) Natural Terrestrial", 
+    x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
+  theme_bw(base_size = 18) +
+  theme(
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
 
-tr_fig <- (t_fig / nt_legend_line  + plot_layout(heights = c(10,  1.5)))
+t_fig
 
 
-ar_fig <- ggplot() +
-  geom_density_ridges(data = fitted_values %>% filter(Group == "Arable"), 
-                      aes(x = Estimate, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
-  theme_ridges() +  # Theme for ridgeline plot
-  geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
-  # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
-  # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
-  #           alpha = 0.3, fill = "black") +
-  scale_y_discrete(limits=rev)+
-  xlim(0,15000)+
-  scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"  ))+
-  # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
-  scale_fill_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"))+
-  labs(title = "Arable", x = expression(paste('Seed density (',m^2,')')),
-       y = "") +
-  theme(legend.position = "bottom", legend.title = element_blank()) # +
-  #guides(color = guide_legend(nrow = 4))
-
-arr_fig <- (ar_fig / ar_legend_line  + plot_layout(heights = c(10,  1.5)))
 
 
 w_fig <- ggplot() +
-  geom_density_ridges(data = fitted_values %>% filter(Group == c("Wetlands", "Aquatic")) , 
-                      aes(x = Estimate, y = Realm, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
-  theme_ridges() +  # Theme for ridgeline plot
+  geom_density_ridges(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "1")  , 
+                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, bandwidth =600, fill = "#C0C0C0") +
+  geom_density_ridges(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "0")  , 
+                      aes(x = Estimate, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
+  geom_point(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "1") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)), 
+             aes(x = mean, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, fill = "#C0C0C0", shape=17, size=5) +
+  geom_point(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "0") %>%
+               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, shape=16, size=5) +
    geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0",linetype="dotted") +
-  geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
+ # geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
   scale_y_discrete(limits=rev)+
   xlim(0,15000)+
-  scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352","#447fdd" ))+
+  scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352","#447fdd" ),
+                      labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
-  scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352","#447fdd"))+
-  labs(title = "Wetland & Aquatic", x = expression(paste('Seed density (',m^2,')')),
-       y = "") +
-  theme(legend.position = "bottom", legend.title = element_blank())  +
-  guides(color = guide_legend(nrow = 2))
+  scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352","#447fdd"),
+                     labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
+  labs(#subtitle = "c) Wetlands", 
+    x = expression(paste('Seed density (',m^2,')')),
+       y = "Biome") +
+  theme_bw(base_size = 18) +
+  theme(
+    legend.title = element_blank(),
+    axis.text.y = element_blank(),
+    plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
+    plot.title = element_text(size = 18, hjust = 0.5),
+    strip.background = element_blank(),
+    legend.position = "bottom"
+  )
 
-wr_fig <- (w_fig / wa_legend_line  + plot_layout(heights = c(10,  1.5)))
-
-
-tr_fig 
-arr_fig
-wr_fig
-
-group_means
-
-nt_legend_line <- ggplot() + 
-  # geom_hline(yintercept = 0,linetype="longdash") +
-  geom_hline(data = group_means %>% filter(Group == "Terrestrial"), aes(yintercept = mean, color = Group, linetype=Group, group=Group), size = 1.2, alpha = 0.7) +
-  labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),  
-       subtitle=  "f) Wetlands" ) +
-  scale_color_manual( name = "Realm Mean",labels = c("Natural Terrestrial"),
-                      values= c( "#0c7156") )+
-  scale_linetype_manual(name="Realm Mean",labels = c("Natural Terrestrial"),
-                        values= c("solid") )+
-  #scale_color_manual( values= c(  "#20B2AA"))+
-  theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                                 plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                                 plot.title = element_text(size=18, hjust=0.5),
-                                 strip.background = element_blank(), legend.position="bottom",
-                                 legend.key.width = unit(3,"cm")
-                                 #axis.text.x=element_blank()
-  ) 
+w_fig
 
 
-nt_legend_line
+(t_fig + ar_fig) / (w_fig + aq_fig)+
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.tag = element_text(size = 16))
 
-ar_legend_line <- ggplot() + 
-  # geom_hline(yintercept = 0,linetype="longdash") +
-  geom_hline(data = group_means%>% filter(Group == "Arable"), aes(yintercept = mean, color = Group, linetype=Group, group=Group), size = 1.2, alpha = 0.7) +
-  labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),  
-       subtitle=  "f) Wetlands" ) +
-  scale_color_manual( name = "Realm Mean",labels = c("Arable"),
-                      values= c( "#472c0b") )+
-  scale_linetype_manual(name="Realm Mean",labels = c( "Arable"),
-                        values= c( "longdash") )+
-  #scale_color_manual( values= c(  "#20B2AA"))+
-  theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                                 plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                                 plot.title = element_text(size=18, hjust=0.5),
-                                 strip.background = element_blank(), legend.position="bottom",
-                                 legend.key.width = unit(3,"cm")
-                                 #axis.text.x=element_blank()
-  ) 
+t_fig + plot_annotation(tag_levels = 'A') 
+
+(ar_fig + w_fig + aq_fig)+
+  plot_annotation(tag_levels = 'B') &
+  theme(plot.tag = element_text(size = 12)) + plot_layout(heights = c(15, 10))
 
 
-ar_legend_line
-
-wa_legend_line <- ggplot() + 
-  # geom_hline(yintercept = 0,linetype="longdash") +
-  geom_hline(data = group_means %>% filter(Group == c("Wetlands", "Aquatic")), aes(yintercept = mean, color = Group, linetype=Group, group=Group), size = 1.2, alpha = 0.7) +
-  labs(x = '',
-       y = expression(paste('Seed density (',m^2,')')),  
-       subtitle=  "f) Wetlands" ) +
-  scale_color_manual( name = "Realm Mean",labels = c( "Wetlands", "Aquatic"),
-                      values= c(   "#208cc0","#003967") )+
-  scale_linetype_manual(name="Realm Mean",labels = c( "Wetlands", "Aquatic"),
-                        values= c("dotted", "twodash" ) )+
-  #scale_color_manual( values= c(  "#20B2AA"))+
-  theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-                                 plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
-                                 plot.title = element_text(size=18, hjust=0.5),
-                                 strip.background = element_blank(), legend.position="bottom",
-                                 legend.key.width = unit(3,"cm")
-                                 #axis.text.x=element_blank()
-  ) 
-
-
-wa_legend_line 
-
-
-
-
-# extract legends
-# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
-g_legend<-function(a.gplot){
-  tmp <- ggplot_gtable(ggplot_build(a.gplot))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)}
-
-
-nt_legend_line <- g_legend(nt_legend_line)
-
-ar_legend_line <- g_legend(ar_legend_line)
-
-wa_legend_line <- g_legend(wa_legend_line)

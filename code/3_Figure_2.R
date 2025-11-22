@@ -99,6 +99,7 @@ tund_predict_df <- tund_predict  %>%
 summary(tund_predict_df)
 nrow(tund_predict_df) 
 tund_predict_df %>% select(.draw, Habitat_degraded) %>% mutate(max_draw = max(.draw))
+head(tund_predict_df)
 
 tund_div <- tund_predict_df %>% filter(Number_sites == 1) %>% 
   select(Realm, Biome, Habitat_degraded, Total_sample_area_m2, predicted) %>%
@@ -140,6 +141,7 @@ fig_tund_r <- ggplot() +
                                strip.background = element_blank(),legend.position="none") 
 
 fig_tund_r
+
 
 
 
