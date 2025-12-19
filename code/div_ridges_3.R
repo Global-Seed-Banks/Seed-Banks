@@ -815,11 +815,19 @@ w_div_fig
 
 
 aq_div_fig <- ggplot() +
-  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>%  filter(Total_sample_area_m2 == "α") , 
-                      aes(x = Estimate, y = Habitat_degraded,   height = ..density.., color = Habitat_degraded,  fill = Habitat_degraded),
-                      alpha = 0.35, scale = 0.9, rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
-  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "γ") , 
-                      aes(x = Estimate, y = Habitat_degraded,   height = ..density.., color = Habitat_degraded, fill = Habitat_degraded),  alpha = 0.7, scale = 0.9,rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>%  filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..), color="#C0C0C0", fill="#C0C0C0",
+                      alpha = 0.35, scale = 0.9,  stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..),  color="#C0C0C0", fill="#C0C0C0",
+                      alpha = 0.7, scale = 0.9, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>%  filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..), color="#447fdd", fill="#447fdd",
+                      alpha = 0.35, scale = 0.9,  stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..),  color="#447fdd", fill="#447fdd",
+                      alpha = 0.7, scale = 0.9,stat = "density_ridges", position = "identity") +
+  
   geom_point(data = div_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") ,
              aes(x = Estimate, y = Habitat_degraded, color=Habitat_degraded, shape=Habitat_degraded), alpha = 0.9,  size=2.5) +
   geom_point(data = div_dat %>% filter(Group == "Aquatic")  %>% filter(Total_sample_area_m2 == "γ") ,
@@ -838,9 +846,9 @@ aq_div_fig <- ggplot() +
   geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") ,
                   aes(y = Habitat_degraded, xmin = Lower_90, xmax = Upper_90 , color=Realm_Biome), height = 0.15, linewidth = 0.5 )+
   geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
-                  aes(y = Habitat_degraded , xmin = Lower_50, xmax = Upper_50, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
+                  aes(y = Habitat_degraded , xmin = Lower_50, xmax = Upper_50, color=Realm_Biome ), height = 0.15, linewidth = 1.5 )+
   geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") ,
-                  aes(y = Habitat_degraded, xmin = Lower_50, xmax = Upper_50 , color=Realm_Biome), height = 0.15, linewidth = 0.5 )+
+                  aes(y = Habitat_degraded, xmin = Lower_50, xmax = Upper_50 , color=Realm_Biome), height = 0.15, linewidth = 1.5 )+
   #scale_y_discrete(limits=rev)+
   # xlim(0,50)+
   scale_color_manual( values= c("#447fdd" ,"#C0C0C0", "#447fdd","#447fdd" ))+

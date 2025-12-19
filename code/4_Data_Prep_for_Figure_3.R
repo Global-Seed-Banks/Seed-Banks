@@ -38,7 +38,66 @@ sb_density <- sb_prep %>%
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
           Method = as.factor(Method)) %>% arrange(Biome) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))  
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))  %>%
+  mutate(Realm_Biome = case_when(
+    Realm == "Aquatic" ~ Realm,
+    Realm == "Arable" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Arable", 
+    Realm == "Arable" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Arable", 
+    Realm == "Arable" & Biome ==  "Tropical" ~  "Tropical Arable", 
+    Realm == "Forest" & Biome ==  "Temperate" ~  "Temperate Forests",
+    Realm == "Forest" & Biome ==  "Tropical" ~  "Tropical & Subtropical Forests",
+    Realm == "Forest" & Biome ==  "Boreal" ~  "Boreal Forests/Taiga",
+    Realm == "Grassland" & Biome ==  "Temperate and Boreal" ~  "Temperate & Boreal Grasslands, Savannas & Shrublands",
+    Realm == "Grassland" & Biome ==  "Tropical" ~  "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+    Realm == "Mediterranean and Desert" & Biome ==  "Deserts and Xeric Shrublands" ~  "Deserts & Xeric Shrublands",
+    Realm == "Mediterranean and Desert" & Biome ==  "Mediterranean Forests, Woodlands and Scrub" ~  "Mediterranean Forests, Woodlands & Scrub",
+    Realm ==  "Tundra" ~  Realm,
+    Realm ==  "Wetland" & Biome ==  "Mediterranean and Desert" ~  "Mediterranean & Desert Wetlands",
+    Realm ==  "Wetland" & Biome ==  "Temperate and Boreal"~  "Temperate & Boreal Wetlands",
+    Realm ==  "Wetland"  & Biome ==  "Tropical" ~  "Tropical Wetlands",
+  )) %>% 
+  mutate(Realm_Biome = fct_relevel(Realm_Biome, 
+                                   "Tundra", "Boreal Forests/Taiga",  "Temperate Forests",  "Tropical & Subtropical Forests",
+                                   "Temperate & Boreal Grasslands, Savannas & Shrublands", "Tropical & Subtropical Grasslands, Savannas & Shrublands", 
+                                   "Mediterranean Forests, Woodlands & Scrub",  "Deserts & Xeric Shrublands", 
+                                   "Temperate & Boreal Arable", "Mediterranean & Desert Arable",    "Tropical Arable",
+                                   "Temperate & Boreal Wetlands", "Mediterranean & Desert Wetlands","Tropical Wetlands",
+                                   "Aquatic",
+  )) %>%
+  mutate(
+    Group = case_when(
+      # Aquatic
+      Realm_Biome == "Aquatic" ~ "Aquatic",
+      
+      # Arable
+      Realm_Biome %in% c(
+        "Temperate & Boreal Arable",
+        "Tropical Arable",
+        "Mediterranean & Desert Arable"
+      ) ~ "Arable",
+      
+      # Terrestrial
+      Realm_Biome %in% c(
+        "Boreal Forests/Taiga",
+        "Tropical & Subtropical Forests",
+        "Temperate Forests",
+        "Temperate & Boreal Grasslands, Savannas & Shrublands",
+        "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+        "Deserts & Xeric Shrublands",
+        "Mediterranean Forests, Woodlands & Scrub",
+        "Tundra"
+      ) ~ "Terrestrial",
+      
+      # Wetlands
+      Realm_Biome %in% c(
+        "Temperate & Boreal Wetlands",
+        "Mediterranean & Desert Wetlands",
+        "Tropical Wetlands"
+      ) ~ "Wetlands",
+      
+      TRUE ~ NA_character_
+    )
+  )
 
 head(sb_density)
 
@@ -205,6 +264,124 @@ aq_s <-fitted_values %>% filter(Group == "Aquatic") %>%
 
 aq_s
 
+
+head(fitted_values)
+
+t_s <-fitted_values %>% filter(Group == "Terrestrial") %>% 
+  group_by(Group) %>%
+  summarise(
+    median = median(Estimate),
+    mean = mean(Estimate),
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+  ) %>% distinct()
+t_s
+
+
+
+w_s <-fitted_values %>%  filter(Group == "Wetlands") %>%
+  group_by(Group) %>%
+  summarise(
+    median = median(Estimate),
+    mean = mean(Estimate),
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+  ) %>% distinct()
+w_s
+
+head(fitted_values %>% filter(Group == "Arable"))
+
+
+ar_s <-fitted_values %>% filter(Group == "Arable") %>%
+  group_by(Group) %>%
+  summarise(
+    median = median(Estimate),
+    mean = mean(Estimate),
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+  ) %>% distinct()
+ar_s
+
+
+head(t_s)
+group_means <- t_s  %>% bind_rows(ar_s,w_s, aq_s ) %>%
+  mutate(mean = round(mean, 0),
+         median = round(median, 0),
+         lower_90 = round(lower_90, 0),
+         upper_90 = round(upper_90, 0),
+         lower_50 = round(lower_50, 0),
+         upper_50 = round(upper_50, 0),
+  ) %>%
+  unite("50% Credible Interval", lower_50:upper_50, sep="-") %>%
+  unite("90% Credible Interval", lower_90:upper_90, sep="-") 
+
+
+head(group_means)
+write.csv(group_means, "~/Dropbox/GSB/Data/Table_Fig_3_Realm_Means.csv")
+
+head(fitted_values)
+fitted_values %>% select(Group) %>% distinct()
+
+
+fit_groups_s <- fitted_values %>% #filter(Group == "Terrestrial") %>% 
+  group_by(Group, Realm_Biome, Habitat_degraded) %>%
+  summarise(
+    median = median(Estimate),
+    mean = mean(Estimate),
+    lower_50 = mean(Q25),
+    upper_50 = mean(Q75),
+    lower_90 = mean(Q5),
+    upper_90 = mean(Q95),
+  ) %>% distinct()
+fit_groups_s
+
+
+biome_levels <- c(
+  "Tundra",
+  "Boreal Forests/Taiga",
+  "Temperate Forests",
+  "Tropical & Subtropical Forests",
+  "Temperate & Boreal Grasslands, Savannas & Shrublands",
+  "Tropical & Subtropical Grasslands, Savannas & Shrublands",
+  "Mediterranean Forests, Woodlands & Scrub",
+  "Deserts & Xeric Shrublands",
+  "Temperate & Boreal Arable",
+  "Mediterranean & Desert Arable",
+  "Tropical Arable",
+  "Temperate & Boreal Wetlands",
+  "Mediterranean & Desert Wetlands",
+  "Tropical Wetlands",
+  "Aquatic"
+)
+
+add_y <- function(df) {
+  df %>%
+    mutate(
+      Realm_Biome = factor(Realm_Biome, levels = rev(biome_levels)),  # 👈 KEY
+      y_base = as.numeric(Realm_Biome)
+    )
+}
+
+fitted_values <- add_y(fitted_values)
+fit_groups_s     <- add_y(fit_groups_s)
+sb_density     <- add_y(sb_density)
+
+#y_offset <- 0.18
+y_text_offset <- 0.10
+
+y_offset_1 <- 0.36
+y_offset_2 <- 0.18
+y_offset_3 <- 0.54
+
+summary(sb_density)
+
+
 aq_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group %in% c("Aquatic")), aes(x = Estimate, y = Habitat_degraded, fill = Habitat_degraded, color = Habitat_degraded), alpha = 0.7, bandwidth =600) +
   theme_ridges() +  # Theme for ridgeline plot
@@ -243,64 +420,39 @@ aq_fig <- ggplot() +
 aq_fig
 
 
-head(fitted_values)
-
-t_s <-fitted_values %>% filter(Group == "Terrestrial") %>% 
-  group_by(Group) %>%
-  summarise(
-    median = median(Estimate),
-    mean = mean(Estimate),
-    lower_50 = mean(Q25),
-    upper_50 = mean(Q75),
-    lower_90 = mean(Q5),
-    upper_90 = mean(Q95),
-  ) %>% distinct()
-t_s
-
-w_s <-fitted_values %>%  filter(Group == "Wetlands") %>%
-  group_by(Group) %>%
-  summarise(
-    median = median(Estimate),
-    mean = mean(Estimate),
-    lower_50 = mean(Q25),
-    upper_50 = mean(Q75),
-    lower_90 = mean(Q5),
-    upper_90 = mean(Q95),
-  ) %>% distinct()
-w_s
-
-head(fitted_values %>% filter(Group == "Arable"))
-
-
-
-ar_s <-fitted_values %>% filter(Group == "Arable") %>%
-  group_by(Group) %>%
-  summarise(
-    median = median(Estimate),
-    mean = mean(Estimate),
-    lower_50 = mean(Q25),
-    upper_50 = mean(Q75),
-    lower_90 = mean(Q5),
-    upper_90 = mean(Q95),
-  ) %>% distinct()
-ar_s
 
 ar_fig <- ggplot() +
-  geom_density_ridges(data = fitted_values %>% filter(Group == "Arable"), aes(x = Estimate, y = Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth = 600) +
+  geom_density_ridges(data = fitted_values %>% filter(Group == "Arable"), aes(x = Estimate, y = y_base, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth = 600) +
   geom_point(data = fitted_values %>% filter(Group %in% c("Arable")) %>%
-               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate))
-             , aes(x = mean, y = Biome,  color = Realm_Biome), size=5, shape = 15, alpha=0.9)+
+               group_by(Biome, Realm_Biome, y_base) %>% summarise(mean = mean(Estimate))
+             , aes(x = mean, y = y_base,  color = Realm_Biome), size=5, shape = 15, alpha=0.9)+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Arable")  ,
+                  aes(y = y_base , xmin = lower_90, xmax = upper_90, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Arable")  ,
+                  aes(y = y_base , xmin = lower_50, xmax = upper_50 , color=Realm_Biome), height = 0.15, linewidth = 1.5 )+
+  geom_point(data = sb_density %>% filter(Group == "Arable")  ,
+             aes(x = Seed_density_m2, y = y_base,  colour = Realm_Biome 
+             ),  size = 1.5, alpha = 0.2, shape= 16, position = position_jitter(width = 0, height=0.025)) +
    geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
-  scale_y_discrete(limits=rev)+
+  #scale_y_discrete(limits=rev)+
   xlim(0,15000)+
-  scale_color_manual( values= c( "#99610a" , "#E2C59F", "#AA3929" ),
+  scale_color_manual( values= c("#AA3929",  "#E2C59F", "#99610a" ),
                       labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical") )+
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
-  scale_fill_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"),
+  scale_fill_manual( values= c( "#AA3929",  "#E2C59F", "#99610a"),
                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
+  geom_text(data = sb_density %>% filter(Group == "Arable") %>% distinct(Realm_Biome, y_base) %>%
+              mutate(label = case_when(
+                Realm_Biome == "Temperate & Boreal Arable" ~ "Temperate & Boreal",
+                Realm_Biome ==  "Mediterranean & Desert Arable" ~ "Mediterranean & Desert",
+                Realm_Biome == "Tropical Arable" ~ "Tropical",
+                TRUE ~ Realm_Biome
+              )),
+            aes(y = y_base + y_text_offset, label = label), x = 2000, colour = "grey60", vjust = 0
+  )+
   labs(subtitle = "Arable", 
        x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
   # --- Theme ---
@@ -317,57 +469,51 @@ ar_fig <- ggplot() +
 
 ar_fig
 
-
-
-
 aq_fig + t_fig + ar_fig
 
 
-group_means <- t_s  %>% bind_rows(ar_s,w_s, aq_s ) %>%
-  mutate(mean = round(mean, 0),
-         median = round(median, 0),
-         lower_90 = round(lower_90, 0),
-         upper_90 = round(upper_90, 0),
-         lower_50 = round(lower_50, 0),
-         upper_50 = round(upper_50, 0),
-  ) %>%
-  unite("50% Credible Interval", lower_50:upper_50, sep="-") %>%
-  unite("90% Credible Interval", lower_90:upper_90, sep="-") 
-
-
-head(group_means)
-write.csv(group_means, "~/Dropbox/GSB/Data/Table_Fig_3_Realm_Means.csv")
-
-head(fitted_values)
-fitted_values %>% select(Group) %>% distinct()
 
 #,  fill = "#C0C0C0"
 t_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") , 
-                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.7, bandwidth =600, fill = "#C0C0C0") +
+                      aes(x = Estimate, y = y_base,  color = Realm_Biome), alpha = 0.7, bandwidth =600, fill = "#C0C0C0") +
   geom_density_ridges(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") ,
-                      aes(x = Estimate, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
+                      aes(x = Estimate, y = y_base + y_offset_1, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
   theme_ridges() +  # Theme for ridgeline plot
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") ,
+                  aes(y = y_base, xmin = lower_90, xmax = upper_90 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") ,
+                  aes(y = y_base, xmin = lower_50, xmax = upper_50 ), height = 0.15, linewidth = 1.5, colour = "#C0C0C0" )+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") ,
+                  aes(y = y_base + y_offset_1, xmin = lower_90, xmax = upper_90, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") ,
+                  aes(y = y_base + y_offset_1, xmin = lower_50, xmax = upper_50 , color=Realm_Biome), height = 0.15, linewidth = 1.5 )+
+  geom_point(data = sb_density %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") ,
+             aes(x = Seed_density_m2, y = y_base ,
+             ), color = "#C0C0C0",  size = 1.5, alpha = 0.2, shape= 17, position = position_jitter(width = 0, height=0.025)) +
+  geom_point(data = sb_density %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") ,
+             aes(x = Seed_density_m2, y = y_base + y_offset_1,  colour = Realm_Biome 
+             ),  size = 1.5, alpha = 0.2, shape= 16, position = position_jitter(width = 0, height=0.025)) +
   geom_vline(data = t_s, aes(xintercept = mean), size = 1.2, color = "#0c7156") +
   geom_point(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") %>%
-               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)), 
-                      aes(x = mean, y = Realm_Biome), alpha = 0.9, color = "#C0C0C0", shape=17, size=5) +
+               group_by(Biome, Realm_Biome, y_base) %>% summarise(mean = mean(Estimate)), 
+                      aes(x = mean, y = y_base), alpha = 0.9, color = "#C0C0C0", shape=17, size=5) +
   geom_point(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") %>%
-               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
-                      aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.9, shape=16, size=5) +
+               group_by(Biome, Realm_Biome, y_base) %>% summarise(mean = mean(Estimate)) ,
+                      aes(x = mean, y = y_base + y_offset_1, fill = Realm_Biome, color = Realm_Biome), alpha = 0.9, shape=16, size=5) +
   # geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0",linetype="dotted") +
   # geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
   # geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
-  scale_y_discrete(limits=rev)+
+  #scale_y_discrete(limits=rev)+
   xlim(0,9000)+
-  scale_color_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",  "#da7901","#fab255" ),
+  scale_color_manual( values= c("#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594"),
                       labels = c("Tundra", "Forest: Boreal", "Forest: Temperate", "Forest: Tropical & \nSubtropical",
                                  "Grasslands & Savannas: \nTemperate & Boreal", "Grasslands & Savannas: \nTropical & Subtropical", "Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
   # # # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
-   scale_fill_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",   "#da7901", "#fab255"),
+   scale_fill_manual( values= c( "#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594"),
                       labels = c("Tundra", "Forest: Boreal", "Forest: Temperate", "Forest: Tropical & \nSubtropical",
                       "Grasslands & Savannas: \nTemperate & Boreal", "Grasslands & Savannas: \nTropical & Subtropical", "Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
    labs(subtitle = "Natural Terrestrial Areas", 
@@ -375,6 +521,8 @@ t_fig <- ggplot() +
        y = "") +
   labs(#subtitle = "a) Natural Terrestrial", 
     x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
+  geom_text(data = sb_density %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
+            aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  8000, colour = "grey60", vjust = 0)+
   theme_bw(base_size = 18) +
   theme(
     legend.title = element_blank(),
@@ -393,30 +541,56 @@ t_fig
 
 w_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "1")  , 
-                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.7, bandwidth =600, fill = "#C0C0C0") +
+                      aes(x = Estimate, y = y_base,  color = Realm_Biome), alpha = 0.7, bandwidth =600, fill = "#C0C0C0") +
   geom_density_ridges(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "0")  , 
-                      aes(x = Estimate, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
+                      aes(x = Estimate, y = y_base + y_offset_1, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "1") ,
+                  aes(y = y_base, xmin = lower_90, xmax = upper_90 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "1") ,
+                  aes(y = y_base, xmin = lower_50, xmax = upper_50 ), height = 0.15, linewidth = 1.5, colour = "#C0C0C0" )+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "0") ,
+                  aes(y = y_base + y_offset_1, xmin = lower_90, xmax = upper_90, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
+  geom_errorbarh( data = fit_groups_s %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "0") ,
+                  aes(y = y_base + y_offset_1, xmin = lower_50, xmax = upper_50 , color=Realm_Biome), height = 0.15, linewidth = 1.5 )+
+  geom_point(data = sb_density %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "1") ,
+             aes(x = Seed_density_m2, y = y_base ,
+             ), color = "#C0C0C0",  size = 1.5, alpha = 0.2, shape= 17, position = position_jitter(width = 0, height=0.025)) +
+  geom_point(data = sb_density %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "0") ,
+             aes(x = Seed_density_m2, y = y_base + y_offset_1,  colour = Realm_Biome 
+             ),  size = 1.5, alpha = 0.2, shape= 16, position = position_jitter(width = 0, height=0.025)) +
+  
+  geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0",linetype="dotted") +
   geom_point(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "1") %>%
-               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)), 
-             aes(x = mean, y = Realm_Biome), alpha = 0.9, color = "#C0C0C0", shape=17, size=5) +
+               group_by(Biome, Realm_Biome, y_base) %>% summarise(mean = mean(Estimate)), 
+             aes(x = mean, y = y_base), alpha = 0.9, color = "#C0C0C0", shape=17, size=5) +
   geom_point(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "0") %>%
-               group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
-             aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.9, shape=16, size=5) +
-   geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0",linetype="dotted") +
+               group_by(Biome, Realm_Biome, y_base) %>% summarise(mean = mean(Estimate)) ,
+             aes(x = mean, y = y_base + y_offset_1, fill = Realm_Biome, color = Realm_Biome), alpha = 0.9, shape=16, size=5) +
  # geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
-  scale_y_discrete(limits=rev)+
+  #scale_y_discrete(limits=rev)+
   xlim(0,15000)+
-  scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352","#447fdd" ),
+  scale_color_manual( values= c( "#293352", "#4E84C4", "#20B2AA"),
                       labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
-  scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352","#447fdd"),
+  scale_fill_manual( values= c(  "#293352", "#4E84C4", "#20B2AA"),
                      labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
   labs(subtitle = "Wetlands", 
     x = expression(paste('Seed density (',m^2,')')),
        y = "Biome") +
+  # geom_text(data = sb_density %>% filter(Group == "Wetlands") %>% distinct(Realm_Biome, y_base),
+  #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  1000, colour = "grey60", vjust = 0)+
+  geom_text(data = sb_density %>% filter(Group == "Wetlands") %>%distinct(Realm_Biome, y_base) %>%
+              mutate(label = case_when(
+                Realm_Biome == "Temperate & Boreal Wetlands" ~ "Temperate & Boreal",
+                Realm_Biome ==  "Mediterranean & Desert Wetlands" ~ "Mediterranean & Desert",
+                Realm_Biome == "Tropical Wetlands" ~ "Tropical",
+                TRUE ~ Realm_Biome
+              )),
+            aes(y = y_base + y_text_offset, label = label), x = 1000, colour = "grey60", vjust = 0
+  )+
   theme_bw(base_size = 18) +
   theme(
     legend.title = element_blank(),
