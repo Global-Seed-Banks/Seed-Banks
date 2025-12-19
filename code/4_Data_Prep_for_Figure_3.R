@@ -101,7 +101,7 @@ aq_fitted <- cbind(mod_aq_d$data,
   ) %>% mutate(Model = "Aquatic") %>% mutate(Group = "Aquatic")
 
 head(aq_fitted)
-View(aq_fitted)
+#View(aq_fitted)
 
 ggplot(aq_fitted, aes(x = Estimate, y = Habitat_degraded, fill = Habitat_degraded, color = Habitat_degraded)) +
   geom_density_ridges(alpha = 0.7) +
@@ -209,9 +209,12 @@ aq_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group %in% c("Aquatic")), aes(x = Estimate, y = Habitat_degraded, fill = Habitat_degraded, color = Habitat_degraded), alpha = 0.7, bandwidth =600) +
   theme_ridges() +  # Theme for ridgeline plot
   geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
-  geom_point(data = fitted_values %>% filter(Group %in% c("Aquatic")) %>%
+  geom_point(data = fitted_values %>% filter(Group %in% c("Aquatic"))  %>% filter(Habitat_degraded == "0") %>%
                group_by(Habitat_degraded) %>% summarise(mean = mean(Estimate))
-               , aes(x = mean, y = Habitat_degraded, shape = Habitat_degraded, color = Habitat_degraded), size=5)+
+               , aes(x = mean, y = Habitat_degraded, shape = Habitat_degraded), color = "#447fdd", size=5, alpha=0.9)+
+  geom_point(data = fitted_values %>% filter(Group %in% c("Aquatic"))  %>% filter(Habitat_degraded == "1") %>%
+               group_by(Habitat_degraded) %>% summarise(mean = mean(Estimate))
+             , aes(x = mean, y = Habitat_degraded, shape = Habitat_degraded), color = "#C0C0C0", size=5, alpha=0.9)+
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
   #           alpha = 0.3, fill = "black") +
@@ -222,8 +225,10 @@ aq_fig <- ggplot() +
                      labels = c("Undisturbed", "Degraded"))+
   scale_shape_manual( values= c( 16,17),
                      labels = c("Undisturbed", "Degraded"))+
-  labs(#subtitle = "d) Aquatic", 
-    x = expression(paste('Seed density (',m^2,')')), y = "State") +
+  labs(subtitle = "Aquatic", 
+    #x = expression(paste('Seed density (',m^2,')')), 
+    x="", y = "State"
+    ) +
   # --- Theme ---
   theme_bw(base_size = 18) +
   theme(
@@ -232,7 +237,7 @@ aq_fig <- ggplot() +
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
-    legend.position = "bottom"
+    legend.position = "none"
   )
 
 aq_fig
@@ -284,7 +289,7 @@ ar_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group == "Arable"), aes(x = Estimate, y = Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth = 600) +
   geom_point(data = fitted_values %>% filter(Group %in% c("Arable")) %>%
                group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate))
-             , aes(x = mean, y = Biome,  color = Realm_Biome), size=5, shape = 15)+
+             , aes(x = mean, y = Biome,  color = Realm_Biome), size=5, shape = 15, alpha=0.9)+
    geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
   # geom_rect(data = aq_s, aes(xmin = lower, xmax = upper, ymin = -Inf, ymax = Inf),
@@ -296,7 +301,7 @@ ar_fig <- ggplot() +
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c( "#99610a" , "#E2C59F", "#AA3929"),
                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
-  labs(#subtitle = "b) Arable", 
+  labs(subtitle = "Arable", 
        x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
   # --- Theme ---
   theme_bw(base_size = 18) +
@@ -307,7 +312,7 @@ ar_fig <- ggplot() +
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
-    legend.position = "bottom"
+    legend.position = "none"
   )
 
 ar_fig
@@ -339,17 +344,17 @@ fitted_values %>% select(Group) %>% distinct()
 #,  fill = "#C0C0C0"
 t_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") , 
-                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, bandwidth =600, fill = "#C0C0C0") +
+                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.7, bandwidth =600, fill = "#C0C0C0") +
   geom_density_ridges(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") ,
                       aes(x = Estimate, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
   theme_ridges() +  # Theme for ridgeline plot
   geom_vline(data = t_s, aes(xintercept = mean), size = 1.2, color = "#0c7156") +
   geom_point(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "1") %>%
                group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)), 
-                      aes(x = mean, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, fill = "#C0C0C0", shape=17, size=5) +
+                      aes(x = mean, y = Realm_Biome), alpha = 0.9, color = "#C0C0C0", shape=17, size=5) +
   geom_point(data = fitted_values %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "0") %>%
                group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
-                      aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, shape=16, size=5) +
+                      aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.9, shape=16, size=5) +
   # geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0",linetype="dotted") +
   # geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
   # geom_vline(data = ar_s, aes(xintercept = mean), size = 1.2, color ="#472c0b", alpha = 0.7, linetype="longdash") +
@@ -365,7 +370,7 @@ t_fig <- ggplot() +
    scale_fill_manual( values= c( "#94b594", "#1e3d14", "#788f33","#228B22","#d8b847", "#b38711",   "#da7901", "#fab255"),
                       labels = c("Tundra", "Forest: Boreal", "Forest: Temperate", "Forest: Tropical & \nSubtropical",
                       "Grasslands & Savannas: \nTemperate & Boreal", "Grasslands & Savannas: \nTropical & Subtropical", "Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
-   labs(#title = "Natural Terrestrial Areas", 
+   labs(subtitle = "Natural Terrestrial Areas", 
     x = expression(paste('Seed density (',m^2,')')),
        y = "") +
   labs(#subtitle = "a) Natural Terrestrial", 
@@ -378,7 +383,7 @@ t_fig <- ggplot() +
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
-    legend.position = "bottom"
+    legend.position = "none"
   )
 
 t_fig
@@ -388,15 +393,15 @@ t_fig
 
 w_fig <- ggplot() +
   geom_density_ridges(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "1")  , 
-                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, bandwidth =600, fill = "#C0C0C0") +
+                      aes(x = Estimate, y = Realm_Biome,  color = Realm_Biome), alpha = 0.7, bandwidth =600, fill = "#C0C0C0") +
   geom_density_ridges(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "0")  , 
                       aes(x = Estimate, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, bandwidth =600) +
   geom_point(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "1") %>%
                group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)), 
-             aes(x = mean, y = Realm_Biome,  color = Realm_Biome), alpha = 0.5, fill = "#C0C0C0", shape=17, size=5) +
+             aes(x = mean, y = Realm_Biome), alpha = 0.9, color = "#C0C0C0", shape=17, size=5) +
   geom_point(data = fitted_values %>% filter(Group == c("Wetlands")) %>% filter(Habitat_degraded == "0") %>%
                group_by(Biome, Realm_Biome) %>% summarise(mean = mean(Estimate)) ,
-             aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.5, shape=16, size=5) +
+             aes(x = mean, y = Realm_Biome, fill = Realm_Biome, color = Realm_Biome), alpha = 0.9, shape=16, size=5) +
    geom_vline(data = w_s, aes(xintercept = mean), size = 1.2, color = "#208cc0",linetype="dotted") +
  # geom_vline(data = aq_s, aes(xintercept = mean), size = 1.2, color = "#003967", alpha = 0.7,linetype="twodash") +
   # Add rectangles using the 'lower' and 'upper' bounds from 'aq_s'
@@ -409,7 +414,7 @@ w_fig <- ggplot() +
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c(  "#20B2AA", "#4E84C4", "#293352","#447fdd"),
                      labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
-  labs(#subtitle = "c) Wetlands", 
+  labs(subtitle = "Wetlands", 
     x = expression(paste('Seed density (',m^2,')')),
        y = "Biome") +
   theme_bw(base_size = 18) +
@@ -419,7 +424,7 @@ w_fig <- ggplot() +
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
-    legend.position = "bottom"
+    legend.position = "none"
   )
 
 w_fig
@@ -429,10 +434,14 @@ w_fig
   plot_annotation(tag_levels = 'A') &
   theme(plot.tag = element_text(size = 16))
 
-t_fig + plot_annotation(tag_levels = 'A') 
 
-(ar_fig + w_fig + aq_fig)+
-  plot_annotation(tag_levels = 'B') &
-  theme(plot.tag = element_text(size = 12)) + plot_layout(heights = c(15, 10))
+(t_fig) / ( ar_fig + w_fig + aq_fig)+
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.tag = element_text(size = 16))
 
+
+
+t_fig 
+
+( ar_fig + w_fig + aq_fig)
 
