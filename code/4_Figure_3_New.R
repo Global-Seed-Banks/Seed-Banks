@@ -519,7 +519,7 @@ t_fig <- ggplot() +
    labs(subtitle = "Natural Terrestrial Areas", 
     x = expression(paste('Seed density (',m^2,')')),
        y = "") +
-  labs(#subtitle = "a) Natural Terrestrial", 
+  labs(subtitle = "a) Natural Terrestrial", 
     x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
   # geom_text(data = sb_density %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
   #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  8000, colour = "grey60", vjust = 0)+
@@ -535,7 +535,7 @@ t_fig <- ggplot() +
                 Realm_Biome == "Mediterranean Forests, Woodlands & Scrub" ~ "Mediterranean \nForests, Woodlands & Scrub",
                 TRUE ~ Realm_Biome
               )),
-            aes(y = y_base + y_text_offset, label = label), x = 8000, colour = "grey60", vjust = 0
+            aes(y = y_base + y_text_offset, label = label), x = 8000, colour = "grey60", vjust = 0, size=6
   )+
   theme_bw(base_size = 18) +
   theme(
@@ -591,7 +591,7 @@ w_fig <- ggplot() +
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c(  "#293352", "#4E84C4", "#20B2AA"),
                      labels=c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
-  labs(subtitle = "Wetlands", 
+  labs(subtitle = "c) Wetlands & Flooded Grasslands", 
     x = expression(paste('Seed density (',m^2,')')),
        y = "Biome") +
   # geom_text(data = sb_density %>% filter(Group == "Wetlands") %>% distinct(Realm_Biome, y_base),

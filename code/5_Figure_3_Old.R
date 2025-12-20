@@ -217,13 +217,13 @@ summary(mod_forest_d)
 forest_d_90 <- conditional_effects(mod_forest_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
 forest_d_50 <- conditional_effects(mod_forest_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
-forest_d
+
 
 forest_d_df_90 <-
   as.data.frame(forest_d_90$`Biome:Habitat_degraded`)
 forest_d_df_50 <-
   as.data.frame(forest_d_50$`Biome:Habitat_degraded`)
-head(forest_d_df)
+
 
 forest_d_90_ce <- forest_d_df_90 %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
@@ -303,13 +303,10 @@ grass_d_90 <- conditional_effects(mod_grass_d, effects = 'Biome:Habitat_degraded
 grass_d_50 <- conditional_effects(mod_grass_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
 
-grass_d
-
 grass_d_df_90 <-
   as.data.frame(grass_d_90$`Biome:Habitat_degraded`)
 grass_d_df_50 <-
   as.data.frame(grass_d_50$`Biome:Habitat_degraded`)
-head(grass_d_df)
 
 grass_d_90_ce <- grass_d_df_90 %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
@@ -389,14 +386,13 @@ summary(mod_med_de_d)
 med_de_d_90 <- conditional_effects(mod_med_de_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
 med_de_d_50 <- conditional_effects(mod_med_de_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
-med_de_d
+
 
 med_de_d_df_90 <-
   as.data.frame(med_de_d_90$`Biome:Habitat_degraded`)
 med_de_d_df_50 <-
   as.data.frame(med_de_d_50$`Biome:Habitat_degraded`)
 
-head(med_de_d_df)
 
 med_de_d_90_ce <- med_de_d_df_90 %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
@@ -422,7 +418,6 @@ med_de_d_50_ce <- med_de_d_df_50 %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))%>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
 
-med_de_d_ce
 
 
 fig_med_de_d <- ggplot() + 
@@ -484,7 +479,7 @@ tund_d_df_90 <-
   as.data.frame(tund_d_90$`Habitat_degraded`)
 tund_d_df_50 <-
   as.data.frame(tund_d_50$`Habitat_degraded`)
-head(tund_d_df)
+
 
 tund_d_90_ce <- tund_d_df_90 %>%
   select(Habitat_degraded, estimate__, lower__, upper__) %>%
@@ -505,7 +500,7 @@ tund_d_50_ce <- tund_d_df_50 %>%
   ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
-tund_d_ce
+
 
 
 
@@ -566,7 +561,7 @@ wetland_d_df_90 <-
   as.data.frame(wetland_d_90$`Biome:Habitat_degraded`)
 wetland_d_df_50 <-
   as.data.frame(wetland_d_50$`Biome:Habitat_degraded`)
-head(wetland_d_df)
+
 
 wetland_d_50_ce <- wetland_d_df_50 %>%
   select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
@@ -592,7 +587,7 @@ wetland_d_90_ce <- wetland_d_df_90 %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
 
-wetland_d_ce
+
 
 
 fig_wetland_d <- ggplot() + 

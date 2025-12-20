@@ -668,7 +668,7 @@ t_div_fig <- ggplot() +
   # xlim(0,50)+
   scale_color_manual( values= c( "#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594" ))+
   scale_fill_manual( values= c( "#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594"))+
-  labs(subtitle = "Natural Terrestrial Areas",
+  labs(subtitle = "a) Natural Terrestrial",
     x = "Species richness in the soil seedbank",
     y = "Biome") +
   # geom_text(data = tdiv_dat %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
@@ -685,7 +685,7 @@ t_div_fig <- ggplot() +
                 Realm_Biome == "Mediterranean Forests, Woodlands & Scrub" ~ "Mediterranean \nForests, Woodlands & Scrub",
                 TRUE ~ Realm_Biome
               )),
-            aes(y = y_base + y_text_offset_t, label = label), x = 120, colour = "grey60", vjust = 0
+            aes(y = y_base + y_text_offset_t, label = label), x = 120, colour = "grey60", vjust = 0, size=6
   )+
    theme_bw(base_size = 18) +
   theme(
@@ -730,7 +730,7 @@ ar_div_fig <- ggplot() +
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c("#AA3929",  "#E2C59F", "#99610a" ),
                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
-  labs(subtitle = "Arable",
+  labs(subtitle = "b) Arable",
     x = "Species richness in the soil seedbank",
     y = "Biome") +
   # geom_text(data = div_dat %>% filter(Group == "Arable") %>% distinct(Realm_Biome, y_base) ,
@@ -801,7 +801,7 @@ w_div_fig <- ggplot() +
   scale_color_manual( values= c(  "#293352", "#4E84C4", "#20B2AA" ))+
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c( "#293352", "#4E84C4", "#20B2AA"))+
-  labs(subtitle = "Wetlands & Flooded Grasslands",
+  labs(subtitle = "c) Wetlands & Flooded Grasslands",
     x = "Species richness in the soil seedbank",
     y = "Biome") +
   # geom_text(data = div_dat %>% filter(Group == "Wetlands") %>% distinct(Realm_Biome, y_base),
@@ -871,7 +871,7 @@ aq_div_fig <- ggplot() +
   scale_fill_manual( values= c( "#447fdd", "#C0C0C0"))+
   scale_shape_manual( values= c( 16, 17),
                       labels = c("Undisturbed", "Degraded"))+
-  labs(subtitle = "Aquatic",
+  labs(subtitle = "d) Aquatic",
     #x = "Species richness in the soil seedbank",
     x="",
     y = "State") +
@@ -891,15 +891,6 @@ aq_div_fig <- ggplot() +
 
 aq_div_fig
 
-(t_div_fig + ar_div_fig)/(w_div_fig + aq_div_fig) +
-  plot_annotation(tag_levels = 'A') &
-  theme(plot.tag = element_text(size = 16))
-#13X18
-
-
-(t_div_fig)/ (ar_div_fig + w_div_fig + aq_div_fig) +
-  plot_annotation(tag_levels = 'A') &
-  theme(plot.tag = element_text(size = 16))
 
 
 
@@ -965,17 +956,6 @@ g_legend<-function(a.gplot){
 
 legend_g <- g_legend(legend_g)
 legend_a <- g_legend(legend_a)
-
-# richness_fig <- (fig_tund_r + fig_forest_r + fig_grass_r) /
-#   ( fig_med_de_r + fig_ar_r) /
-#   ( fig_wetland_r + fig_aq_r  )/ (legend_g) / (legend_a) + plot_layout(heights = c(10, 10,  10, 2.5, 1))
-# 
-# richness_fig
-
-leg <- grid.arrange( arrangeGrob( legend_g , legend_a), ncol = 1, nrow = 9,
-                     heights = c(0.10, 0.10, 0.10,0.10, 1, 0.10, 1, 0.10, 0.10),
-                     layout_matrix = rbind(c(NA), c(NA), c(NA), c(NA), c(1), c(NA), c(2), c(NA), c(NA))
-)
 
 
 
