@@ -980,6 +980,7 @@ leg <- grid.arrange( arrangeGrob( legend_g , legend_a), ncol = 1, nrow = 9,
 
 
 t_div_fig
+#10X16
 
 low_row <- (ar_div_fig + w_div_fig + aq_div_fig)
 

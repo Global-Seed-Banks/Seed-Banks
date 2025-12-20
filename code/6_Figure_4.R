@@ -824,7 +824,7 @@ fig_legend_joint <- ggplot()+
                  aes(y = d_Estimate , xmin = `r_Lower_90_CI`, xmax =  `r_Upper_90_CI`)) +
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
-        subtitle = "b) Forests", shape = "Habitat"
+        subtitle = "b) Forests", shape = "State"
   ) +
   scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15) ) +
   theme_classic(base_size=16) +
@@ -854,7 +854,7 @@ joint_fig <- (fig_tund_joint + fig_forest_joint + fig_grass_joint) /
   ( fig_wetland_joint + fig_aq_joint  )/ (fig_legend_joint) + plot_layout(heights = c(10, 10,  10,  1))
 
 joint_fig
-
+#12X12
 
 table_joint <- tund_joint %>% bind_rows(forest_joint, grass_joint, med_de_joint, 
                                       ar_joint, wetland_joint, aq_joint) 

@@ -698,6 +698,7 @@ legend_line <- g_legend(legend_line)
 
 
 t_fig 
+#10X16
 
 ( ar_fig + w_fig + aq_fig)/(legend_d)/(legend_line) + plot_layout(heights = c(10, 1.5, 1.5))
 
