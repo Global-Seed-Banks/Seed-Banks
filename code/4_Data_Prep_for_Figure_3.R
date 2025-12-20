@@ -372,7 +372,7 @@ fitted_values <- add_y(fitted_values)
 fit_groups_s     <- add_y(fit_groups_s)
 sb_density     <- add_y(sb_density)
 
-#y_offset <- 0.18
+y_text_offset_w <- 0.18
 y_text_offset <- 0.10
 
 y_offset_1 <- 0.36
@@ -446,8 +446,8 @@ ar_fig <- ggplot() +
                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
   geom_text(data = sb_density %>% filter(Group == "Arable") %>% distinct(Realm_Biome, y_base) %>%
               mutate(label = case_when(
-                Realm_Biome == "Temperate & Boreal Arable" ~ "Temperate & Boreal",
-                Realm_Biome ==  "Mediterranean & Desert Arable" ~ "Mediterranean & Desert",
+                Realm_Biome == "Temperate & Boreal Arable" ~ "Temperate \n& Boreal",
+                Realm_Biome ==  "Mediterranean & Desert Arable" ~ "Mediterranean \n& Desert",
                 Realm_Biome == "Tropical Arable" ~ "Tropical",
                 TRUE ~ Realm_Biome
               )),
@@ -521,8 +521,22 @@ t_fig <- ggplot() +
        y = "") +
   labs(#subtitle = "a) Natural Terrestrial", 
     x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
-  geom_text(data = sb_density %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
-            aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  8000, colour = "grey60", vjust = 0)+
+  # geom_text(data = sb_density %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
+  #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  8000, colour = "grey60", vjust = 0)+
+  geom_text(data = sb_density %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base) %>%
+              mutate(label = case_when(
+                Realm_Biome == "Tundra" ~ "Tundra",
+                Realm_Biome ==  "Boreal Forests/Taiga" ~ "Forests \nBoreal",
+                Realm_Biome == "Temperate Forests" ~ "Forests \nTemperate",
+                Realm_Biome == "Tropical & Subtropical Forests" ~ "Forests \nTropical & Subtropical",
+                Realm_Biome == "Temperate & Boreal Grasslands, Savannas & Shrublands" ~ "Grasslands & Savannas \nTemperate & Boreal",
+                Realm_Biome == "Tropical & Subtropical Grasslands, Savannas & Shrublands" ~ "Grasslands & Savannas \nTropical & Subtropical",
+                Realm_Biome == "Deserts & Xeric Shrublands " ~ "Deserts & \nXeric Shrublands",
+                Realm_Biome == "Mediterranean Forests, Woodlands & Scrub" ~ "Mediterranean \nForests, Woodlands & Scrub",
+                TRUE ~ Realm_Biome
+              )),
+            aes(y = y_base + y_text_offset, label = label), x = 8000, colour = "grey60", vjust = 0
+  )+
   theme_bw(base_size = 18) +
   theme(
     legend.title = element_blank(),
@@ -584,12 +598,12 @@ w_fig <- ggplot() +
   #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  1000, colour = "grey60", vjust = 0)+
   geom_text(data = sb_density %>% filter(Group == "Wetlands") %>%distinct(Realm_Biome, y_base) %>%
               mutate(label = case_when(
-                Realm_Biome == "Temperate & Boreal Wetlands" ~ "Temperate & Boreal",
-                Realm_Biome ==  "Mediterranean & Desert Wetlands" ~ "Mediterranean & Desert",
+                Realm_Biome == "Temperate & Boreal Wetlands" ~ "Temperate \n& Boreal",
+                Realm_Biome ==  "Mediterranean & Desert Wetlands" ~ "Mediterranean \n& Desert",
                 Realm_Biome == "Tropical Wetlands" ~ "Tropical",
                 TRUE ~ Realm_Biome
               )),
-            aes(y = y_base + y_text_offset, label = label), x = 1000, colour = "grey60", vjust = 0
+            aes(y = y_base + y_text_offset_w, label = label), x = 2000, colour = "grey60", vjust = 0
   )+
   theme_bw(base_size = 18) +
   theme(
@@ -604,18 +618,86 @@ w_fig <- ggplot() +
 w_fig
 
 
-(t_fig + ar_fig) / (w_fig + aq_fig)+
-  plot_annotation(tag_levels = 'A') &
-  theme(plot.tag = element_text(size = 16))
 
 
-(t_fig) / ( ar_fig + w_fig + aq_fig)+
-  plot_annotation(tag_levels = 'A') &
-  theme(plot.tag = element_text(size = 16))
+
+legend_d <- ggplot() + 
+  geom_hline(yintercept = 0,linetype="longdash") +
+  geom_point(data = sb_density %>% filter(Group == "Aquatic") ,
+             aes(x = Biome, y = Seed_density_m2, 
+                 group= Group , shape= Group,
+             ), 
+             size=5, alpha = 0.9,
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
+  geom_point(data = sb_density %>% filter(Group == "Terrestrial") ,
+             aes(x = Biome, y = Seed_density_m2, 
+                 group= Group , shape= Group,
+             ), 
+             size=5, alpha = 0.9,
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
+  geom_point(data = sb_density %>% filter(Group == "Arable") ,
+             aes(x = Biome, y = Seed_density_m2, 
+                 group= Group , shape= Group,
+             ), 
+             size=5, alpha = 0.9,
+             position = position_jitterdodge(jitter.width = 0.75, jitter.height=0.45, dodge.width = 1)) +
+  labs(x = '',
+       y = expression(paste('Seed density (',m^2,')')), shape = "State",
+       subtitle=  "f) Wetlands" ) +
+  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15) ) +
+  #scale_color_manual( values= c(  "#20B2AA"))+
+  coord_cartesian( ylim = c(0,15000)) +
+  scale_y_continuous(breaks=c(0,2500,5000,10000,15000,20000,25000))+
+  theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                 plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                                 plot.title = element_text(size=18, hjust=0.5),
+                                 strip.background = element_blank(), legend.position="bottom",
+                                 #axis.text.x=element_blank()
+  ) + 
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10) )
+
+
+legend_d
+
+
+
+legend_line <- ggplot() + 
+  # geom_hline(yintercept = 0,linetype="longdash") +
+  geom_hline(data = group_means, aes(yintercept = mean, color = Group, linetype=Group, group=Group), size = 1.2, alpha = 0.7) +
+  labs(x = '',
+       y = expression(paste('Seed density (',m^2,')')),  
+       subtitle=  "f) Wetlands" ) +
+  scale_color_manual( name = "Realm Mean",labels = c("Natural Terrestrial", "Arable", "Wetlands", "Aquatic"),
+                      values= c( "#0c7156","#472c0b",   "#208cc0","#003967") )+
+  scale_linetype_manual(name="Realm Mean",labels = c("Natural Terrestrial", "Arable", "Wetlands", "Aquatic"),
+                        values= c("solid", "longdash", "dotted", "twodash" ) )+
+  #scale_color_manual( values= c(  "#20B2AA"))+
+  theme_bw(base_size=18) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                                 plot.margin= margin(t = 0.2, r = 0.2, b = -0.2, l = 0.2, unit = "cm"),
+                                 plot.title = element_text(size=18, hjust=0.5),
+                                 strip.background = element_blank(), legend.position="bottom",
+                                 legend.key.width = unit(3,"cm")
+                                 #axis.text.x=element_blank()
+  ) 
+
+
+legend_line
+
+
+# extract legends
+# Source: https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+legend_d <- g_legend(legend_d)
+legend_line <- g_legend(legend_line)
 
 
 
 t_fig 
 
-( ar_fig + w_fig + aq_fig)
+( ar_fig + w_fig + aq_fig)/(legend_d)/(legend_line) + plot_layout(heights = c(10, 1.5, 1.5))
 

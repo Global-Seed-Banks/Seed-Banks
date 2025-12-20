@@ -574,7 +574,7 @@ fig_ar_joint <- ggplot()+
   # overall effects
   geom_point(data = ar_joint,
              aes(x = r_Estimate, y = d_Estimate, colour = Biome, 
-             ), size = 5) +
+             ), size = 5, shape=15) +
   geom_errorbar(data = ar_joint,
                 aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI`,  colour = Biome  ), width = 0 ) +
   geom_errorbarh(data = ar_joint,
@@ -815,8 +815,8 @@ fig_aq_joint
 fig_legend_joint <- ggplot()+
   geom_vline(xintercept = 0,linetype="longdash") + geom_hline(yintercept = 0,linetype="longdash") + 
   # overall effects
-  geom_point(data = forest_joint %>% filter(Biome == "Tropical"),
-             aes(x = r_Estimate, y = d_Estimate,  shape = Habitat_degraded,
+  geom_point(data = forest_joint ,
+             aes(x = r_Estimate, y = d_Estimate,  shape = Biome,
              ), size = 3) +
   geom_errorbar(data = forest_joint %>% filter(Biome == "Tropical"),
                 aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI` )) +
@@ -826,7 +826,7 @@ fig_legend_joint <- ggplot()+
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
         subtitle = "b) Forests", shape = "Habitat"
   ) +
-  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  16, 17) ) +
+  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15) ) +
   theme_classic(base_size=16) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +

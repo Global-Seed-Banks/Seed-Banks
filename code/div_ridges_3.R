@@ -618,12 +618,14 @@ tdiv_dat    <- add_y(tdiv_dat)
 
 y_offset <- 0.18
 y_text_offset <- 0.18
+y_text_offset_t <- 0.10
 
 y_offset_1 <- 0.36
 y_offset_2 <- 0.18
 y_offset_3 <- 0.54
 
 head(div_dat)
+div_dat %>% filter(Group == "Terrestrial") %>% ungroup() %>% select(Realm_Biome) %>% distinct()
 
 t_div_fig <- ggplot() +
   geom_density_ridges(data = predict_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") , 
@@ -669,8 +671,22 @@ t_div_fig <- ggplot() +
   labs(subtitle = "Natural Terrestrial Areas",
     x = "Species richness in the soil seedbank",
     y = "Biome") +
-  geom_text(data = tdiv_dat %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
-            aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  120, colour = "grey60", vjust = 0)+
+  # geom_text(data = tdiv_dat %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
+  #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  120, colour = "grey60", vjust = 0)+
+  geom_text(data = div_dat %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base) %>%
+              mutate(label = case_when(
+                Realm_Biome == "Tundra" ~ "Tundra",
+                Realm_Biome ==  "Boreal Forests/Taiga" ~ "Forests \nBoreal",
+                Realm_Biome == "Temperate Forests" ~ "Forests \nTemperate",
+                Realm_Biome == "Tropical & Subtropical Forests" ~ "Forests \nTropical & Subtropical",
+                Realm_Biome == "Temperate & Boreal Grasslands, Savannas & Shrublands" ~ "Grasslands & Savannas \nTemperate & Boreal",
+                Realm_Biome == "Tropical & Subtropical Grasslands, Savannas & Shrublands" ~ "Grasslands & Savannas \nTropical & Subtropical",
+                Realm_Biome == "Deserts & Xeric Shrublands " ~ "Deserts & \nXeric Shrublands",
+                Realm_Biome == "Mediterranean Forests, Woodlands & Scrub" ~ "Mediterranean \nForests, Woodlands & Scrub",
+                TRUE ~ Realm_Biome
+              )),
+            aes(y = y_base + y_text_offset_t, label = label), x = 120, colour = "grey60", vjust = 0
+  )+
    theme_bw(base_size = 18) +
   theme(
     legend.title = element_blank(),
@@ -890,14 +906,18 @@ aq_div_fig
 legend_g <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = div_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Habitat_degraded, group=Habitat_degraded), alpha = 0.9,  size=4) +
-  geom_point(data = div_dat %>% filter(Group == "Aquatic")  %>% filter(Total_sample_area_m2 == "γ") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Habitat_degraded, group=Habitat_degraded), alpha = 0.9, size=4) +
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9,  size=4) +
+  geom_point(data = div_dat %>% filter(Group == "Terrestrial")  %>% filter(Total_sample_area_m2 == "γ") ,
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9, size=4) +
+  geom_point(data = div_dat %>% filter(Group == "Arable") %>% filter(Total_sample_area_m2 == "α") ,
+             aes(x = Estimate, y = Habitat_degraded ,shape = Group, group=Group), alpha = 0.9,  size=4) +
+  geom_point(data = div_dat %>% filter(Group == "Arable")  %>% filter(Total_sample_area_m2 == "γ") ,
+             aes(x = Estimate, y = Habitat_degraded, ), shape=15, alpha = 0.9, size=4) +
   scale_fill_manual( values= c( "#d8b847", "#b38711"
   )) +   coord_cartesian( ylim = c(0,90)) +
   labs(x = '', y='', shape = (expression(paste( italic(gamma), '-richness 15 (',m^2,')',sep = ''))),
        subtitle=  "c) Grasslands" ) +
-  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  16, 17) ) +
+  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15) ) +
   guides(shape = guide_legend(override.aes = list(size = 4)))+
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
@@ -912,14 +932,18 @@ legend_g
 legend_a <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = div_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Habitat_degraded, group=Habitat_degraded),  size=2.5) +
-  geom_point(data = div_dat %>% filter(Group == "Aquatic")  %>% filter(Total_sample_area_m2 == "γ") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Habitat_degraded, group=Habitat_degraded),  size=2.5) +
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9,  size=2.5) +
+  geom_point(data = div_dat %>% filter(Group == "Terrestrial")  %>% filter(Total_sample_area_m2 == "γ") ,
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9, size=2.) +
+  geom_point(data = div_dat %>% filter(Group == "Arable") %>% filter(Total_sample_area_m2 == "α") ,
+             aes(x = Estimate, y = Habitat_degraded ,shape = Group, group=Group), alpha = 0.9,  size=2.5) +
+  geom_point(data = div_dat %>% filter(Group == "Arable")  %>% filter(Total_sample_area_m2 == "γ") ,
+             aes(x = Estimate, y = Habitat_degraded, ), shape=15, alpha = 0.9, size=2.5) +
   scale_fill_manual( values= c( "#d8b847", "#b38711"
   )) +   coord_cartesian( ylim = c(0,90)) +
   labs(x = '', y='', shape = (expression(paste( italic(alpha), '-richness 0.01 (',m^2,')',sep = ''))),
        subtitle=  "c) Grasslands" ) +
-  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  16, 17) ) +
+  scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15 ) ) +
   guides(shape = guide_legend(override.aes = list(size = 2.5)))+
   theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
