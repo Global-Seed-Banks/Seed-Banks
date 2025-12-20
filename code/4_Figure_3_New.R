@@ -402,7 +402,7 @@ aq_fig <- ggplot() +
                      labels = c("Undisturbed", "Degraded"))+
   scale_shape_manual( values= c( 16,17),
                      labels = c("Undisturbed", "Degraded"))+
-  labs(subtitle = "Aquatic", 
+  labs(subtitle = "d) Aquatic", 
     #x = expression(paste('Seed density (',m^2,')')), 
     x="", y = "State"
     ) +
@@ -453,7 +453,7 @@ ar_fig <- ggplot() +
               )),
             aes(y = y_base + y_text_offset, label = label), x = 2000, colour = "grey60", vjust = 0
   )+
-  labs(subtitle = "Arable", 
+  labs(subtitle = "b) Arable", 
        x = expression(paste('Seed density (',m^2,')')), y = "Biome") +
   # --- Theme ---
   theme_bw(base_size = 18) +
@@ -701,4 +701,4 @@ t_fig
 #10X16
 
 ( ar_fig + w_fig + aq_fig)/(legend_d)/(legend_line) + plot_layout(heights = c(10, 1.5, 1.5))
-
+#LANDSCAPE 8 X 16
