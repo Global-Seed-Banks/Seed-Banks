@@ -668,7 +668,7 @@ t_div_fig <- ggplot() +
   # xlim(0,50)+
   scale_color_manual( values= c( "#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594" ))+
   scale_fill_manual( values= c( "#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594"))+
-  labs(subtitle = "a) Natural Terrestrial",
+  labs(subtitle = "a) Terrestrial (non-arable)",
     x = "Species richness in the soil seedbank",
     y = "Biome") +
   # geom_text(data = tdiv_dat %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
@@ -688,10 +688,15 @@ t_div_fig <- ggplot() +
             aes(y = y_base + y_text_offset_t, label = label), x = 120, colour = "grey60", vjust = 0, size=6
   )+
    theme_bw(base_size = 18) +
+  scale_x_continuous(breaks=c(0,10,20,30,40,50,60,70,80,90,100,125,150))+
   theme(
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     axis.title.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    #panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
@@ -730,6 +735,7 @@ ar_div_fig <- ggplot() +
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c("#AA3929",  "#E2C59F", "#99610a" ),
                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
+  scale_x_continuous(breaks=c(0,10,20,30,40,50,60,70))+
   labs(subtitle = "b) Arable",
     x = "Species richness in the soil seedbank",
     y = "Biome") +
@@ -742,13 +748,17 @@ ar_div_fig <- ggplot() +
                 Realm_Biome == "Tropical Arable" ~ "Tropical",
                 TRUE ~ Realm_Biome
               )),
-            aes(y = y_base + y_text_offset, label = label), x = 55, colour = "grey60", vjust = 0
+            aes(y = y_base + y_text_offset, label = label), x = 55, colour = "grey60", vjust = 0,size=6,
   )+
   theme_bw(base_size = 18) +
   theme(
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     axis.title.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+   # panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
@@ -806,20 +816,25 @@ w_div_fig <- ggplot() +
     y = "Biome") +
   # geom_text(data = div_dat %>% filter(Group == "Wetlands") %>% distinct(Realm_Biome, y_base),
   #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  75, colour = "grey60", vjust = 0)+
-  geom_text(data = div_dat %>% filter(Group == "Wetlands") %>%distinct(Realm_Biome, y_base) %>%
+  geom_text(data = div_dat %>% filter(Group == "Wetlands") %>% distinct(Realm_Biome, y_base) %>%
       mutate(label = case_when(
         Realm_Biome == "Temperate & Boreal Wetlands" ~ "Temperate & Boreal",
         Realm_Biome ==  "Mediterranean & Desert Wetlands" ~ "Mediterranean & Desert",
         Realm_Biome == "Tropical Wetlands" ~ "Tropical",
         TRUE ~ Realm_Biome
       )),
-    aes(y = y_base + y_text_offset, label = label), x = 75, colour = "grey60", vjust = 0
+    aes(y = y_base + y_text_offset, label = label), x = 75, colour = "grey60", vjust = 0, size=6,
   )+
   theme_bw(base_size = 18) +
+  scale_x_continuous(breaks=c(0,10,20,30,40,50,60,70,80,100))+
   theme(
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     #axis.title.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    #panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
@@ -830,43 +845,76 @@ w_div_fig <- ggplot() +
 w_div_fig
 
 
+hab_levels <- c(
+  "Degraded habitat",
+  "Undisturbed habitat"
+)
+
+add_y_h <- function(df) {
+  df %>%
+    mutate(
+      Habitat_degraded = factor(
+        Habitat_degraded,
+        levels = rev(hab_levels)
+      ),
+      y_base = as.numeric(Habitat_degraded)
+    )
+}
+
+predict_dat_a <- predict_dat %>% filter(Group == "Aquatic") 
+div_dat_a <- div_dat %>% filter(Group == "Aquatic")
+
+predict_dat_a <- add_y_h(predict_dat_a)
+div_dat_a     <- add_y_h(div_dat_a)
+
+y_offset <- 0.18
+y_text_offset <- 0.18
+y_text_offset_t <- 0.10
+
+y_offset_1 <- 0.36
+y_offset_2 <- 0.18
+y_offset_3 <- 0.54
+
+
+
 aq_div_fig <- ggplot() +
-  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>%  filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") , 
-                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..), color="#C0C0C0", fill="#C0C0C0",
-                      alpha = 0.35, scale = 0.9,  stat = "density_ridges", position = "identity") +
-  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") , 
-                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..),  color="#C0C0C0", fill="#C0C0C0",
-                      alpha = 0.7, scale = 0.9, stat = "density_ridges", position = "identity") +
-  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>%  filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") , 
-                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..), color="#447fdd", fill="#447fdd",
-                      alpha = 0.35, scale = 0.9,  stat = "density_ridges", position = "identity") +
-  geom_density_ridges(data = predict_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") , 
-                      aes(x = Estimate, y = Habitat_degraded,   height = ..density..),  color="#447fdd", fill="#447fdd",
-                      alpha = 0.7, scale = 0.9,stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat_a %>% filter(Group == "Aquatic") %>%  filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = y_base,   height = ..density..), color="#C0C0C0", fill="#C0C0C0",
+                      alpha = 0.35, scale = 1.6, rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = y_base + y_offset,   height = ..density..),  color="#C0C0C0", fill="#C0C0C0",
+                      alpha = 0.7, scale = 1.6, rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat_a %>% filter(Group == "Aquatic") %>%  filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") , 
+                      aes(x = Estimate, y = y_base,   height = ..density..), color="#447fdd", fill="#447fdd",
+                      alpha = 0.35, scale = 1.6, rel_min_height = 0.001,  stat = "density_ridges", position = "identity") +
+  geom_density_ridges(data = predict_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") , 
+                      aes(x = Estimate, y = y_base + y_offset,   height = ..density..),  color="#447fdd", fill="#447fdd",
+                      alpha = 0.7,scale = 1.6, rel_min_height = 0.001, stat = "density_ridges", position = "identity") +
   
-  geom_point(data = div_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") ,
-             aes(x = Estimate, y = Habitat_degraded, color=Habitat_degraded, shape=Habitat_degraded), alpha = 0.9,  size=2.5) +
-  geom_point(data = div_dat %>% filter(Group == "Aquatic")  %>% filter(Total_sample_area_m2 == "γ") ,
-             aes(x = Estimate, y = Habitat_degraded, color=Habitat_degraded, shape=Habitat_degraded), alpha = 0.9, size=4) +
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") ,
-                  aes(y = Habitat_degraded, xmin = Lower_90, xmax = Upper_90 ), height = 0, linewidth = 0.5, colour = "#C0C0C0" )+
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") ,
-                  aes(y = Habitat_degraded, xmin = Lower_90, xmax = Upper_90 ), height = 0, linewidth = 0.5, colour = "#C0C0C0" )+
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") ,
-                  aes(y = Habitat_degraded, xmin = Lower_50, xmax = Upper_50 ), height = 0, linewidth = 1.5, colour = "#C0C0C0" )+
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") ,
-                  aes(y = Habitat_degraded, xmin = Lower_50, xmax = Upper_50 ), height = 0, linewidth = 1.5, colour = "#C0C0C0" )+
+  geom_point(data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") ,
+             aes(x = Estimate, y = y_base , color=Habitat_degraded, shape=Habitat_degraded), alpha = 0.9,  size=2.5) +
+  geom_point(data = div_dat_a %>% filter(Group == "Aquatic")  %>% filter(Total_sample_area_m2 == "γ") ,
+             aes(x = Estimate, y = y_base + y_offset, color=Habitat_degraded, shape=Habitat_degraded), alpha = 0.9, size=4) +
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") ,
+                  aes(y = y_base, xmin = Lower_90, xmax = Upper_90 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") ,
+                  aes(y = y_base + y_offset, xmin = Lower_90, xmax = Upper_90 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") ,
+                  aes(y = y_base, xmin = Lower_50, xmax = Upper_50 ), height = 0.15, linewidth = 1.5, colour = "#C0C0C0" )+
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") ,
+                  aes(y = y_base + y_offset, xmin = Lower_50, xmax = Upper_50 ), height = 0.15, linewidth = 1.5, colour = "#C0C0C0" )+
   
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
-                  aes(y = Habitat_degraded , xmin = Lower_90, xmax = Upper_90, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") ,
-                  aes(y = Habitat_degraded, xmin = Lower_90, xmax = Upper_90 , color=Realm_Biome), height = 0.15, linewidth = 0.5 )+
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
-                  aes(y = Habitat_degraded , xmin = Lower_50, xmax = Upper_50, color=Realm_Biome ), height = 0.15, linewidth = 1.5 )+
-  geom_errorbarh( data = div_dat %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") ,
-                  aes(y = Habitat_degraded, xmin = Lower_50, xmax = Upper_50 , color=Realm_Biome), height = 0.15, linewidth = 1.5 )+
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
+                  aes(y = y_base , xmin = Lower_90, xmax = Upper_90, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") ,
+                  aes(y = y_base + y_offset, xmin = Lower_90, xmax = Upper_90 , color=Realm_Biome), height = 0.15, linewidth = 0.5 )+
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
+                  aes(y = y_base , xmin = Lower_50, xmax = Upper_50, color=Realm_Biome ), height = 0.15, linewidth = 1.5 )+
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") ,
+                  aes(y = y_base + y_offset, xmin = Lower_50, xmax = Upper_50 , color=Realm_Biome), height = 0.15, linewidth = 1.5 )+
   #scale_y_discrete(limits=rev)+
   # xlim(0,50)+
+  scale_x_continuous(breaks=c(0,10,20,30,40,50,60,70,80))+
   scale_color_manual( values= c("#447fdd" ,"#C0C0C0", "#447fdd","#447fdd" ))+
   scale_fill_manual( values= c( "#447fdd", "#C0C0C0"))+
   scale_shape_manual( values= c( 16, 17),
@@ -877,12 +925,16 @@ aq_div_fig <- ggplot() +
     y = "State") +
   theme_bw(base_size = 18) +
   #ggplot2::annotate("text", x = 60, y = 1.1, hjust = 0, size = 5, label = paste("Forests"), color = "black", alpha = 0.7) +
-  geom_text(data = div_dat %>% filter(Group == "Aquatic") %>% distinct(Habitat_degraded) ,
-            aes( y = as.numeric(factor(Habitat_degraded)) + 0.15, label = Habitat_degraded ), x =  60, colour = "grey60", vjust = 0)+
+  geom_text(data = div_dat_a %>% filter(Group == "Aquatic") %>% distinct(Habitat_degraded, y_base) ,
+            aes( y = y_base + y_text_offset_t, label = Habitat_degraded ), x =  60, colour = "grey60", vjust = 0,size=6)+
   theme(
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     #axis.title.x = element_blank(),
+    #panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    #panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
     plot.margin = margin(0.2, 0.2, 0.2, 0.2, unit = "cm"),
     plot.title = element_text(size = 18, hjust = 0.5),
     strip.background = element_blank(),
@@ -966,7 +1018,7 @@ low_row <- (ar_div_fig + w_div_fig + aq_div_fig)
 
 richness_fig <- ( low_row / legend_a/legend_g) + plot_layout(heights = c(10, 1, 1))
 richness_fig
-
+#LANDSCAPE 8 X 16
 
 
 
