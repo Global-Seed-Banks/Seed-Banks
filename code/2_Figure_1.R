@@ -107,7 +107,7 @@ sb %>% select(Realm_Biome) %>% distinct()
 #                                   ) ) +
 #   coord_equal() +
 #   theme_void(base_size=18) +
-#   theme(
+#   theme( plot.subtitle = element_text(face = "bold"), 
 #     legend.position = 'none',
 #   ) +
 # #  ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 4, label = paste("Study Locations"), color = "black", alpha = 0.5) +
@@ -124,7 +124,7 @@ gsbm_tundra <- sb %>% filter( Realm == "Tundra") %>%
   geom_polygon(data = world, aes(x=long, y = lat, group = group), fill="grey", alpha=0.7) +
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  color=`Realm_Biome`, shape= Habitat_degraded), size=3, alpha=0.9, 
-             position = position_jitter(width = 2.5, height=2.5)
+             #position = position_jitter(width = 2.5, height=2.5)
              ) +
   scale_color_manual( values= c( "#94b594")
                       
@@ -133,11 +133,11 @@ gsbm_tundra <- sb %>% filter( Realm == "Tundra") %>%
                       labels = c("Undisturbed", "Degraded"), guide = "none")+
   coord_equal() +
   theme_void(base_size=20) +
-  theme(legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), legend.position = 'bottom',
         legend.direction="horizontal",
         legend.title = element_blank()
   ) +
-  labs(subtitle = "a)",color= "", shape= "")+
+  labs(subtitle = "a",color= "", shape= "")+
   ggplot2::annotate("text", x = -150, y = -44, hjust = 0, size = 6, label = paste("Tundra"), color = "black", alpha = 0.7) +
   scale_x_continuous(expand = c(0.006, 0.006)) + guides(col = guide_legend(ncol = 3))
 
@@ -150,7 +150,7 @@ gsbm_forest <- sb %>% filter( Realm == "Forest") %>%
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  shape= Habitat_degraded,
                  color=`Realm_Biome`), size=3, alpha=0.9, 
-             position = position_jitter(width = 2.5, height=2.5) 
+             #position = position_jitter(width = 2.5, height=2.5) 
              ) +
   scale_color_manual( values= c(  "#1e3d14",   "#788f33", "#228B22" ), 
                       labels = c("Boreal", "Temperate", "Tropical & Subtropical"),
@@ -162,11 +162,11 @@ gsbm_forest <- sb %>% filter( Realm == "Forest") %>%
                      ) +
   coord_equal() +
   theme_void(base_size=20) +
-  theme(legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), legend.position = 'bottom',
         legend.direction="horizontal",
         legend.title = element_blank()
   ) +
-  labs(subtitle = "b)",color= "Forests", shape= "Forests")+
+  labs(subtitle = "b",color= "Forests", shape= "Forests")+
   ggplot2::annotate("text", x = -150, y = -44, hjust = 0, size = 6, label = paste("Forests"), color = "black", alpha = 0.7) +
   scale_x_continuous(expand = c(0.006, 0.006)) + guides(col = guide_legend(ncol = 3))
 
@@ -178,7 +178,7 @@ gsbm_grass <- sb %>% filter( Realm == "Grassland") %>%
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  shape= Habitat_degraded,
                  color=`Realm_Biome`), size=3, alpha=0.9, 
-             position = position_jitter(width = 2.5, height=2.5)
+             #position = position_jitter(width = 2.5, height=2.5)
              ) +
   scale_color_manual( values= c( "#d8b847", "#b38711"), 
                       labels = c("Temperate & Boreal", "Tropical & Subtropical")
@@ -189,10 +189,10 @@ gsbm_grass <- sb %>% filter( Realm == "Grassland") %>%
   ) +
   coord_equal() +
   theme_void(base_size=20) +
-  theme(legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), legend.position = 'bottom',
         legend.direction="horizontal",
         legend.title = element_blank()
-  ) +  labs(subtitle = "c)", color= "Grasslands & \nSavannas", shape= "Grasslands & \nSavannas")+
+  ) +  labs(subtitle = "c", color= "Grasslands & \nSavannas", shape= "Grasslands & \nSavannas")+
   ggplot2::annotate("text", x = -160, y = -44, hjust = 0, size = 6, label = paste("Grasslands & \nSavannas"), color = "black", alpha = 0.7) +
   scale_x_continuous(expand = c(0.006, 0.006)) + guides(col = guide_legend(ncol = 3))
 
@@ -204,7 +204,7 @@ gsbm_med <- sb %>% filter( Realm == "Mediterranean and Desert") %>%
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  shape= Habitat_degraded,
                  color=`Realm_Biome`), size=3, alpha=0.9, 
-             position = position_jitter(width = 2.5, height=2.5)
+             #position = position_jitter(width = 2.5, height=2.5)
              ) +
   scale_color_manual( values= c( "#da7901",  "#fab255" ), 
                       labels = c("Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"),
@@ -216,12 +216,12 @@ gsbm_med <- sb %>% filter( Realm == "Mediterranean and Desert") %>%
   ) +
   coord_equal() +
   theme_void(base_size=18) +
-  theme(legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), legend.position = 'bottom',
         legend.direction="horizontal",
         legend.title = element_blank()
   ) +
   ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 6, label = paste("Mediterranean & \nDesert"), color = "black", alpha = 0.7) +
-  labs(subtitle = "d)", color= "Mediterranean \nand Desert", shape= "Mediterranean \nand Desert")+
+  labs(subtitle = "d", color= "Mediterranean \nand Desert", shape= "Mediterranean \nand Desert")+
   scale_x_continuous(expand = c(0.006, 0.006)) + guides(col = guide_legend(ncol = 3))
 
 gsbm_med
@@ -232,7 +232,7 @@ gsbm_ar <- sb %>% filter( Realm == "Arable") %>%
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  #shape= Habitat_degraded,
                  color=`Realm_Biome`), size=3, alpha=0.9, shape=15,
-             position = position_jitter(width = 2.5, height=2.5) 
+             #position = position_jitter(width = 2.5, height=2.5) 
              ) +
   scale_color_manual( values= c(   "#99610a" , "#E2C59F", "#AA3929"  ), 
                       labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"),
@@ -245,11 +245,11 @@ gsbm_ar <- sb %>% filter( Realm == "Arable") %>%
   # ) +
   coord_equal() +
   theme_void(base_size=20) +
-  theme(legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), legend.position = 'bottom',
         legend.direction="horizontal",
         legend.title = element_blank()
   ) +
-  labs(subtitle ="e)",color= "Arable", shape= "Arable")+
+  labs(subtitle ="e",color= "Arable", shape= "Arable")+
   ggplot2::annotate("text", x = -160, y = -44, hjust = 0, size = 6, label = paste("Arable"), color = "black", alpha = 0.7) +
   scale_x_continuous(expand = c(0.006, 0.006)) + guides(col = guide_legend(ncol = 3))
 
@@ -261,7 +261,7 @@ gsbm_wet <- sb %>% filter( Realm == "Wetland") %>%
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  shape= Habitat_degraded,
                  color=`Realm_Biome`), size=3,alpha=0.9, 
-             position = position_jitter(width = 2.5, height=2.5)
+             #position = position_jitter(width = 2.5, height=2.5)
              ) +
   scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352" ), 
                       labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"),
@@ -274,11 +274,11 @@ gsbm_wet <- sb %>% filter( Realm == "Wetland") %>%
   ) +
   coord_equal() +
   theme_void(base_size=20) +
-  theme(legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), legend.position = 'bottom',
         legend.direction="horizontal",
         legend.title = element_blank()
   ) +
-  labs(subtitle = "f)",color= "Wetlands", shape= "Wetlands")+
+  labs(subtitle = "f",color= "Wetlands", shape= "Wetlands")+
   ggplot2::annotate("text", x = -190, y = -44, hjust = 0, size = 6, label = paste("Wetlands & \nFlooded Grasslands"), color = "black", alpha = 0.7) +
   scale_x_continuous(expand = c(0.006, 0.006)) + guides(col = guide_legend(ncol = 3))
 
@@ -291,7 +291,7 @@ gsbm_aq <- sb %>% filter( Realm == "Aquatic") %>%
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  shape= Habitat_degraded,
                  color=`Realm_Biome`), size=3, alpha=0.9, 
-             position = position_jitter(width = 2.5, height=2.5) 
+             #position = position_jitter(width = 2.5, height=2.5) 
              ) +
   scale_color_manual( values= c( "#447fdd" )
                       
@@ -301,11 +301,11 @@ gsbm_aq <- sb %>% filter( Realm == "Aquatic") %>%
   ) +
   coord_equal() +
   theme_void(base_size=20) +
-  theme(legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), legend.position = 'bottom',
         legend.direction="horizontal",
         legend.title = element_blank()
   ) +
-  labs(subtitle = "g)",color= "Aquatic", shape= "Aquatic")+
+  labs(subtitle = "g",color= "Aquatic", shape= "Aquatic")+
   ggplot2::annotate("text", x = -160, y = -44, hjust = 0, size = 6, label = paste("Aquatic"), color = "black", alpha = 0.7) +
   scale_x_continuous(expand = c(0.006, 0.006)) + guides(col = guide_legend(ncol = 3))
 
@@ -356,7 +356,7 @@ gsbm_legend_fig <- sb %>% filter( Realm %in% c( "Aquatic" , "Wetland", "Tundra")
   geom_point(aes(x=Lon_deg, y=Lat_deg, 
                  shape= Realm,
                  color=Realm), size=5, color="grey"#, alpha=0.9, 
-             #position = position_jitter(width = 2.5, height=2.5) 
+             ##position = position_jitter(width = 2.5, height=2.5) 
   ) +
   scale_color_manual( values= c( "#447fdd" , guide = "none")
 
@@ -366,7 +366,7 @@ gsbm_legend_fig <- sb %>% filter( Realm %in% c( "Aquatic" , "Wetland", "Tundra")
                       labels = c("Undisturbed", "Degraded", "Arable"))+
   coord_equal() +
   theme_void(base_size=18) +
-  theme(#legend.position = 'bottom',
+  theme( plot.subtitle = element_text(face = "bold"), #legend.position = 'bottom',
        # legend.direction="horizontal",
         #legend.title = element_blank()
   ) +

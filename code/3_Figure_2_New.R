@@ -11,6 +11,7 @@ library(bayesplot)
 library(patchwork)
 library(gridExtra)
 library(grid)
+library(ggridges)
 
 user <- Sys.info()["user"]
 
@@ -668,12 +669,17 @@ t_div_fig <- ggplot() +
   # xlim(0,50)+
   scale_color_manual( values= c( "#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594" ))+
   scale_fill_manual( values= c( "#fab255", "#da7901", "#b38711", "#d8b847", "#228B22", "#788f33", "#1e3d14", "#94b594"))+
-  labs(subtitle = "a) Terrestrial (non-arable)",
+  labs(subtitle = "a Terrestrial - Non-Arable ",
     x = "Species richness in the soil seedbank",
-    y = "Biome") +
+    y = "Ecosystem") +
   # geom_text(data = tdiv_dat %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base),
   #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  120, colour = "grey60", vjust = 0)+
-  geom_text(data = div_dat %>% filter(Group == "Terrestrial") %>% distinct(Realm_Biome, y_base) %>%
+  geom_text(data = div_dat %>% filter(Group == "Terrestrial")  %>%
+              group_by(Realm_Biome) %>%
+              summarise(
+                y_base = first(y_base),   # or mean(y_base) if y_base varies slightly
+                .groups = "drop"
+              ) %>%
               mutate(label = case_when(
                 Realm_Biome == "Tundra" ~ "Tundra",
                 Realm_Biome ==  "Boreal Forests/Taiga" ~ "Forests \nBoreal",
@@ -681,15 +687,16 @@ t_div_fig <- ggplot() +
                 Realm_Biome == "Tropical & Subtropical Forests" ~ "Forests \nTropical & Subtropical",
                 Realm_Biome == "Temperate & Boreal Grasslands, Savannas & Shrublands" ~ "Grasslands & Savannas \nTemperate & Boreal",
                 Realm_Biome == "Tropical & Subtropical Grasslands, Savannas & Shrublands" ~ "Grasslands & Savannas \nTropical & Subtropical",
-                Realm_Biome == "Deserts & Xeric Shrublands " ~ "Deserts & \nXeric Shrublands",
-                Realm_Biome == "Mediterranean Forests, Woodlands & Scrub" ~ "Mediterranean \nForests, Woodlands & Scrub",
+                Realm_Biome == "Deserts & Xeric Shrublands" ~ "Mediterranean & Desert \nDeserts & Xeric Shrublands",
+                Realm_Biome == "Mediterranean Forests, Woodlands & Scrub" ~ "Mediterranean & Desert \nForests, Woodlands & Scrub",
                 TRUE ~ Realm_Biome
               )),
             aes(y = y_base + y_text_offset_t, label = label), x = 120, colour = "grey60", vjust = 0, size=6
   )+
    theme_bw(base_size = 18) +
   scale_x_continuous(breaks=c(0,10,20,30,40,50,60,70,80,90,100,125,150))+
-  theme(
+  theme( plot.subtitle = element_text(face = "bold"), 
+         axis.title.y = element_text(face = "bold"), 
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     axis.title.x = element_blank(),
@@ -736,22 +743,24 @@ ar_div_fig <- ggplot() +
   scale_fill_manual( values= c("#AA3929",  "#E2C59F", "#99610a" ),
                      labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
   scale_x_continuous(breaks=c(0,10,20,30,40,50,60,70))+
-  labs(subtitle = "b) Arable",
+  labs(subtitle = "b Terrestrial - Arable",
     x = "Species richness in the soil seedbank",
-    y = "Biome") +
+    y = "Ecosystem") +
   # geom_text(data = div_dat %>% filter(Group == "Arable") %>% distinct(Realm_Biome, y_base) ,
   #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  55, colour = "grey60", vjust = 0)+
-  geom_text(data = div_dat %>% filter(Group == "Arable") %>%distinct(Realm_Biome, y_base) %>%
+  geom_text(data = div_dat %>% filter(Group == "Arable") %>% group_by(Realm_Biome) %>%
+              summarise(y_base = first(y_base),  .groups = "drop") %>%
               mutate(label = case_when(
-                Realm_Biome == "Temperate & Boreal Arable" ~ "Temperate & Boreal",
-                Realm_Biome ==  "Mediterranean & Desert Arable" ~ "Mediterranean & Desert",
-                Realm_Biome == "Tropical Arable" ~ "Tropical",
+                Realm_Biome == "Temperate & Boreal Arable" ~ "Arable \nTemperate & Boreal",
+                Realm_Biome ==  "Mediterranean & Desert Arable" ~ "Arable \nMediterranean & Desert",
+                Realm_Biome == "Tropical Arable" ~ "Arable \nTropical",
                 TRUE ~ Realm_Biome
               )),
             aes(y = y_base + y_text_offset, label = label), x = 55, colour = "grey60", vjust = 0,size=6,
   )+
   theme_bw(base_size = 18) +
-  theme(
+  theme( plot.subtitle = element_text(face = "bold"), 
+         axis.title.y = element_text(face = "bold"), 
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     axis.title.x = element_blank(),
@@ -792,11 +801,11 @@ w_div_fig <- ggplot() +
   geom_errorbarh( data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") ,
                   aes(y = y_base, xmin = Lower_90, xmax = Upper_90 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
   geom_errorbarh( data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α") ,
-                  aes(y = y_base, xmin = Lower_50, xmax = Upper_50 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
+                  aes(y = y_base, xmin = Lower_50, xmax = Upper_50 ), height = 0.15, linewidth = 1.5, colour = "#C0C0C0" )+
   geom_errorbarh( data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") ,
                   aes(y = y_base + y_offset_1, xmin = Lower_90, xmax = Upper_90 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
   geom_errorbarh( data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "γ") ,
-                  aes(y = y_base + y_offset_1, xmin = Lower_50, xmax = Upper_50 ), height = 0.15, linewidth = 0.5, colour = "#C0C0C0" )+
+                  aes(y = y_base + y_offset_1, xmin = Lower_50, xmax = Upper_50 ), height = 0.15, linewidth = 1.5, colour = "#C0C0C0" )+
   
   geom_errorbarh( data = div_dat %>% filter(Group == "Wetlands") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
                   aes(y = y_base + y_offset_2, xmin = Lower_90, xmax = Upper_90, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
@@ -811,23 +820,25 @@ w_div_fig <- ggplot() +
   scale_color_manual( values= c(  "#293352", "#4E84C4", "#20B2AA" ))+
   # scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352", "#94b594",    "#94b594", "#fab255",  "#da7901", "#d8b847", "#b38711", "#1e3d14", "#788f33","#228B22", "#99610a" , "#E2C59F", "#AA3929" ))+
   scale_fill_manual( values= c( "#293352", "#4E84C4", "#20B2AA"))+
-  labs(subtitle = "c) Wetlands & Flooded Grasslands",
-    x = "Species richness in the soil seedbank",
-    y = "Biome") +
+  labs(subtitle = "c Transitional",
+    x = "Species richness",
+    y = "Ecosystem") +
   # geom_text(data = div_dat %>% filter(Group == "Wetlands") %>% distinct(Realm_Biome, y_base),
   #           aes( y = y_base + y_text_offset, label = Realm_Biome ), x =  75, colour = "grey60", vjust = 0)+
-  geom_text(data = div_dat %>% filter(Group == "Wetlands") %>% distinct(Realm_Biome, y_base) %>%
+  geom_text(data = div_dat %>% filter(Group == "Wetlands") %>% group_by(Realm_Biome) %>%
+              summarise(y_base = first(y_base),  .groups = "drop") %>%
       mutate(label = case_when(
-        Realm_Biome == "Temperate & Boreal Wetlands" ~ "Temperate & Boreal",
-        Realm_Biome ==  "Mediterranean & Desert Wetlands" ~ "Mediterranean & Desert",
-        Realm_Biome == "Tropical Wetlands" ~ "Tropical",
+        Realm_Biome == "Temperate & Boreal Wetlands" ~ "Wetlands \nTemperate & Boreal",
+        Realm_Biome ==  "Mediterranean & Desert Wetlands" ~ "Wetlands \nMediterranean & Desert",
+        Realm_Biome == "Tropical Wetlands" ~ "Wetlands \nTropical",
         TRUE ~ Realm_Biome
       )),
     aes(y = y_base + y_text_offset, label = label), x = 75, colour = "grey60", vjust = 0, size=6,
   )+
   theme_bw(base_size = 18) +
   scale_x_continuous(breaks=c(0,10,20,30,40,50,60,70,80,100))+
-  theme(
+  theme( plot.subtitle = element_text(face = "bold"), 
+         axis.title.y = element_text(face = "bold"), 
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     #axis.title.x = element_blank(),
@@ -906,7 +917,7 @@ aq_div_fig <- ggplot() +
   
   geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
                   aes(y = y_base , xmin = Lower_90, xmax = Upper_90, color=Realm_Biome ), height = 0.15, linewidth = 0.5 )+
-  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "γ") ,
+  geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed ha bitat") %>% filter(Total_sample_area_m2 == "γ") ,
                   aes(y = y_base + y_offset, xmin = Lower_90, xmax = Upper_90 , color=Realm_Biome), height = 0.15, linewidth = 0.5 )+
   geom_errorbarh( data = div_dat_a %>% filter(Group == "Aquatic") %>% filter(Habitat_degraded == "Undisturbed habitat") %>% filter(Total_sample_area_m2 == "α") ,
                   aes(y = y_base , xmin = Lower_50, xmax = Upper_50, color=Realm_Biome ), height = 0.15, linewidth = 1.5 )+
@@ -919,15 +930,17 @@ aq_div_fig <- ggplot() +
   scale_fill_manual( values= c( "#447fdd", "#C0C0C0"))+
   scale_shape_manual( values= c( 16, 17),
                       labels = c("Undisturbed", "Degraded"))+
-  labs(subtitle = "d) Aquatic",
+  labs(subtitle = "d Aquatic",
     #x = "Species richness in the soil seedbank",
     x="",
     y = "State") +
   theme_bw(base_size = 18) +
   #ggplot2::annotate("text", x = 60, y = 1.1, hjust = 0, size = 5, label = paste("Forests"), color = "black", alpha = 0.7) +
-  geom_text(data = div_dat_a %>% filter(Group == "Aquatic") %>% distinct(Habitat_degraded, y_base) ,
+  geom_text(data = div_dat_a %>% filter(Group == "Aquatic") %>% group_by(Habitat_degraded) %>%
+              summarise(y_base = first(y_base),  .groups = "drop") ,
             aes( y = y_base + y_text_offset_t, label = Habitat_degraded ), x =  60, colour = "grey60", vjust = 0,size=6)+
-  theme(
+  theme( plot.subtitle = element_text(face = "bold"), 
+         axis.title.y = element_text(face = "bold"), 
     legend.title = element_blank(),
     axis.text.y = element_blank(),
     #axis.title.x = element_blank(),
@@ -949,20 +962,20 @@ aq_div_fig
 legend_g <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = div_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9,  size=4) +
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9,  size=4,color="grey") +
   geom_point(data = div_dat %>% filter(Group == "Terrestrial")  %>% filter(Total_sample_area_m2 == "γ") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9, size=4) +
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9, size=4,color="grey") +
   geom_point(data = div_dat %>% filter(Group == "Arable") %>% filter(Total_sample_area_m2 == "α") ,
-             aes(x = Estimate, y = Habitat_degraded ,shape = Group, group=Group), alpha = 0.9,  size=4) +
+             aes(x = Estimate, y = Habitat_degraded ,shape = Group, group=Group), alpha = 0.9,  size=4,color="grey") +
   geom_point(data = div_dat %>% filter(Group == "Arable")  %>% filter(Total_sample_area_m2 == "γ") ,
              aes(x = Estimate, y = Habitat_degraded, ), shape=15, alpha = 0.9, size=4) +
   scale_fill_manual( values= c( "#d8b847", "#b38711"
   )) +   coord_cartesian( ylim = c(0,90)) +
-  labs(x = '', y='', shape = (expression(paste( italic(gamma), '-richness 15 (',m^2,')',sep = ''))),
+  labs(x = '', y='', shape = (expression(paste( italic(gamma), '-richness 15 m-2',sep = ''))),
        subtitle=  "c) Grasslands" ) +
   scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15) ) +
   guides(shape = guide_legend(override.aes = list(size = 4)))+
-  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme_bw(base_size=18)+theme( plot.subtitle = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
@@ -975,20 +988,20 @@ legend_g
 legend_a <- ggplot() +
   geom_hline(yintercept = 0,linetype="longdash") +
   geom_point(data = div_dat %>% filter(Group == "Aquatic") %>% filter(Total_sample_area_m2 == "α") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9,  size=2.5) +
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9,  size=2.5,color="grey") +
   geom_point(data = div_dat %>% filter(Group == "Terrestrial")  %>% filter(Total_sample_area_m2 == "γ") ,
-             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9, size=2.) +
+             aes(x = Estimate, y = Habitat_degraded, shape=Group, group=Habitat_degraded), alpha = 0.9, size=2.5,color="grey") +
   geom_point(data = div_dat %>% filter(Group == "Arable") %>% filter(Total_sample_area_m2 == "α") ,
-             aes(x = Estimate, y = Habitat_degraded ,shape = Group, group=Group), alpha = 0.9,  size=2.5) +
+             aes(x = Estimate, y = Habitat_degraded ,shape = Group, group=Group), alpha = 0.9,  size=2.5,color="grey") +
   geom_point(data = div_dat %>% filter(Group == "Arable")  %>% filter(Total_sample_area_m2 == "γ") ,
              aes(x = Estimate, y = Habitat_degraded, ), shape=15, alpha = 0.9, size=2.5) +
   scale_fill_manual( values= c( "#d8b847", "#b38711"
   )) +   coord_cartesian( ylim = c(0,90)) +
-  labs(x = '', y='', shape = (expression(paste( italic(alpha), '-richness 0.01 (',m^2,')',sep = ''))),
+  labs(x = '', y='', shape = (expression(paste( italic(alpha), '-richness 0.01 m-2',sep = ''))),
        subtitle=  "c) Grasslands" ) +
   scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15 ) ) +
   guides(shape = guide_legend(override.aes = list(size = 2.5)))+
-  theme_bw(base_size=18)+theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme_bw(base_size=18)+theme( plot.subtitle = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
                                #axis.text.x=element_blank(), 
                                axis.title.x = element_blank(),
                                plot.margin= margin(t = 0.2, r = 0.2, b = 0.2, l = 0.2, unit = "cm"),
@@ -1012,13 +1025,13 @@ legend_a <- g_legend(legend_a)
 
 
 t_div_fig
-#10X16
+#10X20
 
 low_row <- (ar_div_fig + w_div_fig + aq_div_fig)
 
 richness_fig <- ( low_row / legend_a/legend_g) + plot_layout(heights = c(10, 1, 1))
 richness_fig
-#LANDSCAPE 8 X 16
+#LANDSCAPE 10X20
 
 
 

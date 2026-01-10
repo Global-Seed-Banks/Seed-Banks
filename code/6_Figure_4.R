@@ -124,9 +124,37 @@ tund_r1_df <- tund_r1  %>%
 head(tund_r1_df)
 
 
-tund_d_ce <- read.csv(paste0(path2wd, '~/Dropbox/GSB/Data/tund_d_ce.csv'))
+tund_d_90 <- conditional_effects(mod_tund_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
+tund_d_50 <- conditional_effects(mod_tund_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
-tund_d_90_ce
+
+
+tund_d_df_90 <-
+  as.data.frame(tund_d_90$`Habitat_degraded`)
+tund_d_df_50 <-
+  as.data.frame(tund_d_50$`Habitat_degraded`)
+
+
+tund_d_90_ce <- tund_d_df_90 %>%
+  select(Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Tundra", Biome = "Tundra",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
+
+tund_d_50_ce <- tund_d_df_50 %>%
+  select(Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Tundra", Biome = "Tundra",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
+
 
 tund_joint <- tund_d_90_ce %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
@@ -166,10 +194,10 @@ fig_tund_joint <- ggplot()+
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x = "", 
        # x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
-        subtitle = "a) Tundra"
+        subtitle = "a Tundra"
         ) +
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+  theme( plot.subtitle = element_text(face = "bold"),panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
          axis.title.y=element_blank(),
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title=""), shape="none")
@@ -227,9 +255,41 @@ forest_r1_df <- forest_r1  %>%
 head(forest_r1_df)
 
 
-forest_d_ce <- read.csv(paste0(path2wd, 'Data/forest_d_ce.csv'))
 
-forest_d_90_ce
+forest_d_90 <- conditional_effects(mod_forest_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
+forest_d_50 <- conditional_effects(mod_forest_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
+
+
+
+forest_d_df_90 <-
+  as.data.frame(forest_d_90$`Biome:Habitat_degraded`)
+forest_d_df_50 <-
+  as.data.frame(forest_d_50$`Biome:Habitat_degraded`)
+
+
+forest_d_90_ce <- forest_d_df_90 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Forest",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+
+
+forest_d_50_ce <- forest_d_df_50 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Forest",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+forest_d_ce
 
 forest_joint <- forest_d_90_ce %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
@@ -270,10 +330,10 @@ fig_forest_joint <- ggplot()+
                       )+
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
-        subtitle = "b) Forests"
+        subtitle = "b Forests"
   ) +
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+  theme( plot.subtitle = element_text(face = "bold"),panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         axis.title.x=element_blank(), axis.title.y=element_blank(),
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title=""), shape="none")
@@ -332,9 +392,38 @@ grass_r1_df <- grass_r1  %>%
 head(grass_r1_df)
 
 
-grass_d_ce <- read.csv(paste0(path2wd, 'Data/grass_d_ce.csv'))
+grass_d_90 <- conditional_effects(mod_grass_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted',prob=0.90)  # conditional effects
+grass_d_50 <- conditional_effects(mod_grass_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
-grass_d_90_ce
+
+grass_d_df_90 <-
+  as.data.frame(grass_d_90$`Biome:Habitat_degraded`)
+grass_d_df_50 <-
+  as.data.frame(grass_d_50$`Biome:Habitat_degraded`)
+
+grass_d_90_ce <- grass_d_df_90 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Grassland",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome,  Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+
+
+grass_d_50_ce <- grass_d_df_50 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Grassland",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome,  Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
+
 
 grass_joint <- grass_d_90_ce %>% 
   select(-Realm) %>%
@@ -376,10 +465,10 @@ fig_grass_joint <- ggplot()+
                       labels = c("Temperate & \nBoreal", "Tropical & \nSubtropical"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
-        subtitle = "b) Grasslands & Savannas"
+        subtitle = "c Grasslands & Savannas"
   ) +
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+  theme( plot.subtitle = element_text(face = "bold"),panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         axis.title.x=element_blank(), axis.title.y=element_blank(),
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title=""), shape="none")
@@ -441,9 +530,43 @@ med_de_r1_df <- med_de_r1  %>%
 head(med_de_r1_df)
 
 
-med_de_d_ce <- read.csv(paste0(path2wd, 'Data/med_de_d_ce.csv'))
 
-med_de_d_90_ce
+med_de_d_90 <- conditional_effects(mod_med_de_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
+med_de_d_50 <- conditional_effects(mod_med_de_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
+
+
+
+med_de_d_df_90 <-
+  as.data.frame(med_de_d_90$`Biome:Habitat_degraded`)
+med_de_d_df_50 <-
+  as.data.frame(med_de_d_50$`Biome:Habitat_degraded`)
+
+
+med_de_d_90_ce <- med_de_d_df_90 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Mediterranean and Desert",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))%>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
+
+med_de_d_50_ce <- med_de_d_df_50 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Mediterranean and Desert",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))%>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands"))
+
+
 
 med_de_joint <- med_de_d_90_ce %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
@@ -480,13 +603,14 @@ fig_med_de_joint <- ggplot()+
                 aes(x = r_Estimate , ymin = `d_Lower_50_CI`, ymax =  `d_Upper_50_CI`,  colour = Biome  ), size=2, width=0) +
   geom_errorbarh(data = med_de_joint,
                  aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
-  labs( y = expression(paste('Average seed density / ',m^2,'')),
+  labs( y = "Seed density m-2",
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
-        subtitle=  "d) Mediterranean & Desert" ) +
+        subtitle=  "d Mediterranean & Desert" ) +
   scale_color_manual( values= c(    "#da7901",  "#fab255"),
                       labels = c("Mediterranean Forests, \nWoodlands & Scrub", "Deserts & Xeric \nShrublands"))+
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+  theme( plot.subtitle = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+         axis.title.y = element_text(face = "bold"), 
         axis.title.x=element_blank(), 
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title=""), shape="none")
@@ -546,9 +670,35 @@ ar_r1_df <- ar_r1  %>%
 head(ar_r1_df)
 
 
-ar_d_ce <- read.csv(paste0(path2wd, 'Data/arable_d_ce.csv'))
+arable_d_90 <- conditional_effects(mod_ar_d, effects = 'Biome', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
+arable_d_50 <- conditional_effects(mod_ar_d, effects = 'Biome', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
 
-ar_d_90_ce
+
+arable_d_df_90 <-
+  as.data.frame(arable_d_90$`Biome`)
+arable_d_df_50 <-
+  as.data.frame(arable_d_50$`Biome`)
+
+
+arable_d_90_ce <- arable_d_df_90 %>%
+  select(Biome, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Arable", Habitat_degraded = "1",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
+
+arable_d_50_ce <- arable_d_df_50 %>%
+  select(Biome, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Arable", Habitat_degraded = "1",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
+
+
 
 ar_joint <- arable_d_90_ce %>% 
   mutate(d_Estimate = Estimate,
@@ -587,10 +737,10 @@ fig_ar_joint <- ggplot()+
                       labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert", "Tropical & \nSubtropical"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
         x= (expression(paste('Average species richness (',m^2,')',sep = ''))) ,
-        subtitle = "e) Arable"
+        subtitle = "e Arable"
   ) +
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  theme( plot.subtitle = element_text(face = "bold"),panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         axis.title.x=element_blank(), axis.title.y=element_blank(),
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title=""), shape="none")
@@ -652,9 +802,43 @@ wetland_r1_df <- wetland_r1  %>%
 head(wetland_r1_df)
 
 
-wetland_d_ce <- read.csv(paste0(path2wd, 'Data/wetland_d_ce.csv'))
 
-wetland_d_ce
+wetland_d_90 <- conditional_effects(mod_wetland_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
+wetland_d_50 <- conditional_effects(mod_wetland_d, effects = 'Biome:Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
+
+
+
+wetland_d_df_90 <-
+  as.data.frame(wetland_d_90$`Biome:Habitat_degraded`)
+wetland_d_df_50 <-
+  as.data.frame(wetland_d_50$`Biome:Habitat_degraded`)
+
+
+wetland_d_50_ce <- wetland_d_df_50 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Wetland",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
+
+wetland_d_90_ce <- wetland_d_df_90 %>%
+  select(Biome, Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Wetland",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome, Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  arrange(Biome, desc(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical"))
+
+
 
 wetland_joint <- wetland_d_90_ce %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
@@ -694,11 +878,12 @@ fig_wetland_joint <- ggplot()+
   scale_color_manual( values= c( "#20B2AA", "#4E84C4", "#293352" ), 
                       labels = c("Temperate & \nBoreal", "Mediterranean & \nDesert","Tropical & \nSubtropical"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
-        x= (expression(paste('Average species richness / ',m^2,'',sep = ''))) ,
-        subtitle = "f) Wetlands & Flooded Grasslands"
+        x= "Species richness m-2",
+        subtitle = "f Wetlands & Flooded Grasslands"
   ) +
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+  theme( plot.subtitle = element_text(face = "bold"),panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+         axis.title.x = element_text(face = "bold"), 
        axis.title.y=element_blank(),
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title=""), shape="none")
@@ -756,9 +941,37 @@ aq_r1_df <- aq_r1  %>%
 head(aq_r1_df)
 
 
-aq_d_ce <- read.csv(paste0(path2wd, 'Data/aq_d_ce.csv'))
 
-aq_d_ce
+
+aq_d_90 <- conditional_effects(mod_aq_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.90)  # conditional effects
+aq_d_50 <- conditional_effects(mod_aq_d, effects = 'Habitat_degraded', re_formula = NA, method = 'fitted', prob=0.50)  # conditional effects
+
+aq_d_df_90 <-
+  as.data.frame(aq_d_90$`Habitat_degraded`)
+aq_d_df_50 <-
+  as.data.frame(aq_d_50$`Habitat_degraded`)
+
+aq_d_90_ce <- aq_d_df_90 %>%
+  select( Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Aquatic", Biome = "Aquatic",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome,  Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
+
+aq_d_50_ce <- aq_d_df_50 %>%
+  select( Habitat_degraded, estimate__, lower__, upper__) %>%
+  mutate( Realm = "Aquatic", Biome = "Aquatic",
+          Estimate = round(estimate__ , 2),
+          `Lower_CI` = round(lower__ , 2),
+          `Upper_CI` = round(upper__ , 2),
+  ) %>% select(Realm, Biome,  Habitat_degraded, Estimate, `Lower_CI`, `Upper_CI`) %>% 
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) 
+
+
 
 aq_joint <- aq_d_90_ce %>% 
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
@@ -796,11 +1009,12 @@ fig_aq_joint <- ggplot()+
                  aes(y = d_Estimate , xmin = `r_Lower_50_CI`, xmax =  `r_Upper_50_CI`,  colour = Biome ), size=2,height=0) +
   scale_color_manual( values= c(    "#447fdd"))+
   labs( y = expression(paste('Average seed density (',m^2,')')),
-        x= (expression(paste('Average species richness / ',m^2,'',sep = ''))) ,
-        subtitle = "g) Aquatic"
+        x= "Species richness m-2",
+        subtitle = "g Aquatic"
   ) +
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+  theme( plot.subtitle = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+         axis.title.x = element_text(face = "bold"), 
         axis.title.y=element_blank(),
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title=""), shape="none")
@@ -817,7 +1031,7 @@ fig_legend_joint <- ggplot()+
   # overall effects
   geom_point(data = forest_joint ,
              aes(x = r_Estimate, y = d_Estimate,  shape = Biome,
-             ), size = 3) +
+             ), size = 3, color="grey") +
   geom_errorbar(data = forest_joint %>% filter(Biome == "Tropical"),
                 aes(x = r_Estimate , ymin = `d_Lower_90_CI`, ymax =  `d_Upper_90_CI` )) +
   geom_errorbarh(data = forest_joint %>% filter(Biome == "Tropical"),
@@ -828,7 +1042,7 @@ fig_legend_joint <- ggplot()+
   ) +
   scale_shape_manual(labels = c("Undisturbed habitat","Degraded habitat", "Arable"), values = c(  16, 17, 15) ) +
   theme_classic(base_size=16) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+  theme( plot.subtitle = element_text(face = "bold"), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         strip.background = element_rect(colour="black", fill="white"),legend.position="bottom") +
   guides(color=guide_legend(title="Biome", ncol = 3))
 
@@ -854,7 +1068,7 @@ joint_fig <- (fig_tund_joint + fig_forest_joint + fig_grass_joint) /
   ( fig_wetland_joint + fig_aq_joint  )/ (fig_legend_joint) + plot_layout(heights = c(10, 10,  10,  1))
 
 joint_fig
-#12X12
+#16X16
 
 table_joint <- tund_joint %>% bind_rows(forest_joint, grass_joint, med_de_joint, 
                                       ar_joint, wetland_joint, aq_joint) 
