@@ -373,7 +373,7 @@ sb_gathered %>% filter(metric == "Total_seeds",
 options( scipen = 999 )
 
 colnames(sb_prep)
-head((sb_prep)
+head(sb_prep)
 # get a summary of min and max values
 # keep country and study details so we can cite them as examples
 # cute stories to tell at beginning of methods

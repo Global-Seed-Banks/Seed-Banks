@@ -5,9 +5,7 @@ Code by Emma Ladouceur & Alistair Auffret
 ### Data
 *Auffret, Alistair G., Emma Ladouceur, Natalie S. Haussmann, Eirini Daouti, Tatiana G. Elumeeva, Ineta Kačergytė, Jonas Knape, et al. 2024. “ A Global Database of Soil Seed Bank Richness, Density, and Abundance.” Ecology 105(11). https://doi.org/10.1002/ecy.4438*
 
-* All you need is **sb_pub.csv**
-
-* **GIS** folder contains a world map downloaded from the [European Commission](https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries) used for plotting.
+* All you need is **sb_pub.csv** Downloaded from above
 
 * OTHER ENTITIES: **model objects** Each linear mixed effects model used in this analyses is saved as a model object *(.RData)* so you can just load them to recreate figures, rather than run them on your local machine.
 
