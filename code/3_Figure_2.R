@@ -1,5 +1,5 @@
 # ==============================================================================
-# Seed bank database - species richness ~ sample area figures (Figure 3-ish)
+# Seed bank database - species richness ~ sample area figures (Figure 2)
 #
 # What this script does:
 #   1. Loads the prepared seed bank dataset and the brms richness~area models
@@ -13,14 +13,6 @@
 #      of standalone legends, and assembles everything into a composite
 #      richness_fig.
 #
-# NOTE: one real bug is fixed inline (flagged "# FIXED:") - a stray space in
-# a string comparison ("Undisturbed ha bitat") in the aq_div_fig block, which
-# would silently match zero rows. One thing is flagged but NOT fixed because
-# it's ambiguous: the final richness_fig only combines panels b/c/d
-# (Arable/Wetlands/Aquatic) - panel "a" (t_div_fig, Terrestrial non-arable)
-# is built but never added to the combined figure. That may be intentional
-# (e.g. exported as its own full-page panel elsewhere) - flagged where it
-# happens rather than guessed at.
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -386,10 +378,6 @@ summary(mod_wetland_r)
 wetland_predict <- tidyr::crossing(
   Number_sites = c(1, 20, 100),
   sb_wetland_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # was returning 2 (the seq() of length 2), which errors in current dplyr
-    # ("must be size 1, not 2"). reframe() is the dplyr-recommended drop-in
-    # replacement for the old "multi-row summarise" pattern.
     dplyr::reframe(Total_sample_area_m2 = c(seq(0.010000, 15.000000, length.out = 2)))
 ) %>%
   mutate(log_number_sites = log(Number_sites),
@@ -441,10 +429,6 @@ summary(mod_aq_r)
 aq_predict <- tidyr::crossing(
   Number_sites = c(1, 20, 100),
   sb_aq_r %>% group_by(Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # was returning 2 (the seq() of length 2), which errors in current dplyr
-    # ("must be size 1, not 2"). reframe() is the dplyr-recommended drop-in
-    # replacement for the old "multi-row summarise" pattern.
     dplyr::reframe(Total_sample_area_m2 = c(seq(0.010000, 15.000000, length.out = 2)))
 ) %>%
   mutate(log_number_sites = log(Number_sites),
@@ -601,18 +585,7 @@ div_dat %>% filter(Group == "Terrestrial") %>% ungroup() %>% select(Realm_Biome)
 # applies.
 
 # --- 7a. Terrestrial (non-arable) ----------------------------------------------
-# NOTE: bandwidth = 5 added to every geom_density_ridges() call below (and in
-# ar_div_fig/w_div_fig/aq_div_fig) to match the smoother, more consistent ridge
-# look used in the density-figures script (Fig_3), which fixes one bandwidth
-# across all its panels instead of letting each ridge pick its own via the
-# default rule of thumb. 5 is ~3% of this figure's richness range (0-150),
-# the same proportion Fig_3 uses (bandwidth 600 over a 0-20000 range) - worth
-# a visual sanity check once you can render this, since it's a smoothing
-# choice rather than a hard rule.
-#
-# NOTE: point sizes below were bumped from 2.5 (alpha) / 4 (gamma) to
-# 2 (alpha) / 6 (gamma) throughout this script (all four panels + both
-# legends) to make the alpha-vs-gamma size distinction read more clearly.
+
 t_div_fig <- ggplot() +
   geom_density_ridges(data = predict_dat %>% filter(Group == "Terrestrial") %>% filter(Habitat_degraded == "Degraded habitat") %>% filter(Total_sample_area_m2 == "α"),
                       aes(x = Estimate, y = y_base, height = ..density.., color = Realm_Biome),
@@ -669,8 +642,6 @@ t_div_fig <- ggplot() +
                 Realm_Biome == "Mediterranean Forests, Woodlands & Scrub" ~ "Mediterranean & Desert \nForests, Woodlands & Scrub",
                 TRUE ~ Realm_Biome
               )) %>%
-              # NOTE: this label sat right on top of its ridge's tail at the
-              # shared offset, so it gets a taller nudge than the rest.
               mutate(label_offset_t = if_else(Realm_Biome == "Mediterranean Forests, Woodlands & Scrub",
                                                y_text_offset_t + 0.10, y_text_offset_t)),
             aes(y = y_base + label_offset_t, label = label), x = 120, colour = "grey60", vjust = 0, size = 6) +
@@ -888,16 +859,7 @@ aq_div_fig
 # the gamma-richness (legend_g) and alpha-richness (legend_a) point styles
 # (Undisturbed/Degraded/Arable), pulled out below via g_legend() and stacked
 # under the combined figure instead of repeating a legend on every panel.
-#
-# NOTE: color was previously a fixed "grey" on all three shape-mapped layers
-# below, which made every legend key (Undisturbed/Degraded/Arable) render
-# grey regardless of its shape - inconsistent with the rest of the figures,
-# where grey is reserved specifically for "Degraded". Fixed here: the
-# Aquatic-data layer (-> "Undisturbed habitat" key) and the Terrestrial-data
-# layer (-> "Arable" key) are now black; the Arable-data layer (-> "Degraded
-# habitat" key) stays grey. This mapping depends on the default alphabetical
-# factor order of Group ("Aquatic" < "Arable" < "Terrestrial"), which is what
-# scale_shape_manual()'s values/labels below are already keyed to.
+
 
 legend_g <- ggplot() +
   geom_hline(yintercept = 0, linetype = "longdash") +

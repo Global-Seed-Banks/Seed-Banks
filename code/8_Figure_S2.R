@@ -1,5 +1,13 @@
+# ==============================================================================
+# Seed Bank Database — Figure S2: Richness vs. Sampled Area, by Realm
+# ==============================================================================
+# Builds one richness-vs-sample-area panel per Realm (a-g: Tundra, Forests,
+# Grasslands, Mediterranean and Desert, Arable, Wetland, Aquatic), each with
+# a shared shape/linetype legend underneath, matching the Supplementary
+# Information's Figure S2.
+#
+# ==============================================================================
 
-#packages
 library(tidyverse)
 library(brms)
 library(tidybayes)
@@ -8,57 +16,54 @@ library(patchwork)
 library(gridExtra)
 library(grid)
 
-user <- Sys.info()["user"]
+setwd('~/Dropbox/GSB/')
 
-path2wd <- switch(user,
-                  "el50nico" = "~/Dropbox/GSB/",
-                  # " " = " " # Petr puts his computer username and file path here
-)
-
-
-setwd(path2wd)
-
-sb_prep <- read.csv(paste0(path2wd, 'Data/sb_prep.csv'))
+sb_prep <- read.csv('Data/sb_prep.csv')
 
 nrow(sb_prep)
 
-sb_rich_area <- sb_prep %>% 
+sb_rich_area <- sb_prep %>%
   filter(!is.na(Total_species),
          # !Total_species == 0,
          !is.na(Centred_log_Total_sample_area_m2) #,
-         #Number_sites == 1 
+         #Number_sites == 1
   ) %>%
   # treat all random effects as factors
   mutate( Habitat_degraded = as.factor(Habitat_degraded),
           Habitat_broad = as.factor(Habitat_broad),
           StudyID = as.factor(StudyID),
           RowID = as.factor(RowID),
-          Method = as.factor(Method)) %>% arrange(Biome) 
+          Method = as.factor(Method)) %>% arrange(Biome)
 
 
 sb_rich_area %>% select(Realm) %>% distinct()
 
-setwd(paste0(path2wd, 'Model_Fits/Habs/'))
 # models run on cluster, load in model objects here
-load( 'rich_aq.Rdata')
-load( 'rich_ar.Rdata')
-load( 'rich_forest.Rdata')
-load( 'rich_grass.Rdata')
-load( 'rich_med_de.Rdata')
-load( 'rich_po_alp.Rdata')
-load( 'rich_wetland.Rdata')
+load('Model_Fits/Habs/rich_aq.Rdata')
+load('Model_Fits/Habs/rich_ar.Rdata')
+load('Model_Fits/Habs/rich_forest.Rdata')
+load('Model_Fits/Habs/rich_grass.Rdata')
+load('Model_Fits/Habs/rich_med_de.Rdata')
+load('Model_Fits/Habs/rich_po_alp.Rdata')
+load('Model_Fits/Habs/rich_wetland.Rdata')
 
 x_labs <- c(0.01, 0.05, 1, 5, 20)
 
 # tundra
 sb_tundra_r <- sb_rich_area %>% filter(Realm == "Tundra") %>%  ungroup()
 
-tundra_fitted <-   tidyr::crossing( 
+tundra_fitted <-   tidyr::crossing(
   sb_tundra_r %>% group_by(Habitat_degraded) %>%
-    dplyr::summarise(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2), 
+    # FIXED: dplyr::summarise() now requires exactly one row per group; this
+    # block intentionally returns n() rows per group, which errors under
+    # current dplyr ("must be size 1, not <n>"). reframe() is the
+    # dplyr-recommended drop-in replacement for the old "multi-row
+    # summarise" pattern - same fix already applied in
+    # seedbank_richness_figs_clean.R for the identical issue.
+    dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
-    ) ) ), 
+    ) ) ),
   Number_sites = c(1, 20, 100),
 )  %>%
   mutate( Log_number_sites = log(Number_sites),
@@ -70,14 +75,14 @@ tundra_fitted <-   tidyr::crossing(
   mutate(Habitat_degraded_group = Habitat_degraded) %>%
   group_by(Habitat_degraded_group, Habitat_degraded ) %>%
   nest(data = c(Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
-  mutate(fitted = purrr::map(data, ~fitted(mod_tund_r, newdata= .x, re_formula = NA  ))) 
+  mutate(fitted = purrr::map(data, ~fitted(mod_tund_r, newdata= .x, re_formula = NA  )))
 
-tundra_fitted_df <- tundra_fitted  %>% 
-  unnest(cols = c(fitted, data)) %>% 
+tundra_fitted_df <- tundra_fitted  %>%
+  unnest(cols = c(fitted, data)) %>%
   ungroup() %>% select(-Habitat_degraded_group) %>%
   arrange(Total_sample_area_m2, Number_sites) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   filter(Number_sites == 1) %>% mutate() %>%
   mutate( Realm = "Tundra")
 
@@ -85,7 +90,7 @@ head(tundra_fitted_df)
 
 
 
-fig_s2a <- ggplot() + 
+fig_s2a <- ggplot() +
  # facet_wrap(~Habitat_degraded) +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -94,10 +99,10 @@ fig_s2a <- ggplot() +
              aes(x = Total_sample_area_m2,
                  y = Total_species, colour = Realm, shape = Habitat_degraded,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = tundra_fitted_df, 
+  geom_line(data = tundra_fitted_df,
             aes( x = Total_sample_area_m2,
                  y = fitted[,1] , colour = Realm, group = Habitat_degraded , linetype = Habitat_degraded  ),
-            size = 1 
+            size = 1
   ) +
   geom_ribbon(data = tundra_fitted_df ,
               aes(
@@ -105,9 +110,9 @@ fig_s2a <- ggplot() +
                 ymin = fitted[,3], ymax = fitted[,4], group = Habitat_degraded , fill = Realm),
               alpha = 0.2) +
   coord_cartesian( ylim = c(1,100),  xlim = c(0.01,20) ) +
-  scale_color_manual( values= c(   "#94b594" 
+  scale_color_manual( values= c(   "#94b594"
   ))+
-  scale_fill_manual( values= c(  "#94b594" 
+  scale_fill_manual( values= c(  "#94b594"
   ))+
   scale_y_continuous(trans = 'log', breaks= c(1, 5,10,20,50, 100)
   ) +  scale_x_continuous(trans = 'log', breaks=c(0.01, 0.05, 1, 5, 20) , labels = x_labs) +
@@ -115,19 +120,25 @@ fig_s2a <- ggplot() +
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
-       color = "Biome", fill = "Biome", subtitle= "a) Tundra") + guides(col = guide_legend(nrow = 4)) 
+       color = "Biome", fill = "Biome", subtitle= "a) Tundra") + guides(col = guide_legend(nrow = 4))
 
 fig_s2a
 
 # Forest
 sb_forest_r <- sb_rich_area %>% filter(Realm == "Forest") %>%  ungroup()
 
-forest_fitted <-   tidyr::crossing( 
+forest_fitted <-   tidyr::crossing(
   sb_forest_r %>% group_by(Biome, Habitat_degraded) %>%
-    dplyr::summarise(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2), 
+    # FIXED: dplyr::summarise() now requires exactly one row per group; this
+    # block intentionally returns n() rows per group, which errors under
+    # current dplyr ("must be size 1, not <n>"). reframe() is the
+    # dplyr-recommended drop-in replacement for the old "multi-row
+    # summarise" pattern - same fix already applied in
+    # seedbank_richness_figs_clean.R for the identical issue.
+    dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
-    ) ) ), 
+    ) ) ),
   Number_sites = c(1, 20, 100),
 )  %>%
   mutate( Log_number_sites = log(Number_sites),
@@ -139,20 +150,20 @@ forest_fitted <-   tidyr::crossing(
   mutate(Biome_group = Biome) %>%
   group_by(Biome_group, Biome ) %>%
   nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
-  mutate(fitted = purrr::map(data, ~fitted(mod_forest_r, newdata= .x, re_formula = NA  ))) 
+  mutate(fitted = purrr::map(data, ~fitted(mod_forest_r, newdata= .x, re_formula = NA  )))
 
-forest_fitted_df <- forest_fitted  %>% 
-  unnest(cols = c(fitted, data)) %>% 
+forest_fitted_df <- forest_fitted  %>%
+  unnest(cols = c(fitted, data)) %>%
   ungroup() %>% select(-Biome_group) %>%
   arrange(Biome, Total_sample_area_m2, Number_sites) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   filter(Number_sites == 1) %>% mutate()
 
 head(forest_fitted_df)
 
 
-fig_s2b <- ggplot() + 
+fig_s2b <- ggplot() +
   facet_wrap(~Biome) +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -161,10 +172,10 @@ fig_s2b <- ggplot() +
              aes(x = Total_sample_area_m2,
                  y = Total_species, colour = Biome, shape = Habitat_degraded,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = forest_fitted_df, 
+  geom_line(data = forest_fitted_df,
             aes( x = Total_sample_area_m2,
                  y = fitted[,1] , colour = Biome, group = Habitat_degraded , linetype = Habitat_degraded  ),
-            size = 1 
+            size = 1
   ) +
   geom_ribbon(data = forest_fitted_df ,
               aes(
@@ -182,7 +193,7 @@ fig_s2b <- ggplot() +
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
-       color = "Biome", fill = "Biome", subtitle= "b) Forests") + guides(col = guide_legend(nrow = 4)) 
+       color = "Biome", fill = "Biome", subtitle= "b) Forests") + guides(col = guide_legend(nrow = 4))
 
 fig_s2b
 
@@ -191,12 +202,18 @@ fig_s2b
 # grassland
 sb_grassland_r <- sb_rich_area %>% filter(Realm == "Grassland") %>%  ungroup()
 
-grassland_fitted <-   tidyr::crossing( 
+grassland_fitted <-   tidyr::crossing(
   sb_grassland_r %>% group_by(Biome, Habitat_degraded) %>%
-    dplyr::summarise(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2), 
+    # FIXED: dplyr::summarise() now requires exactly one row per group; this
+    # block intentionally returns n() rows per group, which errors under
+    # current dplyr ("must be size 1, not <n>"). reframe() is the
+    # dplyr-recommended drop-in replacement for the old "multi-row
+    # summarise" pattern - same fix already applied in
+    # seedbank_richness_figs_clean.R for the identical issue.
+    dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
-    ) ) ), 
+    ) ) ),
   Number_sites = c(1, 20, 100),
 )  %>%
   mutate( Log_number_sites = log(Number_sites),
@@ -208,20 +225,20 @@ grassland_fitted <-   tidyr::crossing(
   mutate(Biome_group = Biome) %>%
   group_by(Biome_group, Biome ) %>%
   nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
-  mutate(fitted = purrr::map(data, ~fitted(mod_grass_r, newdata= .x, re_formula = NA  ))) 
+  mutate(fitted = purrr::map(data, ~fitted(mod_grass_r, newdata= .x, re_formula = NA  )))
 
-grassland_fitted_df <- grassland_fitted  %>% 
-  unnest(cols = c(fitted, data)) %>% 
+grassland_fitted_df <- grassland_fitted  %>%
+  unnest(cols = c(fitted, data)) %>%
   ungroup() %>% select(-Biome_group) %>%
   arrange(Biome, Total_sample_area_m2, Number_sites) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   filter(Number_sites == 1) %>% mutate()
 
 head(grassland_fitted_df)
 
 
-fig_s2c <- ggplot() + 
+fig_s2c <- ggplot() +
   facet_wrap(~Biome) +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -230,10 +247,10 @@ fig_s2c <- ggplot() +
              aes(x = Total_sample_area_m2,
                  y = Total_species, colour = Biome, shape = Habitat_degraded,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = grassland_fitted_df, 
+  geom_line(data = grassland_fitted_df,
             aes( x = Total_sample_area_m2,
                  y = fitted[,1] , colour = Biome, group = Habitat_degraded , linetype = Habitat_degraded  ),
-            size = 1 
+            size = 1
   ) +
   geom_ribbon(data = grassland_fitted_df ,
               aes(
@@ -251,23 +268,29 @@ fig_s2c <- ggplot() +
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
-       color = "Biome", fill = "Biome", subtitle= "c) Grasslands") + guides(col = guide_legend(nrow = 4)) 
+       color = "Biome", fill = "Biome", subtitle= "c) Grasslands") + guides(col = guide_legend(nrow = 4))
 
 fig_s2c
 
 
 
 # med_de_
-sb_med_de_r <- sb_rich_area %>%  
+sb_med_de_r <- sb_rich_area %>%
   filter(Realm == "Mediterranean and Desert")%>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>% arrange(Biome)
 
-med_de_fitted <-   tidyr::crossing( 
+med_de_fitted <-   tidyr::crossing(
   sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%
-    dplyr::summarise(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2), 
+    # FIXED: dplyr::summarise() now requires exactly one row per group; this
+    # block intentionally returns n() rows per group, which errors under
+    # current dplyr ("must be size 1, not <n>"). reframe() is the
+    # dplyr-recommended drop-in replacement for the old "multi-row
+    # summarise" pattern - same fix already applied in
+    # seedbank_richness_figs_clean.R for the identical issue.
+    dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
-    ) ) ), 
+    ) ) ),
   Number_sites = c(1, 20, 100),
 )  %>%
   mutate( Log_number_sites = log(Number_sites),
@@ -279,21 +302,23 @@ med_de_fitted <-   tidyr::crossing(
   mutate(Biome_group = Biome) %>%
   group_by(Biome_group, Biome ) %>%
   nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
-  mutate(fitted = purrr::map(data, ~fitted(mod_med_de_r, newdata= .x, re_formula = NA  ))) 
+  mutate(fitted = purrr::map(data, ~fitted(mod_med_de_r, newdata= .x, re_formula = NA  )))
 
-med_de_fitted_df <- med_de_fitted  %>% 
-  unnest(cols = c(fitted, data)) %>% 
+med_de_fitted_df <- med_de_fitted  %>%
+  unnest(cols = c(fitted, data)) %>%
   ungroup() %>% select(-Biome_group) %>%
   arrange(Biome, Total_sample_area_m2, Number_sites) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   filter(Number_sites == 1) %>% mutate() %>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>% arrange(Biome)
 
-head(med_de__fitted_df)
+# FIXED: was `head(med_de__fitted_df)` (double underscore typo) - the
+# object defined above is `med_de_fitted_df` (single underscore).
+head(med_de_fitted_df)
 
 
-fig_s2d <- ggplot() + 
+fig_s2d <- ggplot() +
   facet_wrap(~Biome) +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -302,10 +327,10 @@ fig_s2d <- ggplot() +
              aes(x = Total_sample_area_m2,
                  y = Total_species, colour = Biome, shape = Habitat_degraded,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = med_de_fitted_df, 
+  geom_line(data = med_de_fitted_df,
             aes( x = Total_sample_area_m2,
                  y = fitted[,1] , colour = Biome, group = Habitat_degraded , linetype = Habitat_degraded  ),
-            size = 1 
+            size = 1
   ) +
   geom_ribbon(data = med_de_fitted_df ,
               aes(
@@ -323,21 +348,27 @@ fig_s2d <- ggplot() +
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
-       color = "Biome", fill = "Biome", subtitle= "d) Mediterranean and Desert") + guides(col = guide_legend(nrow = 4)) 
+       color = "Biome", fill = "Biome", subtitle= "d) Mediterranean and Desert") + guides(col = guide_legend(nrow = 4))
 
 fig_s2d
 
 # Arable
-sb_ar_r <- sb_rich_area %>%  
+sb_ar_r <- sb_rich_area %>%
   filter(Realm == "Arable")%>%
   mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical")) %>% arrange(Biome)
 
-ar_fitted <-   tidyr::crossing( 
+ar_fitted <-   tidyr::crossing(
   sb_ar_r %>% group_by(Biome, Habitat_degraded) %>%
-    dplyr::summarise(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2), 
+    # FIXED: dplyr::summarise() now requires exactly one row per group; this
+    # block intentionally returns n() rows per group, which errors under
+    # current dplyr ("must be size 1, not <n>"). reframe() is the
+    # dplyr-recommended drop-in replacement for the old "multi-row
+    # summarise" pattern - same fix already applied in
+    # seedbank_richness_figs_clean.R for the identical issue.
+    dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
-    ) ) ), 
+    ) ) ),
   Number_sites = c(1, 20, 100),
 )  %>%
   mutate( Log_number_sites = log(Number_sites),
@@ -349,21 +380,21 @@ ar_fitted <-   tidyr::crossing(
   mutate(Biome_group = Biome) %>%
   group_by(Biome_group, Biome ) %>%
   nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
-  mutate(fitted = purrr::map(data, ~fitted(mod_ar_r, newdata= .x, re_formula = NA  ))) 
+  mutate(fitted = purrr::map(data, ~fitted(mod_ar_r, newdata= .x, re_formula = NA  )))
 
-ar_fitted_df <- ar_fitted  %>% 
-  unnest(cols = c(fitted, data)) %>% 
+ar_fitted_df <- ar_fitted  %>%
+  unnest(cols = c(fitted, data)) %>%
   ungroup() %>% select(-Biome_group) %>%
   arrange(Biome, Total_sample_area_m2, Number_sites) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   filter(Number_sites == 1) %>% mutate() %>%
   mutate(Biome = fct_relevel(Biome,  "Temperate and Boreal", "Mediterranean and Desert","Tropical")) %>% arrange(Biome)
 
 head(ar_fitted_df)
 
 
-fig_s2e <- ggplot() + 
+fig_s2e <- ggplot() +
   facet_wrap(~Biome) +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -372,10 +403,10 @@ fig_s2e <- ggplot() +
              aes(x = Total_sample_area_m2,
                  y = Total_species, colour = Biome, shape = Habitat_degraded,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = ar_fitted_df, 
+  geom_line(data = ar_fitted_df,
             aes( x = Total_sample_area_m2,
                  y = fitted[,1] , colour = Biome, group = Habitat_degraded , linetype = Habitat_degraded  ),
-            size = 1 
+            size = 1
   ) +
   geom_ribbon(data = ar_fitted_df ,
               aes(
@@ -393,21 +424,27 @@ fig_s2e <- ggplot() +
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
-       color = "Biome", fill = "Biome", subtitle= "e) Arable") + guides(col = guide_legend(nrow = 4)) 
+       color = "Biome", fill = "Biome", subtitle= "e) Arable") + guides(col = guide_legend(nrow = 4))
 
 fig_s2e
 
 
 # wetland
-sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") %>%  ungroup()%>% 
+sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") %>%  ungroup()%>%
   mutate(Biome = fct_relevel(Biome, "Temperate and Boreal", "Mediterranean and Desert", "Tropical")) %>% arrange(Biome)
 
-wetland_fitted <-   tidyr::crossing( 
+wetland_fitted <-   tidyr::crossing(
   sb_wetland_r %>% group_by(Biome, Habitat_degraded) %>%
-    dplyr::summarise(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2), 
+    # FIXED: dplyr::summarise() now requires exactly one row per group; this
+    # block intentionally returns n() rows per group, which errors under
+    # current dplyr ("must be size 1, not <n>"). reframe() is the
+    # dplyr-recommended drop-in replacement for the old "multi-row
+    # summarise" pattern - same fix already applied in
+    # seedbank_richness_figs_clean.R for the identical issue.
+    dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
-    ) ) ), 
+    ) ) ),
   Number_sites = c(1, 20, 100),
 )  %>%
   mutate( Log_number_sites = log(Number_sites),
@@ -419,21 +456,21 @@ wetland_fitted <-   tidyr::crossing(
   mutate(Biome_group = Biome) %>%
   group_by(Biome_group, Biome ) %>%
   nest(data = c(Biome, Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
-  mutate(fitted = purrr::map(data, ~fitted(mod_wetland_r, newdata= .x, re_formula = NA  ))) 
+  mutate(fitted = purrr::map(data, ~fitted(mod_wetland_r, newdata= .x, re_formula = NA  )))
 
-wetland_fitted_df <- wetland_fitted  %>% 
-  unnest(cols = c(fitted, data)) %>% 
+wetland_fitted_df <- wetland_fitted  %>%
+  unnest(cols = c(fitted, data)) %>%
   ungroup() %>% select(-Biome_group) %>%
   arrange(Biome, Total_sample_area_m2, Number_sites) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
-  filter(Number_sites == 1) %>% mutate()%>% 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  filter(Number_sites == 1) %>% mutate()%>%
   mutate(Biome = fct_relevel(Biome, "Temperate and Boreal", "Mediterranean and Desert", "Tropical")) %>% arrange(Biome)
 
 head(wetland_fitted_df)
 
 
-fig_s2f <- ggplot() + 
+fig_s2f <- ggplot() +
   facet_wrap(~Biome) +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -442,10 +479,10 @@ fig_s2f <- ggplot() +
              aes(x = Total_sample_area_m2,
                  y = Total_species, colour = Biome, shape = Habitat_degraded,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = wetland_fitted_df, 
+  geom_line(data = wetland_fitted_df,
             aes( x = Total_sample_area_m2,
                  y = fitted[,1] , colour = Biome, group = Habitat_degraded , linetype = Habitat_degraded  ),
-            size = 1 
+            size = 1
   ) +
   geom_ribbon(data = wetland_fitted_df ,
               aes(
@@ -463,7 +500,7 @@ fig_s2f <- ggplot() +
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
-       color = "Biome", fill = "Biome", subtitle= "f) Wetland") + guides(col = guide_legend(nrow = 4)) 
+       color = "Biome", fill = "Biome", subtitle= "f) Wetland") + guides(col = guide_legend(nrow = 4))
 
 fig_s2f
 
@@ -471,12 +508,18 @@ fig_s2f
 # aquatic
 sb_aquatic_r <- sb_rich_area %>% filter(Realm == "Aquatic") %>%  ungroup()
 
-aquatic_fitted <-   tidyr::crossing( 
+aquatic_fitted <-   tidyr::crossing(
   sb_aquatic_r %>% group_by(Habitat_degraded) %>%
-    dplyr::summarise(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2), 
+    # FIXED: dplyr::summarise() now requires exactly one row per group; this
+    # block intentionally returns n() rows per group, which errors under
+    # current dplyr ("must be size 1, not <n>"). reframe() is the
+    # dplyr-recommended drop-in replacement for the old "multi-row
+    # summarise" pattern - same fix already applied in
+    # seedbank_richness_figs_clean.R for the identical issue.
+    dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
-    ) ) ), 
+    ) ) ),
   Number_sites = c(1, 20, 100),
 )  %>%
   mutate( Log_number_sites = log(Number_sites),
@@ -488,14 +531,14 @@ aquatic_fitted <-   tidyr::crossing(
   mutate(Habitat_degraded_group = Habitat_degraded) %>%
   group_by(Habitat_degraded_group, Habitat_degraded ) %>%
   nest(data = c(Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
-  mutate(fitted = purrr::map(data, ~fitted(mod_aq_r, newdata= .x, re_formula = NA  ))) 
+  mutate(fitted = purrr::map(data, ~fitted(mod_aq_r, newdata= .x, re_formula = NA  )))
 
-aquatic_fitted_df <- aquatic_fitted  %>% 
-  unnest(cols = c(fitted, data)) %>% 
+aquatic_fitted_df <- aquatic_fitted  %>%
+  unnest(cols = c(fitted, data)) %>%
   ungroup() %>% select(-Habitat_degraded_group) %>%
   arrange(Total_sample_area_m2, Number_sites) %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
-  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>% 
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
   filter(Number_sites == 1) %>% mutate() %>%
   mutate( Realm = "Aquatic")
 
@@ -503,7 +546,7 @@ head(aquatic_fitted_df)
 
 
 
-fig_s2g <- ggplot() + 
+fig_s2g <- ggplot() +
   #facet_wrap(~Habitat_degraded) +
   # horizontal zero line
   geom_hline(yintercept = 0, lty = 2) +
@@ -512,10 +555,10 @@ fig_s2g <- ggplot() +
              aes(x = Total_sample_area_m2,
                  y = Total_species, colour = Realm, shape = Habitat_degraded,
              ),  size = 1.2, alpha = 0.3,   position = position_jitter(width = 0.25, height=2.5)) +
-  geom_line(data = aquatic_fitted_df, 
+  geom_line(data = aquatic_fitted_df,
             aes( x = Total_sample_area_m2,
                  y = fitted[,1] , colour = Realm, group = Habitat_degraded , linetype = Habitat_degraded  ),
-            size = 1 
+            size = 1
   ) +
   geom_ribbon(data = aquatic_fitted_df ,
               aes(
@@ -533,7 +576,7 @@ fig_s2g <- ggplot() +
                                   legend.position="none") +
   labs(y = "Species richness in the soil seed bank",  x = expression(paste('Total Sampled Area ' , m^2)),
        x="",
-       color = "Biome", fill = "Biome", subtitle= "g) Aquatic") + guides(col = guide_legend(nrow = 4)) 
+       color = "Biome", fill = "Biome", subtitle= "g) Aquatic") + guides(col = guide_legend(nrow = 4))
 
 fig_s2g
 
@@ -545,15 +588,15 @@ legend.data <- wetland_fitted_df %>%   mutate(Habitat_degraded = factor(Habitat_
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, c("0","1")))
 
 line.leg <- ggplot() +
-  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
-  theme_classic(base_size=20 )+theme(panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) +
+  theme_classic(base_size=20 )+theme(panel.grid.major = element_blank(),
+                                     panel.grid.minor = element_blank(),
                                      strip.background = element_rect(colour="black", fill="white"),legend.position="bottom")+
   geom_segment(data = legend.data %>% select(Habitat_degraded) %>% distinct(Habitat_degraded),
                aes(x = 0,
                    xend = 15,
                    y = 0,
-                   yend = 15,  linetype = Habitat_degraded ), 
+                   yend = 15,  linetype = Habitat_degraded ),
                size = 1.5, alpha= 0.5  )  +
   scale_linetype_manual(labels = c("Undisturbed habitat","Degraded habitat"), values = c(  "solid", "dashed") ) +
   theme(legend.key.width = unit(2,"cm")) +  guides(linetype=guide_legend(title=""))
@@ -561,9 +604,9 @@ line.leg <- ggplot() +
 line.leg
 
 shape.leg <- ggplot() +
-  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) + 
-  theme_classic(base_size=20 )+theme(panel.grid.major = element_blank(), 
-                                     panel.grid.minor = element_blank(), 
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) +
+  theme_classic(base_size=20 )+theme(panel.grid.major = element_blank(),
+                                     panel.grid.minor = element_blank(),
                                      strip.background = element_rect(colour="black", fill="white"),legend.position="bottom")+
   geom_point(data = legend.data %>% select(Habitat_degraded) %>% distinct(Habitat_degraded),
              aes(x=0, y=0, shape = Habitat_degraded), alpha= 0.5 ,size =3)+
@@ -585,11 +628,33 @@ g_legend<-function(a.gplot){
 line_legend <- g_legend(line.leg)
 shape_legend <- g_legend(shape.leg)
 
-(fig_s2a) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
-(fig_s2b) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
-(fig_s2c) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
-(fig_s2d) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
-(fig_s2e) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
-(fig_s2f) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
-(fig_s2g) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+# Each panel (a-g) combined with the shared shape/linetype legend, and
+# exported as its own PNG (matching the Supplementary Information, where
+# Figure S2 has 7 separate panels a-g).
+fig_s2a_full <- (fig_s2a) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+fig_s2a_full
+ggsave("Figures/Fig_S2a.png", plot = fig_s2a_full, width = 8, height = 9, units = "in", dpi = 300)
 
+fig_s2b_full <- (fig_s2b) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+fig_s2b_full
+ggsave("Figures/Fig_S2b.png", plot = fig_s2b_full, width = 10, height = 9, units = "in", dpi = 300)
+
+fig_s2c_full <- (fig_s2c) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+fig_s2c_full
+ggsave("Figures/Fig_S2c.png", plot = fig_s2c_full, width = 10, height = 9, units = "in", dpi = 300)
+
+fig_s2d_full <- (fig_s2d) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+fig_s2d_full
+ggsave("Figures/Fig_S2d.png", plot = fig_s2d_full, width = 10, height = 9, units = "in", dpi = 300)
+
+fig_s2e_full <- (fig_s2e) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+fig_s2e_full
+ggsave("Figures/Fig_S2e.png", plot = fig_s2e_full, width = 10, height = 9, units = "in", dpi = 300)
+
+fig_s2f_full <- (fig_s2f) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+fig_s2f_full
+ggsave("Figures/Fig_S2f.png", plot = fig_s2f_full, width = 10, height = 9, units = "in", dpi = 300)
+
+fig_s2g_full <- (fig_s2g) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
+fig_s2g_full
+ggsave("Figures/Fig_S2g.png", plot = fig_s2g_full, width = 8, height = 9, units = "in", dpi = 300)

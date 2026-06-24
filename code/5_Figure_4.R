@@ -8,45 +8,7 @@
 # Panels are combined into a single multi-panel figure (joint_fig) with one
 # shared "State" shape legend, mirroring the panel-grid + shared-legend
 # pattern used in Fig_2 and Fig_3.
-#
-# Notable fixes made while cleaning this script (see inline comments):
-#   - Removed the Sys.info()/switch()/path2wd username-based path pattern in
-#     favour of a single hardcoded setwd() + relative read.csv()/load()/
-#     write.csv() calls (matching the other Fig 2/3 scripts).
-#   - Fixed the same working-directory bug as Fig 2/3: previously setwd()'d
-#     into Model_Fits/Habs/ to load the .Rdata model objects, leaving the
-#     session in that folder for the write.csv() calls near the bottom -
-#     now loads from relative paths without changing the working directory.
-#   - Removed sb_density: built from sb_prep but never referenced anywhere
-#     else in this script (this figure only uses richness x density model
-#     fits, not the raw data frame) - dead code.
-#   - Removed a stray bare `forest_d_ce` line (leftover debug statement
-#     referencing an object that was never defined under that name - the
-#     real objects are forest_d_90_ce / forest_d_50_ce - this would error
-#     if the script were run top to bottom).
-#   - fig_legend_joint: color was previously a single fixed "grey" applied
-#     to one geom_point layer covering all three Biome levels used for the
-#     legend (Boreal/Temperate/Tropical), which made every legend key
-#     (Undisturbed/Degraded/Arable) render grey regardless of shape -
-#     inconsistent with the rest of the figures, where grey is reserved
-#     specifically for "Degraded". Fixed by splitting into three layers
-#     (one per Biome), each with its own fixed color: Boreal (->
-#     "Undisturbed habitat" key) and Tropical (-> "Arable" key) are black;
-#     Temperate (-> "Degraded habitat" key) stays grey. This mapping
-#     depends on the default alphabetical factor order of Biome ("Boreal" <
-#     "Temperate" < "Tropical"), which is what scale_shape_manual()'s
-#     values/labels below are already keyed to.
-#   - write.csv() calls at the bottom previously used hardcoded absolute
-#     paths ("~/Dropbox/GSB/Data/...") - now relative to the setwd() set in
-#     section 2, matching the other scripts.
-#   - NOTE: `scales_div` near the end of this script joins against
-#     `table_s7`, which is not created anywhere in this file - it's built
-#     in the richness-figures script (seedbank_richness_figs_clean.R).
-#     Running this script standalone will error on that line; `table_s7`
-#     must already exist in the session (i.e. run the richness-figures
-#     script first) for that final block to work. Flagging rather than
-#     fixing, since the correct fix depends on intent - either source the
-#     other script here, or split this export into its own script.
+# Table_S5
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -1154,7 +1116,621 @@ print(table_joint, n = Inf)
 # relative to the setwd() set in section 2.
 write.csv(table_joint, "Data/joint.csv")
 
-table_s7c <- tund_r1_df %>%
+# ------------------------------------------------------------------------------
+# TABLE S5 (continued) - "0.01" and "15" m2 columns (table_s5)
+# ------------------------------------------------------------------------------
+# Builds the same per-realm richness-prediction pipeline used above for the
+# "1" m2 column (the "_r1"/"_r1_df" blocks, e.g. tund_r1/tund_r1_df), just
+# evaluated at Total_sample_area_m2 = 0.01 and 15 instead of 1. Reuses the
+# same richness models (mod_*_r, already loaded above) and the same
+# per-realm filtered datasets (sb_tund_r, sb_forest_r, etc., already built
+# above for the "1" m2 blocks) - this is NOT new modelling, just the existing
+# prediction pipeline run at two more sample-area values. LOW RISK: unlike
+# Table S4, this reuses code/models already proven to run in this script (the
+# "_r1" blocks above) - only the seq(...) value changes.
+
+# ============================== "0.01" m2 ==============================
+# --- Tundra (panel a) - 0.01 m2 ---
+tund_r0_01 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_tund_r %>% group_by(Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(0.01, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded) %>%
+  nest(data = c(Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_tund_r, newdata = .x, re_formula = NA)))
+
+tund_r0_01_df <- tund_r0_01 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Tundra", Biome = "Tundra") %>%
+  dplyr::group_by(Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Forest (panel b) - 0.01 m2 ---
+forest_r0_01 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_forest_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(0.01, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_forest_r, newdata = .x, re_formula = NA)))
+
+forest_r0_01_df <- forest_r0_01 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Forest") %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Grassland (panel c) - 0.01 m2 ---
+grass_r0_01 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_grass_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(0.01, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_grass_r, newdata = .x, re_formula = NA)))
+
+grass_r0_01_df <- grass_r0_01 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Grasslands") %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Mediterranean & Desert (panel d) - 0.01 m2 ---
+med_de_r0_01 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(0.01, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_med_de_r, newdata = .x, re_formula = NA)))
+
+med_de_r0_01_df <- med_de_r0_01 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Mediterranean and Desert") %>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Arable (panel e) - 0.01 m2 ---
+ar_r0_01 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_ar_r %>% group_by(Biome) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(0.01, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_ar_r, newdata = .x, re_formula = NA)))
+
+ar_r0_01_df <- ar_r0_01 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  dplyr::group_by(Biome) %>%
+  mutate(Realm = "Arable", Habitat_degraded = "1") %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Wetland (panel f) - 0.01 m2 ---
+wetland_r0_01 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_wetland_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(0.01, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_wetland_r, newdata = .x, re_formula = NA)))
+
+wetland_r0_01_df <- wetland_r0_01 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Wetland") %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Aquatic (panel g) - 0.01 m2 ---
+aq_r0_01 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_aq_r %>% group_by(Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(0.01, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded) %>%
+  nest(data = c(Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_aq_r, newdata = .x, re_formula = NA)))
+
+aq_r0_01_df <- aq_r0_01 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Aquatic", Biome = "Aquatic") %>%
+  dplyr::group_by(Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# ============================== "15" m2 ==============================
+# --- Tundra (panel a) - 15 m2 ---
+tund_r15 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_tund_r %>% group_by(Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(15.000000, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded) %>%
+  nest(data = c(Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_tund_r, newdata = .x, re_formula = NA)))
+
+tund_r15_df <- tund_r15 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Tundra", Biome = "Tundra") %>%
+  dplyr::group_by(Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Forest (panel b) - 15 m2 ---
+forest_r15 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_forest_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(15.000000, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_forest_r, newdata = .x, re_formula = NA)))
+
+forest_r15_df <- forest_r15 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Forest") %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Grassland (panel c) - 15 m2 ---
+grass_r15 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_grass_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(15.000000, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_grass_r, newdata = .x, re_formula = NA)))
+
+grass_r15_df <- grass_r15 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Grasslands") %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Mediterranean & Desert (panel d) - 15 m2 ---
+med_de_r15 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(15.000000, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_med_de_r, newdata = .x, re_formula = NA)))
+
+med_de_r15_df <- med_de_r15 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Mediterranean and Desert") %>%
+  mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Arable (panel e) - 15 m2 ---
+ar_r15 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_ar_r %>% group_by(Biome) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(15.000000, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_ar_r, newdata = .x, re_formula = NA)))
+
+ar_r15_df <- ar_r15 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  dplyr::group_by(Biome) %>%
+  mutate(Realm = "Arable", Habitat_degraded = "1") %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Wetland (panel f) - 15 m2 ---
+wetland_r15 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_wetland_r %>% group_by(Biome, Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(15.000000, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Biome_group = Biome) %>%
+  group_by(Biome_group, Biome) %>%
+  nest(data = c(Habitat_degraded, Biome, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_wetland_r, newdata = .x, re_formula = NA)))
+
+wetland_r15_df <- wetland_r15 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Wetland") %>%
+  dplyr::group_by(Biome, Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Aquatic (panel g) - 15 m2 ---
+aq_r15 <- tidyr::crossing(
+  Number_sites = c(1),
+  sb_aq_r %>% group_by(Habitat_degraded) %>%
+    dplyr::summarise(Total_sample_area_m2 = c(seq(15.000000, length.out = 1)))
+) %>%
+  mutate(
+    log_number_sites = log(Number_sites),
+    log_total_sample_area_m2 = log(Total_sample_area_m2),
+    Centred_log_number_sites = log_number_sites - mean(log_number_sites, na.rm = TRUE),
+    Centred_log_total_sample_area_m2 = log_total_sample_area_m2 - mean(log_total_sample_area_m2, na.rm = TRUE)
+  ) %>%
+  select(-c(log_number_sites, log_total_sample_area_m2)) %>%
+  arrange(Total_sample_area_m2, Number_sites) %>%
+  mutate(Habitat_degraded_group = Habitat_degraded) %>%
+  group_by(Habitat_degraded_group, Habitat_degraded) %>%
+  nest(data = c(Habitat_degraded, Centred_log_total_sample_area_m2, Total_sample_area_m2, Centred_log_number_sites, Number_sites)) %>%
+  mutate(predicted = purrr::map(data, ~predicted_draws(mod_aq_r, newdata = .x, re_formula = NA)))
+
+aq_r15_df <- aq_r15 %>%
+  select(-data) %>%
+  unnest(cols = c(predicted)) %>%
+  mutate(predicted = .prediction) %>%
+  select(-c(.prediction, .draw, .row, .chain, .iteration)) %>%
+  ungroup() %>%
+  mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
+  mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1")) %>%
+  mutate(Realm = "Aquatic", Biome = "Aquatic") %>%
+  dplyr::group_by(Habitat_degraded) %>%
+  mutate(
+    r_Estimate = round(mean(predicted, na.rm = TRUE), 0),
+    r_Upper_90_CI = quantile(predicted, probs = 0.95, na.rm = TRUE),
+    r_Lower_90_CI = quantile(predicted, probs = 0.05, na.rm = TRUE),
+    r_Upper_50_CI = quantile(predicted, probs = 0.25, na.rm = TRUE),
+    r_Lower_50_CI = quantile(predicted, probs = 0.75, na.rm = TRUE)
+  ) %>%
+  select(c(Realm, Biome, Habitat_degraded, r_Estimate, r_Upper_90_CI, r_Lower_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  distinct() %>%
+  ungroup()
+
+# --- Combine all realms for each sample area into one table per area ---
+table_s5_001 <- tund_r0_01_df %>%
+  bind_rows(forest_r0_01_df, grass_r0_01_df, med_de_r0_01_df, ar_r0_01_df, wetland_r0_01_df, aq_r0_01_df) %>%
+  mutate(
+    Estimate = round(r_Estimate, 0),
+    Lower_90 = round(r_Lower_90_CI, 0),
+    Upper_90 = round(r_Upper_90_CI, 0),
+    Lower_50 = round(r_Lower_50_CI, 0),
+    Upper_50 = round(r_Upper_50_CI, 0)
+  ) %>%
+  unite("90_CI", Lower_90:Upper_90, sep = ",") %>%
+  unite("50_CI", Lower_50:Upper_50, sep = ",") %>%
+  select(-c(r_Estimate, r_Lower_90_CI, r_Upper_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  mutate(CI = paste0("(", `50_CI`, " , ", `90_CI`, ")")) %>%
+  select(-c(`90_CI`, `50_CI`)) %>%
+  unite("0.01", Estimate:CI, sep = " ")
+print(table_s5_001, n = Inf)
+
+table_s5_15 <- tund_r15_df %>%
+  bind_rows(forest_r15_df, grass_r15_df, med_de_r15_df, ar_r15_df, wetland_r15_df, aq_r15_df) %>%
+  mutate(
+    Estimate = round(r_Estimate, 0),
+    Lower_90 = round(r_Lower_90_CI, 0),
+    Upper_90 = round(r_Upper_90_CI, 0),
+    Lower_50 = round(r_Lower_50_CI, 0),
+    Upper_50 = round(r_Upper_50_CI, 0)
+  ) %>%
+  unite("90_CI", Lower_90:Upper_90, sep = ",") %>%
+  unite("50_CI", Lower_50:Upper_50, sep = ",") %>%
+  select(-c(r_Estimate, r_Lower_90_CI, r_Upper_90_CI, r_Upper_50_CI, r_Lower_50_CI)) %>%
+  mutate(CI = paste0("(", `50_CI`, " , ", `90_CI`, ")")) %>%
+  select(-c(`90_CI`, `50_CI`)) %>%
+  unite("15", Estimate:CI, sep = " ")
+print(table_s5_15, n = Inf)
+
+# `table_s5` - joins the "0.01" and "15" columns on Realm/Biome/Habitat_degraded,
+# matching the keys table_s5c (the "1" column, built further below) joins on.
+table_s5 <- table_s5_001 %>%
+  left_join(table_s5_15, by = c("Realm", "Biome", "Habitat_degraded"))
+print(table_s5, n = Inf)
+
+table_s5c <- tund_r1_df %>%
   bind_rows(forest_r1_df, grass_r1_df, med_de_r1_df, ar_r1_df, wetland_r1_df, aq_r1_df) %>%
   mutate(
     Estimate = round(r_Estimate, 0),
@@ -1169,24 +1745,31 @@ table_s7c <- tund_r1_df %>%
   mutate(CI = paste0("(", `50_CI`, " , ", `90_CI`, ")")) %>%
   select(-c(`90_CI`, `50_CI`)) %>%
   unite("1", Estimate:CI, sep = " ")
-print(table_s7c, n = Inf)
+print(table_s5c, n = Inf)
 
-# NOTE: `table_s7` is not created anywhere in this script - it's built in
-# seedbank_richness_figs_clean.R. This join (and everything below it) will
-# error unless that script has already been run in the same session so
-# `table_s7` exists. Flagging rather than fixing, since the right fix
-# depends on intent - either source() the richness script here first, or
-# pull this export out into a separate, clearly-sequenced script.
-scales_div <- table_s7 %>%
-  left_join(table_s7c) %>%
+# table_s5c above is only the "1" m2 column of TABLE S5 (Realm/Biome/
+# Habitat_degraded/0.01/1/15). `table_s5` (the "0.01" and "15" m2 columns,
+# joined below) is now built above - see the "TABLE S5 (continued)" block.
+#
+# `table_s5` does NOT exist anywhere in the originally provided scripts -
+# it has been newly constructed here by replicating the exact "_r1"/"_r1_df"
+# prediction pipeline already used above for the "1" m2 column, just
+# evaluated at Total_sample_area_m2 = 0.01 and 15 instead of 1, reusing the
+# same already-loaded richness models (mod_*_r) and per-realm datasets. This
+# is low-risk relative to other inferred work in this project, since it does
+# not invent any new modelling logic - it only reruns proven, working code
+# at two more input values. Still worth spot-checking the resulting numbers
+# against the published Table S5 once run.
+table_s5 <- table_s5 %>%
+  left_join(table_s5c) %>%
   mutate(Realm = as.factor(Realm)) %>%
   mutate(Realm = fct_relevel(Realm, "Tundra", "Forest", "Grasslands", "Mediterranean and Desert",
                               "Arable", "Wetland", "Aquatic")) %>%
   arrange(Realm) %>%
   ungroup() %>%
   select(Realm, Biome, Habitat_degraded, `0.01`, `1`, `15`)
-print(scales_div, n = Inf)
+print(table_s5, n = Inf)
 
 # FIXED: was a hardcoded absolute path ("~/Dropbox/GSB/Data/..."); now
 # relative to the setwd() set in section 2.
-write.csv(scales_div, "Data/Table_Fig_2_Fig_4.csv")
+write.csv(table_s5, "Data/Table_S5.csv")

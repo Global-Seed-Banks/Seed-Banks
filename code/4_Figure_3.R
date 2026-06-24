@@ -12,34 +12,7 @@
 # seedbank_richness_figs_clean.R): t_fig sits centred on top, with the
 # remaining three panels (b/c/d) side by side underneath, plus two extracted
 # shared legends.
-#
-# Notable fixes made while cleaning this script (see inline comments):
-#   - Removed the Sys.info()/switch()/path2wd username-based path pattern in
-#     favour of a single hardcoded setwd() + relative read.csv()/load()/
-#     write.csv() calls.
-#   - Fixed a working-directory bug where the script setwd()'d into
-#     Model_Fits/Habs/ to load the .Rdata model objects, leaving the session
-#     in that folder for everything after (including the write.csv() near
-#     the bottom) - now loads from relative paths without changing the
-#     working directory.
-#   - Removed a stray exploratory line ("aq_fig + t_fig + ar_fig") that
-#     referenced t_fig before it was defined - this would error if the
-#     script were run top to bottom.
-#   - Removed unused leftover offset variables (y_offset, y_offset_2,
-#     y_offset_3) that were never referenced by any plot.
-#   - Fig_3 now includes t_fig as the top panel. The original final figure
-#     omitted it (same gap that was flagged and fixed for Fig_2) - mirroring
-#     that fix here; worth double-checking against the manuscript figure.
-#   - legend_d: color was previously a fixed "grey" on all three shape-mapped
-#     layers, which made every legend key (Undisturbed/Degraded/Arable)
-#     render grey regardless of shape - inconsistent with the rest of the
-#     figures, where grey is reserved specifically for "Degraded". Fixed
-#     here: the Aquatic-data layer (-> "Undisturbed habitat" key) and the
-#     Terrestrial-data layer (-> "Arable" key) are now black; the
-#     Arable-data layer (-> "Degraded habitat" key) stays grey. This mapping
-#     depends on the default alphabetical factor order of Group ("Aquatic" <
-#     "Arable" < "Terrestrial"), which is what scale_shape_manual()'s
-#     values/labels below are already keyed to.
+# Table S4 & S6
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -300,6 +273,11 @@ head(fitted_values)
 # Realm-level posterior means + credible intervals, used for the vertical
 # reference lines (geom_vline) drawn on each panel and for the
 # Table_Fig_3_Realm_Means.csv summary table below.
+#
+# CONFIRMED: this block (through group_means) builds the real, published
+# TABLE S6 - structure (Realm/median/mean/50% Credible Interval/90%
+# Credible Interval, one row each for Natural Terrestrial, Arable, Wetlands,
+# Aquatic) matches the Supplementary Information's Table S6 exactly.
 aq_s <- fitted_values %>%
   filter(Group == "Aquatic") %>%
   group_by(Group) %>%
@@ -357,7 +335,7 @@ ar_s <- fitted_values %>%
 ar_s
 
 # Combine into one table and write out as the Fig 3 realm-means summary.
-group_means <- t_s %>%
+table_s6 <- t_s %>%
   bind_rows(ar_s, w_s, aq_s) %>%
   mutate(
     mean = round(mean, 0),
@@ -369,11 +347,11 @@ group_means <- t_s %>%
   ) %>%
   unite("50% Credible Interval", lower_50:upper_50, sep = "-") %>%
   unite("90% Credible Interval", lower_90:upper_90, sep = "-")
-head(group_means)
+head(table_s6)
 
 # FIXED: was a hardcoded absolute path ("~/Dropbox/GSB/Data/..."); now
 # relative to the setwd() set in section 2.
-write.csv(group_means, "Data/Table_Fig_3_Realm_Means.csv")
+write.csv(table_s6, "Data/Table_s6.csv")
 
 # ------------------------------------------------------------------------------
 # 7. BIOME/HABITAT-LEVEL SUMMARIES & RIDGE-PLOT Y-POSITION HELPERS
@@ -397,6 +375,39 @@ fit_groups_s <- fitted_values %>%
     `0` = "Undisturbed habitat", `1` = "Degraded habitat"
   ))
 fit_groups_s
+
+# ------------------------------------------------------------------------------
+# FIGURE S4 - underlying table: per-biome/habitat density estimates
+# ------------------------------------------------------------------------------
+# `fit_groups_s` above IS the data behind Figure S4 (per-Realm_Biome x
+# Habitat_degraded density estimate + 50%/90% credible intervals) - this
+# just reformats it the same way Table S4 (density-area slopes - see
+# seedbank_table_s4_clean.R) was formatted: round the values, collapse the
+# 50% and 90% credible intervals into "lower-upper" range strings, then
+# unite the mean estimate with those ranges into a single parenthetical
+# "Estimate and Intervals" column. `median` is kept as its own column,
+# since fit_groups_s (unlike the slopes table) reports both a mean and a
+# median - Table S4 only had one point estimate to fold in.
+fig_s4_table <- fit_groups_s %>%
+  mutate(
+    median = round(median, 0),
+    mean = round(mean, 0),
+    lower_50 = round(lower_50, 0),
+    upper_50 = round(upper_50, 0),
+    lower_90 = round(lower_90, 0),
+    upper_90 = round(upper_90, 0)
+  ) %>%
+  unite("50% Credible Interval", lower_50:upper_50, sep = "-") %>%
+  unite("90% Credible Interval", lower_90:upper_90, sep = "-") %>%
+  mutate(Intervals = paste0("(", `50% Credible Interval`, " , ", `90% Credible Interval`, ")")) %>%
+  ungroup() %>%
+  select(-c(`50% Credible Interval`, `90% Credible Interval`)) %>%
+  unite("Estimate and Intervals", mean:Intervals, sep = " ") %>%
+  ungroup()
+
+fig_s4_table
+
+write.csv(fig_s4_table, "Data/Figure_S4_table.csv")
 
 # add_y(): converts Realm_Biome into a numeric y position (y_base) for the
 # ridge plots, ordered to match the manuscript's biome ordering, and

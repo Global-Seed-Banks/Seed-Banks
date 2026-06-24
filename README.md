@@ -11,20 +11,20 @@ Code by Emma Ladouceur & Alistair Auffret
 
 ### R Scripts
 
-* **1_Data_Prep.R** Quantifying metrics, transforming data, reporting on data for supplementary tables S1 and onwards.
+* **1_Data_Prep.R** Quantifying metrics, transforming data, reporting on data for supplementary Table 1, Tables S1.
 
-* **2_Figure_1.R** Mapping records for Figure 1.
+* **2_Figure_1.R** Figure 1.
 
-* **3_Figure_2.R**  Figure 3. Predict Richness values at different scales and plot values.
+* **3_Figure_2.R**  Figure 2. Predict Richness values at different scales and plot values.
 
-* **4_Data_Prep_for_Figure_3.r**  Quantify mean fixed effect value across broad realms (Natural Terrestrial, Arable, Wetlands, Aquatic) for Figure 3
+* **4_Figure_3.R**  Figure 3. Tables S4 & S6
 
-* **5_Figure_3** Figure 3. Quanitfy and plot density values.
+* **5_Figure_4** Figure 4. Table S5.
 
-* **6_Figure_4** Figure 4. Predict richness at 1m2 and plot together with density.
+* **6_Figure_S1** Figure S1.
 
-* **7_Figure_S5.r** Figure S5
+* **7_Table_S3.r** Table S3.
 
-* **8-11** Supplementary Tables, Figures and extras
+* **8_Figure_S2** Figure_S2.
 
 * **cluster** All statistical models were run on a HPC Cluster. Submit scripts and R scripts for each statistical model found in this folder and the models saved as .RData files. Model objects can be found within the data repository.

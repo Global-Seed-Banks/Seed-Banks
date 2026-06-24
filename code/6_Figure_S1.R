@@ -1,6 +1,12 @@
-
-
-# Figures S1
+# ==============================================================================
+# Seed Bank Database — Figure S1: Posterior Predictive Checks
+# ==============================================================================
+# Builds posterior predictive check (pp_check) panels for each biome's
+# richness model (a) and density model (b), combined into two multi-panel
+# figures with a shared legend, matching the Supplementary Information's
+# Figure S1 (which has parts a and b only).
+#
+# ==============================================================================
 
 library(tidyverse)
 library(brms)
@@ -9,15 +15,16 @@ library(tidybayes)
 library(patchwork)
 library(viridis)
 
-setwd(paste0(path2wd, 'Model_Fits/Habs/'))
+setwd('~/Dropbox/GSB/')
+
 # models run on cluster, load in model objects here
-load( 'rich_aq.Rdata')
-load( 'rich_ar.Rdata')
-load( 'rich_forest.Rdata')
-load( 'rich_grass.Rdata')
-load( 'rich_med_de.Rdata')
-load( 'rich_po_alp.Rdata')
-load( 'rich_wetland.Rdata')
+load('Model_Fits/Habs/rich_aq.Rdata')
+load('Model_Fits/Habs/rich_ar.Rdata')
+load('Model_Fits/Habs/rich_forest.Rdata')
+load('Model_Fits/Habs/rich_grass.Rdata')
+load('Model_Fits/Habs/rich_med_de.Rdata')
+load('Model_Fits/Habs/rich_po_alp.Rdata')
+load('Model_Fits/Habs/rich_wetland.Rdata')
 
 color_scheme_set("darkgray")
 
@@ -81,18 +88,16 @@ fig_s1a <- (s1a_i + s1a_ii + s1a_iii) /
 
 fig_s1a
 
-
-setwd(paste0(path2wd, 'Model_Fits/Habs/'))
-# models run on cluster, load in model objects here
-load( 'den_aq.Rdata')
-load( 'den_ar.Rdata')
-load( 'den_forest.Rdata')
-load( 'den_grass.Rdata')
-load( 'den_med_de.Rdata')
-load( 'den_po_alp.Rdata')
-load( 'den_wetland.Rdata')
+ggsave("Figures/Fig_S1a.png", plot = fig_s1a, width = 14, height = 16, units = "in", dpi = 300)
 
 
+load('Model_Fits/Habs/den_aq.Rdata')
+load('Model_Fits/Habs/den_ar.Rdata')
+load('Model_Fits/Habs/den_forest.Rdata')
+load('Model_Fits/Habs/den_grass.Rdata')
+load('Model_Fits/Habs/den_med_de.Rdata')
+load('Model_Fits/Habs/den_po_alp.Rdata')
+load('Model_Fits/Habs/den_wetland.Rdata')
 
 
 s1b_i <- pp_check(mod_tund_d)+ xlab( expression(paste('Seed density (',m^2,')')) ) + ylab("Density") +
@@ -145,66 +150,6 @@ fig_s1b <- (s1b_i + s1b_ii + s1b_iii) /
 
 fig_s1b
 
+ggsave("Figures/Fig_S1b.png", plot = fig_s1b, width = 14, height = 16, units = "in", dpi = 300)
 
-setwd(paste0(path2wd, 'Model_Fits/Habs/'))
-# models run on cluster, load in model objects here
-load( 'ratio_aq.Rdata')
-load( 'ratio_ar.Rdata')
-load( 'ratio_forest.Rdata')
-load( 'ratio_grass.Rdata')
-load( 'ratio_med_de.Rdata')
-load( 'ratio_po_alp.Rdata')
-load( 'ratio_wetland.Rdata')
-
-s1c_i <- pp_check(mod_tund_ra) + xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "i) Tundra") + xlim(0,400)+ #ylim(0,0.025)+
-  theme_classic()+  theme(legend.position= "none") 
-
-s1c_i
-
-s1c_ii <- pp_check(mod_forest_ra)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
-labs(title= "ii) Forest") + xlim(0,400)+ #ylim(0,0.025)+
-  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
-
-s1c_ii
-
-s1c_iii <- pp_check(mod_grass_ra)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "iii) Grassland") + xlim(0,400)+ #ylim(0,0.025)+
-  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
-
-
-s1c_iii
-
-s1c_iv <- pp_check(mod_med_de_ra)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "iv) Mediterranean and Desert") + xlim(0,400)+ #ylim(0,0.025)+
-  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
-
-
-s1c_iv
-
-s1c_v <- pp_check(mod_ar_ra)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "v) Arable") + xlim(0,400)+ #ylim(0,0.025)+
-  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
-
-
-s1c_v
-
-s1c_vi <-pp_check(mod_wetland_ra) + xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "vi) Wetland") + xlim(0,400)+ #ylim(0,0.025)+
-  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
-
-
-s1c_vi
-
-s1c_vii <- pp_check(mod_aq_ra)+ xlab( "Ratio (seeds/species)") + ylab("Density") +
-  labs(title= "vii) Aquatic") + xlim(0,400)+ #ylim(0,0.025)+
-  theme_classic()+  theme(legend.position= "none") # predicted vs. observed values
-
-s1c_vii
-
-fig_s1c <- (s1c_i + s1c_ii + s1c_iii) /
-  ( s1c_iv + s1c_v) /
-  ( s1c_vi + s1c_vii ) / (s1_legend) + plot_layout(heights = c(10, 10,  10, 1))
-
-fig_s1c
 
