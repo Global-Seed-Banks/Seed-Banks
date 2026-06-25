@@ -150,6 +150,7 @@ fig_s1b <- (s1b_i + s1b_ii + s1b_iii) /
 
 fig_s1b
 
-ggsave("Figures/Fig_S1b.png", plot = fig_s1b, width = 14, height = 16, units = "in", dpi = 300)
+#ggsave("Figures/Fig_S1b.png", plot = fig_s1b, width = 14, height = 16, units = "in", dpi = 300)
 
+ggsave("Figures/Fig_s1b.pdf", plot = fig_s1b,  width = 355.6, height = 406.4, units = "mm",   device = cairo_pdf)
 

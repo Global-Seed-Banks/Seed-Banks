@@ -39,8 +39,6 @@ nrow(sb_prep)
 # ------------------------------------------------------------------------------
 # 3. DERIVE MODELLING DATASET (sb_rich_area)
 # ------------------------------------------------------------------------------
-# Drop rows with no richness or no sample area, and make sure every grouping/
-# random-effect column is a factor before it goes into model predictions.
 
 sb_rich_area <- sb_prep %>%
   filter(!is.na(Total_species),
@@ -57,12 +55,6 @@ sb_rich_area %>% select(Realm) %>% distinct()
 # ------------------------------------------------------------------------------
 # 4. LOAD FITTED MODELS
 # ------------------------------------------------------------------------------
-# These brms models were fit on the cluster and saved as .Rdata - loaded here
-# rather than refit. Loaded with paths relative to the GSB root (set above)
-# so the working directory stays put for the rest of the script (figures get
-# written relative to that same root later on).
-# NOTE: rich_po_alp.Rdata (polar/alpine) is the Tundra model - the object
-# inside it is named mod_tund_r, used below.
 
 load('Model_Fits/Habs/rich_aq.Rdata')
 load('Model_Fits/Habs/rich_ar.Rdata')
@@ -103,10 +95,6 @@ conditional_effects(mod_tund_r)
 tund_predict <- tidyr::crossing(
   Number_sites = c(1, 20, 100),
   sb_tund_r %>% group_by(Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # was returning 2 (the seq() of length 2), which errors in current dplyr
-    # ("must be size 1, not 2"). reframe() is the dplyr-recommended drop-in
-    # replacement for the old "multi-row summarise" pattern.
     dplyr::reframe(Total_sample_area_m2 = c(seq(0.010000, 15.000000, length.out = 2)))
 ) %>%
   mutate(log_number_sites = log(Number_sites),
@@ -207,10 +195,6 @@ sb_grass_r <- sb_rich_area %>% filter(Realm == "Grassland") %>% ungroup()
 grass_predict <- tidyr::crossing(
   Number_sites = c(1, 20, 100),
   sb_grass_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # was returning 2 (the seq() of length 2), which errors in current dplyr
-    # ("must be size 1, not 2"). reframe() is the dplyr-recommended drop-in
-    # replacement for the old "multi-row summarise" pattern.
     dplyr::reframe(Total_sample_area_m2 = c(seq(0.010000, 15.000000, length.out = 2)))
 ) %>%
   mutate(log_number_sites = log(Number_sites),
@@ -262,10 +246,6 @@ summary(mod_med_de_r)
 med_de_predict <- tidyr::crossing(
   Number_sites = c(1, 20, 100),
   sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # was returning 2 (the seq() of length 2), which errors in current dplyr
-    # ("must be size 1, not 2"). reframe() is the dplyr-recommended drop-in
-    # replacement for the old "multi-row summarise" pattern.
     dplyr::reframe(Total_sample_area_m2 = c(seq(0.010000, 15.000000, length.out = 2)))
 ) %>%
   mutate(log_number_sites = log(Number_sites),
@@ -320,10 +300,6 @@ summary(mod_ar_r)
 ar_predict <- tidyr::crossing(
   Number_sites = c(1, 20, 100),
   sb_ar_r %>% group_by(Biome) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # was returning 2 (the seq() of length 2), which errors in current dplyr
-    # ("must be size 1, not 2"). reframe() is the dplyr-recommended drop-in
-    # replacement for the old "multi-row summarise" pattern.
     dplyr::reframe(Total_sample_area_m2 = c(seq(0.010000, 15.000000, length.out = 2)))
 ) %>%
   mutate(log_number_sites = log(Number_sites),
@@ -474,8 +450,6 @@ aq_div
 # ------------------------------------------------------------------------------
 # 6. COMBINE ALL REALMS & DERIVE Realm_Biome
 # ------------------------------------------------------------------------------
-# Same Realm x Biome -> Realm_Biome collapsing used in the maps script, so the
-# legend/category labels stay consistent across figures.
 
 predict_dat <- tund_predict_df %>%
   bind_rows(aq_predict_df, ar_predict_df, wetland_predict_df, med_de_predict_df, grass_predict_df, forest_predict_df) %>%
@@ -497,9 +471,6 @@ predict_dat <- tund_predict_df %>%
     Realm == "Wetland" & Biome == "Tropical" ~ "Tropical Wetlands",
   )) %>%
   mutate(Estimate = predicted)
-  # NOTE: an earlier fct_relevel(Realm_Biome, ...) / fct_relevel(Realm, ...) pass
-  # used to live here to fix display order, but it's dead code now - ordering
-  # is instead handled below by biome_levels + add_y(), so it's been removed.
 head(predict_dat)
 
 
@@ -523,9 +494,7 @@ div_dat <- tund_div %>%
     Realm == "Wetland" & Biome == "Tropical" ~ "Tropical Wetlands",
   )) %>%
   mutate(Estimate = Estimate_)
-  # NOTE: same as above - the dead fct_relevel(Realm_Biome, ...) / fct_relevel(Realm, ...)
-  # block that used to follow here has been removed; biome_levels + add_y() below
-  # now handle display order.
+
 head(div_dat)
 
 
@@ -579,10 +548,7 @@ div_dat %>% filter(Group == "Terrestrial") %>% ungroup() %>% select(Realm_Biome)
 # ------------------------------------------------------------------------------
 # 7. FIGURES
 # ------------------------------------------------------------------------------
-# Each figure overlays, per Realm_Biome row: alpha (0.01 m2) and gamma (15 m2)
-# sample-area density ridges/points/error-bars, split by degraded (grey,
-# triangle) vs undisturbed (coloured, circle) habitat where that distinction
-# applies.
+
 
 # --- 7a. Terrestrial (non-arable) ----------------------------------------------
 
@@ -855,11 +821,6 @@ aq_div_fig
 # ------------------------------------------------------------------------------
 # 8. LEGEND-EXTRACTION PLOTS
 # ------------------------------------------------------------------------------
-# Two throwaway plots whose only purpose is to generate a shape legend for
-# the gamma-richness (legend_g) and alpha-richness (legend_a) point styles
-# (Undisturbed/Degraded/Arable), pulled out below via g_legend() and stacked
-# under the combined figure instead of repeating a legend on every panel.
-
 
 legend_g <- ggplot() +
   geom_hline(yintercept = 0, linetype = "longdash") +
@@ -924,8 +885,6 @@ legend_a <- g_legend(legend_a)
 # ------------------------------------------------------------------------------
 # 9. ASSEMBLE FINAL FIGURE & EXPORT
 # ------------------------------------------------------------------------------
-# richness_fig = the bottom row: b (Arable), c (Wetlands), d (Aquatic) panels
-# side by side, with the two extracted legends stacked underneath.
 
 low_row <- (ar_div_fig + w_div_fig + aq_div_fig)
 richness_fig <- (low_row / legend_a / legend_g) + plot_layout(heights = c(10, 1, 1))
@@ -940,4 +899,7 @@ Fig_2
 
 # Save figures as .png in Figures/ (created if it doesn't exist yet).
 
-ggsave("Figures/Fig_2_2.png", plot = Fig_2, width = 20, height = 18, units = "in", dpi = 300)
+#ggsave("Figures/Fig_2.png", plot = Fig_2, width = 20, height = 18, units = "in", dpi = 300)
+
+
+ggsave("Figures/Fig_2.pdf", plot = Fig_2, width = 508, height = 457.2, units = "mm",   device = cairo_pdf)

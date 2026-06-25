@@ -51,9 +51,7 @@ theme_set(theme_bw())
 # ------------------------------------------------------------------------------
 # 3. QUICK MAP SANITY CHECK (not used downstream)
 # ------------------------------------------------------------------------------
-# Confirms the sf/rnaturalearth setup works. `world` gets overwritten in the
-# next section with the maps::map_data() version that's actually used for
-# plotting below, so this block is just a smoke test.
+
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
 class(world)
@@ -63,9 +61,7 @@ ggplot(data = world) +
 # ------------------------------------------------------------------------------
 # 4. LOAD COUNTRY POLYGONS FOR PLOTTING
 # ------------------------------------------------------------------------------
-# This is the `world` object actually used as the background map in every
-# panel below (a plain data frame of long/lat polygon vertices, rather than
-# the sf object created above).
+
 
 world <- map_data("world")
 
@@ -80,9 +76,7 @@ sb %>% select(Biome) %>% distinct()
 # ------------------------------------------------------------------------------
 # 6. DERIVE Realm_Biome GROUPING VARIABLE
 # ------------------------------------------------------------------------------
-# Collapses Realm x Biome into the single human-readable category used for
-# colour/legend labels on the maps (e.g. "Tropical & Subtropical Forests"),
-# then fixes the display order of those categories and of Habitat_degraded.
+
 
 sb <- sb %>%
   mutate(Realm_Biome = case_when(
@@ -102,8 +96,6 @@ sb <- sb %>%
     Realm == "Wetland" & Biome == "Temperate and Boreal" ~ "Temperate & Boreal Wetlands",
     Realm == "Wetland" & Biome == "Tropical" ~ "Tropical Wetlands",
   )) %>%
-  # FIXED: removed a trailing comma after "Aquatic" - fct_relevel() doesn't
-  # accept a dangling comma before the closing paren, this would error.
   mutate(Realm_Biome = fct_relevel(Realm_Biome,
     "Tundra", "Boreal Forests/Taiga", "Temperate Forests", "Tropical & Subtropical Forests",
     "Temperate & Boreal Grasslands, Savannas & Shrublands", "Tropical & Subtropical Grasslands, Savannas & Shrublands",
@@ -123,11 +115,7 @@ sb %>% select(Realm_Biome) %>% distinct()
 # ------------------------------------------------------------------------------
 # 7. PER-REALM MAP PANELS (a-g)
 # ------------------------------------------------------------------------------
-# One small map per Realm: grey world polygon background, points at each
-# study's Lon_deg/Lat_deg coloured by Realm_Biome and shaped by
-# Habitat_degraded (where that distinction applies). Each panel sets its own
-# manual colour/shape scale (one colour per sub-biome within that Realm) and
-# annotates the Realm name directly on the panel rather than via a title.
+
 
 head(sb)
 summary(sb)
@@ -271,26 +259,13 @@ gsbm_aq
 # ------------------------------------------------------------------------------
 # 8. LEGEND-EXTRACTION HACK PLOT
 # ------------------------------------------------------------------------------
-# None of the panels above show a "State" (Undisturbed/Degraded/Arable)
-# shape legend on their own. This throwaway plot exists purely to generate
-# one: points are forced to plain grey (overriding the Realm colour mapping)
-# so only the shape legend reads as meaningful, then g_legend() below pulls
-# just the legend grob out of it for later use.
+
 
 sb %>% distinct(Realm)
 
 gsbm_legend_dat <- sb %>% filter(Realm %in% c("Aquatic", "Wetland", "Tundra"))
 
-# NOTE: color was previously a single fixed "grey" applied to one geom_point
-# layer covering all three Realms, which made every legend key (Undisturbed/
-# Degraded/Arable) render grey regardless of shape - inconsistent with the
-# rest of the figures, where grey is reserved specifically for "Degraded".
-# Fixed here by splitting into three layers (one per Realm) so each key gets
-# its own fixed color: Aquatic (-> "Undisturbed" key) and Wetland (-> "Arable"
-# key) are black; Tundra (-> "Degraded" key) stays grey. This mapping depends
-# on the default alphabetical order of Realm ("Aquatic" < "Tundra" <
-# "Wetland"), which is what scale_shape_manual()'s values/labels below are
-# already keyed to.
+
 gsbm_legend_fig <- ggplot() +
   geom_polygon(data = world, aes(x = long, y = lat, group = group), fill = "grey", alpha = 0.7) +
   geom_point(data = gsbm_legend_dat %>% filter(Realm == "Aquatic"),
@@ -299,9 +274,6 @@ gsbm_legend_fig <- ggplot() +
              aes(x = Lon_deg, y = Lat_deg, shape = Realm, color = Realm), size = 5, color = "grey") +
   geom_point(data = gsbm_legend_dat %>% filter(Realm == "Wetland"),
              aes(x = Lon_deg, y = Lat_deg, shape = Realm, color = Realm), size = 5, color = "black") +
-  # FIXED: guide = "none" was previously placed inside the c() colour vector
-  # (c("#447fdd", guide = "none")) rather than as its own scale argument -
-  # moved out so it actually suppresses the colour legend as intended.
   scale_color_manual(values = c("#447fdd"), guide = "none") +
   scale_shape_manual(name = "State", values = c(16, 17, 15),
                       labels = c("Undisturbed", "Degraded", "Arable")) +
@@ -327,9 +299,6 @@ gsbm_legend <- g_legend(gsbm_legend_fig)
 # ------------------------------------------------------------------------------
 # 9. ASSEMBLE FINAL COMPOSITE FIGURE
 # ------------------------------------------------------------------------------
-# Arrange the seven Realm panels into a 3-row patchwork grid, then overlay
-# the extracted "State" legend in the empty space next to the Arable panel.
-# Output size for print: landscape 12 x 21.
 
 top_row <- (gsbm_tundra) + (gsbm_forest) + (gsbm_grass)
 middle_row <- (gsbm_med) + (gsbm_ar)
@@ -348,5 +317,15 @@ Figure_1 <- ggdraw(p_maps) +
   )
 Figure_1 
 
-# Save at print size (landscape 21 x 12 in, 300 dpi).
-ggsave("Figures/Fig_1.png", plot = Figure_1, width = 21, height = 12, units = "in", dpi = 300)
+
+#ggsave("Figures/Fig_1.png", plot = Fig_1, width = 20, height = 18, units = "in", dpi = 300)
+
+
+ggsave(
+  "Figures/Fig_1.pdf",
+  plot = Figure_1,
+  width = 533,
+  height = 305,
+  units = "mm",
+  device = cairo_pdf
+)

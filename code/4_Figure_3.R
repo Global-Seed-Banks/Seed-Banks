@@ -112,10 +112,7 @@ head(sb_density)
 # ------------------------------------------------------------------------------
 # 4. LOAD MODEL FITS & BUILD PER-REALM DATA SUBSETS
 # ------------------------------------------------------------------------------
-# FIXED: previously setwd() into Model_Fits/Habs/ to load these, which left
-# every later relative path (e.g. the write.csv() further down) pointed at
-# the wrong folder. Loading with relative paths instead keeps the working
-# directory at ~/Dropbox/GSB/ for the rest of the script.
+
 load('Model_Fits/Habs/den_aq.Rdata')
 load('Model_Fits/Habs/den_ar.Rdata')
 load('Model_Fits/Habs/den_forest.Rdata')
@@ -158,9 +155,6 @@ summary(mod_ar_d)
 # ------------------------------------------------------------------------------
 # 5. BUILD PER-REALM FITTED-VALUE TABLES
 # ------------------------------------------------------------------------------
-# For each realm model, attach population-level fitted values (re_formula =
-# NA marginalises out the random effects) back onto the original data, then
-# join in a few extra columns from the realm-specific data subset.
 
 aq_fitted <- cbind(
   mod_aq_d$data,
@@ -274,10 +268,6 @@ head(fitted_values)
 # reference lines (geom_vline) drawn on each panel and for the
 # Table_Fig_3_Realm_Means.csv summary table below.
 #
-# CONFIRMED: this block (through group_means) builds the real, published
-# TABLE S6 - structure (Realm/median/mean/50% Credible Interval/90%
-# Credible Interval, one row each for Natural Terrestrial, Arable, Wetlands,
-# Aquatic) matches the Supplementary Information's Table S6 exactly.
 aq_s <- fitted_values %>%
   filter(Group == "Aquatic") %>%
   group_by(Group) %>%
@@ -349,8 +339,7 @@ table_s6 <- t_s %>%
   unite("90% Credible Interval", lower_90:upper_90, sep = "-")
 head(table_s6)
 
-# FIXED: was a hardcoded absolute path ("~/Dropbox/GSB/Data/..."); now
-# relative to the setwd() set in section 2.
+
 write.csv(table_s6, "Data/Table_s6.csv")
 
 # ------------------------------------------------------------------------------
@@ -377,18 +366,10 @@ fit_groups_s <- fitted_values %>%
 fit_groups_s
 
 # ------------------------------------------------------------------------------
-# FIGURE S4 - underlying table: per-biome/habitat density estimates
+# Table S4 - underlying table: per-biome/habitat density estimates
 # ------------------------------------------------------------------------------
-# `fit_groups_s` above IS the data behind Figure S4 (per-Realm_Biome x
-# Habitat_degraded density estimate + 50%/90% credible intervals) - this
-# just reformats it the same way Table S4 (density-area slopes - see
-# seedbank_table_s4_clean.R) was formatted: round the values, collapse the
-# 50% and 90% credible intervals into "lower-upper" range strings, then
-# unite the mean estimate with those ranges into a single parenthetical
-# "Estimate and Intervals" column. `median` is kept as its own column,
-# since fit_groups_s (unlike the slopes table) reports both a mean and a
-# median - Table S4 only had one point estimate to fold in.
-fig_s4_table <- fit_groups_s %>%
+
+table_s4 <- fit_groups_s %>%
   mutate(
     median = round(median, 0),
     mean = round(mean, 0),
@@ -404,10 +385,9 @@ fig_s4_table <- fit_groups_s %>%
   select(-c(`50% Credible Interval`, `90% Credible Interval`)) %>%
   unite("Estimate and Intervals", mean:Intervals, sep = " ") %>%
   ungroup()
+table_s4
 
-fig_s4_table
-
-write.csv(fig_s4_table, "Data/Figure_S4_table.csv")
+write.csv(table_s4, "Data/table_s4.csv")
 
 # add_y(): converts Realm_Biome into a numeric y position (y_base) for the
 # ridge plots, ordered to match the manuscript's biome ordering, and
@@ -463,9 +443,6 @@ hab_levels <- c("Degraded habitat", "Undisturbed habitat")
 add_y_h <- function(df) {
   df %>%
     mutate(
-      # Clean up Habitat_degraded text (also guards against the stray
-      # "ha bitat" spacing typo found and fixed in the richness-figures
-      # script, in case the same typo exists in this data).
       Habitat_degraded_chr = as.character(Habitat_degraded) %>%
         stringr::str_squish() %>%
         stringr::str_replace_all("ha\\s+bitat", "habitat"),
@@ -741,22 +718,7 @@ w_fig
 # ------------------------------------------------------------------------------
 # 9. SHARED LEGENDS
 # ------------------------------------------------------------------------------
-# legend_d and legend_line are throwaway scaffold plots - only their guide
-# boxes are kept (via g_legend() below), so their subtitle/labs/themes never
-# actually get displayed. Built only to extract two shared legends: the
-# State (Undisturbed/Degraded/Arable) shape legend, and the Realm Mean
-# line legend.
-#
-# NOTE: color was previously a fixed "grey" on all three shape-mapped
-# layers below, which made every legend key (Undisturbed/Degraded/Arable)
-# render grey regardless of shape - inconsistent with the rest of the
-# figures, where grey is reserved specifically for "Degraded". Fixed here:
-# the Aquatic-data layer (-> "Undisturbed habitat" key) and the
-# Terrestrial-data layer (-> "Arable" key) are now black; the Arable-data
-# layer (-> "Degraded habitat" key) stays grey. This mapping depends on the
-# default alphabetical factor order of Group ("Aquatic" < "Arable" <
-# "Terrestrial"), which is what scale_shape_manual()'s values/labels below
-# are already keyed to.
+
 
 legend_d <- ggplot() +
   geom_hline(yintercept = 0, linetype = "longdash") +
@@ -788,7 +750,7 @@ legend_d <- ggplot() +
 legend_d
 
 legend_line <- ggplot() +
-  geom_hline(data = group_means, aes(yintercept = mean, color = Group, linetype = Group, group = Group), size = 1.2, alpha = 0.7) +
+  geom_hline(data = table_s6, aes(yintercept = mean, color = Group, linetype = Group, group = Group), size = 1.2, alpha = 0.7) +
   labs(x = '', y = expression(paste('Seed density (', m^2, ')'))) +
   scale_color_manual(name = "Realm Mean", labels = c("Terrestrial - \nNon-Arable", "Terrestrial - \nArable", "Wetlands & \nFlooded Grasslands", "Aquatic"),
                       values = c("#0c7156", "#472c0b", "#208cc0", "#003967")) +
@@ -832,4 +794,8 @@ Fig_3
 
 # Save figures as .png in Figures/ (created if it doesn't exist yet).
 
-ggsave("Figures/Fig_3_2.png", plot = Fig_3, width = 20, height = 18, units = "in", dpi = 300)
+#ggsave("Figures/Fig_3_2.png", plot = Fig_3, width = 20, height = 18, units = "in", dpi = 300)
+
+
+ggsave("Figures/Fig_3.pdf", plot = Fig_3, width = 508, height = 457.2, units = "mm",   device = cairo_pdf)
+

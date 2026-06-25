@@ -54,12 +54,6 @@ sb_tundra_r <- sb_rich_area %>% filter(Realm == "Tundra") %>%  ungroup()
 
 tundra_fitted <-   tidyr::crossing(
   sb_tundra_r %>% group_by(Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # block intentionally returns n() rows per group, which errors under
-    # current dplyr ("must be size 1, not <n>"). reframe() is the
-    # dplyr-recommended drop-in replacement for the old "multi-row
-    # summarise" pattern - same fix already applied in
-    # seedbank_richness_figs_clean.R for the identical issue.
     dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
@@ -129,12 +123,6 @@ sb_forest_r <- sb_rich_area %>% filter(Realm == "Forest") %>%  ungroup()
 
 forest_fitted <-   tidyr::crossing(
   sb_forest_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # block intentionally returns n() rows per group, which errors under
-    # current dplyr ("must be size 1, not <n>"). reframe() is the
-    # dplyr-recommended drop-in replacement for the old "multi-row
-    # summarise" pattern - same fix already applied in
-    # seedbank_richness_figs_clean.R for the identical issue.
     dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
@@ -204,12 +192,6 @@ sb_grassland_r <- sb_rich_area %>% filter(Realm == "Grassland") %>%  ungroup()
 
 grassland_fitted <-   tidyr::crossing(
   sb_grassland_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # block intentionally returns n() rows per group, which errors under
-    # current dplyr ("must be size 1, not <n>"). reframe() is the
-    # dplyr-recommended drop-in replacement for the old "multi-row
-    # summarise" pattern - same fix already applied in
-    # seedbank_richness_figs_clean.R for the identical issue.
     dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
@@ -281,12 +263,6 @@ sb_med_de_r <- sb_rich_area %>%
 
 med_de_fitted <-   tidyr::crossing(
   sb_med_de_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # block intentionally returns n() rows per group, which errors under
-    # current dplyr ("must be size 1, not <n>"). reframe() is the
-    # dplyr-recommended drop-in replacement for the old "multi-row
-    # summarise" pattern - same fix already applied in
-    # seedbank_richness_figs_clean.R for the identical issue.
     dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
@@ -313,8 +289,7 @@ med_de_fitted_df <- med_de_fitted  %>%
   filter(Number_sites == 1) %>% mutate() %>%
   mutate(Biome = fct_relevel(Biome, "Mediterranean Forests, Woodlands and Scrub", "Deserts and Xeric Shrublands")) %>% arrange(Biome)
 
-# FIXED: was `head(med_de__fitted_df)` (double underscore typo) - the
-# object defined above is `med_de_fitted_df` (single underscore).
+
 head(med_de_fitted_df)
 
 
@@ -359,12 +334,6 @@ sb_ar_r <- sb_rich_area %>%
 
 ar_fitted <-   tidyr::crossing(
   sb_ar_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # block intentionally returns n() rows per group, which errors under
-    # current dplyr ("must be size 1, not <n>"). reframe() is the
-    # dplyr-recommended drop-in replacement for the old "multi-row
-    # summarise" pattern - same fix already applied in
-    # seedbank_richness_figs_clean.R for the identical issue.
     dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
@@ -435,12 +404,6 @@ sb_wetland_r <- sb_rich_area %>% filter(Realm == "Wetland") %>%  ungroup()%>%
 
 wetland_fitted <-   tidyr::crossing(
   sb_wetland_r %>% group_by(Biome, Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # block intentionally returns n() rows per group, which errors under
-    # current dplyr ("must be size 1, not <n>"). reframe() is the
-    # dplyr-recommended drop-in replacement for the old "multi-row
-    # summarise" pattern - same fix already applied in
-    # seedbank_richness_figs_clean.R for the identical issue.
     dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
@@ -510,12 +473,6 @@ sb_aquatic_r <- sb_rich_area %>% filter(Realm == "Aquatic") %>%  ungroup()
 
 aquatic_fitted <-   tidyr::crossing(
   sb_aquatic_r %>% group_by(Habitat_degraded) %>%
-    # FIXED: dplyr::summarise() now requires exactly one row per group; this
-    # block intentionally returns n() rows per group, which errors under
-    # current dplyr ("must be size 1, not <n>"). reframe() is the
-    # dplyr-recommended drop-in replacement for the old "multi-row
-    # summarise" pattern - same fix already applied in
-    # seedbank_richness_figs_clean.R for the identical issue.
     dplyr::reframe(Total_sample_area_m2 = c( seq( min(Total_sample_area_m2), max(Total_sample_area_m2),
                                                     length.out = n()
                                                     #length.out = 100
@@ -629,32 +586,27 @@ line_legend <- g_legend(line.leg)
 shape_legend <- g_legend(shape.leg)
 
 # Each panel (a-g) combined with the shared shape/linetype legend, and
-# exported as its own PNG (matching the Supplementary Information, where
+# exported as its own PDF (matching the Supplementary Information, where
 # Figure S2 has 7 separate panels a-g).
 fig_s2a_full <- (fig_s2a) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
 fig_s2a_full
-ggsave("Figures/Fig_S2a.png", plot = fig_s2a_full, width = 8, height = 9, units = "in", dpi = 300)
-
+ggsave("Figures/Fig_S2a.pdf", plot = fig_s2a_full, width = 203.2, height = 228.6, units = "mm", dpi = 300)
 fig_s2b_full <- (fig_s2b) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
 fig_s2b_full
-ggsave("Figures/Fig_S2b.png", plot = fig_s2b_full, width = 10, height = 9, units = "in", dpi = 300)
-
+ggsave("Figures/Fig_S2b.pdf", plot = fig_s2b_full, width = 254, height = 228.6, units = "mm", dpi = 300)
 fig_s2c_full <- (fig_s2c) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
 fig_s2c_full
-ggsave("Figures/Fig_S2c.png", plot = fig_s2c_full, width = 10, height = 9, units = "in", dpi = 300)
-
+ggsave("Figures/Fig_S2c.pdf", plot = fig_s2c_full, width = 254, height = 228.6, units = "mm", dpi = 300)
 fig_s2d_full <- (fig_s2d) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
 fig_s2d_full
-ggsave("Figures/Fig_S2d.png", plot = fig_s2d_full, width = 10, height = 9, units = "in", dpi = 300)
-
+ggsave("Figures/Fig_S2d.pdf", plot = fig_s2d_full, width = 254, height = 228.6, units = "mm", dpi = 300)
 fig_s2e_full <- (fig_s2e) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
 fig_s2e_full
-ggsave("Figures/Fig_S2e.png", plot = fig_s2e_full, width = 10, height = 9, units = "in", dpi = 300)
-
+ggsave("Figures/Fig_S2e.pdf", plot = fig_s2e_full, width = 254, height = 228.6, units = "mm", dpi = 300)
 fig_s2f_full <- (fig_s2f) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
 fig_s2f_full
-ggsave("Figures/Fig_S2f.png", plot = fig_s2f_full, width = 10, height = 9, units = "in", dpi = 300)
-
+ggsave("Figures/Fig_S2f.pdf", plot = fig_s2f_full, width = 254, height = 228.6, units = "mm", dpi = 300)
 fig_s2g_full <- (fig_s2g) / (shape_legend) / (line_legend) + plot_layout(heights = c(10, 1, 1))
 fig_s2g_full
-ggsave("Figures/Fig_S2g.png", plot = fig_s2g_full, width = 8, height = 9, units = "in", dpi = 300)
+ggsave("Figures/Fig_S2g.pdf", plot = fig_s2g_full, width = 203.2, height = 228.6, units = "mm", dpi = 300)
+

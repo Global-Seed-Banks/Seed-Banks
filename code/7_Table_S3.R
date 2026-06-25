@@ -274,10 +274,7 @@ r_slopes <- tund_r_p %>% bind_rows(forest_r_p, grass_r_p, med_de_r_p, ar_r_p,
 
           )
 
-# NOTE: `table_1` here is just `r_slopes` under a different name - it is
-# NOT the manuscript's Table 1 (that's built separately in
-# seedbank_data_prep_clean.R). Kept as in the source script; see the header
-# note above.
+
 table_1 <- r_slopes
 
 head(table_1)
@@ -294,7 +291,5 @@ table_s3 <- table_1 %>%  unite("Slope 50% Credible Interval", slope_lower_50:slo
 
 table_s3
 
-# FIXED: was a hardcoded absolute path ("~/Dropbox/GSB/Data/..."); now
-# relative to the setwd() set above.
 write.csv(table_s3, "Data/Table_S3.csv")
 

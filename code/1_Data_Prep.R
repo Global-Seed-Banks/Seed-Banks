@@ -21,8 +21,6 @@ library(tidyverse)
 # ------------------------------------------------------------------------------
 # 1. LOAD RAW DATA
 # ------------------------------------------------------------------------------
-# Path is hardcoded here rather than switched on username - simplest option
-# for a single-user script. Update this path if the project folder moves.
 
 sb <- read.csv('~/Dropbox/GSB/Data paper stuff/Database checking/sb_pub.csv')
 
@@ -46,8 +44,6 @@ head(sb)
 # ------------------------------------------------------------------------------
 # 2. DERIVE METRICS (sb_calc)
 # ------------------------------------------------------------------------------
-# Adds logged/ratio/area-volume/centred versions of the raw variables that
-# are used as predictors and responses in the models.
 
 sb_calc <- sb %>%
   mutate(
@@ -93,15 +89,7 @@ sb_calc %>%
 # ------------------------------------------------------------------------------
 # 3. RECLASSIFY HABITAT/BIOME INTO Realm + Biome (sb_mod)
 # ------------------------------------------------------------------------------
-# The raw WWF biome/habitat fields don't line up cleanly with the
-# Realm x Biome grouping used in the paper, so we rebuild it here in stages:
-#   a) Biome_broad_hab: Arable/Aquatic habitats override the underlying biome
-#   b) Biome: collapse fine-grained biomes into the broader categories used
-#      in the paper (Desert, Mediterranean, Tropical, Temperate, etc.)
-#   c) Realm: assign each record to a top-level Realm (Forest/Grassland/
-#      Wetland/Arable/Aquatic/Tundra/Mediterranean and Desert)
-#   d) A few Realm-specific overrides to merge Temperate + Boreal, and
-#      Desert + Mediterranean, biomes within Arable/Wetland/Grassland realms
+
 
 sb_mod <- sb_calc %>%
   # (a) Arable/Aquatic habitat overrides whatever biome was recorded
@@ -186,8 +174,7 @@ write.csv(sb_mod, "Data/sb_prep.csv")
 # ------------------------------------------------------------------------------
 # 4. RELOAD PREPARED DATA
 # ------------------------------------------------------------------------------
-# Reload from disk (rather than continuing to use sb_mod in memory) so the
-# summaries below reflect exactly what's in the saved file.
+
 
 sb_prep <- read.csv('Data/sb_prep.csv')
 head(sb_prep)
@@ -233,11 +220,7 @@ head(sb_gathered)
 # ------------------------------------------------------------------------------
 # TABLE S1 - observation counts by metric, used vs. usable in each model
 # ------------------------------------------------------------------------------
-# CONFIRMED: Species richness / Seed abundance / Seed density rows below match
-# the Supplementary Information's Table S1 (their combined total of 8087 ties
-# out to "Total observations" in the published table). ratio_seeds_species is
-# NOT part of the published Table S1 - computed below for reference only and
-# excluded from the table object.
+
 
 n_species_total  <- nrow(sb_gathered %>% filter(metric == "Total_species"))
 n_seeds_total    <- nrow(sb_gathered %>% filter(metric == "Total_seeds"))
@@ -295,16 +278,7 @@ head(sb_prep)
 # ------------------------------------------------------------------------------
 # 8. TABLE 1 - observation counts by ecosystem (Realm/Biome/Ecoregion/Degraded)
 # ------------------------------------------------------------------------------
-# Reproduces the manuscript's Table 1: for each ecosystem (a Biome x
-# Ecoregion x Degraded combination), the number of species-richness and
-# seed-density observations, rolled up into the three top-level Realms used
-# in the text (Terrestrial / Transitional / Aquatic), plus a totals row.
-#
-# Naming note: this script's `Realm` column (Forest/Grassland/Tundra/
-# Mediterranean and Desert/Arable/Wetland/Aquatic) is what the manuscript
-# calls "Biome", and this script's `Biome` column (Boreal/Temperate/Tropical/
-# Temperate and Boreal/etc.) is what the manuscript calls "Ecoregion" - both
-# are relabelled below to match Table 1 as published.
+
 
 table_1_base <- sb_prep %>%
   mutate(
@@ -331,11 +305,7 @@ table_1_base <- sb_prep %>%
     )
   )
 
-# Aquatic is reported as a single Biome-level row in Table 1 (no Ecoregion
-# split), so it's grouped separately below without `Biome` (this script's
-# Ecoregion proxy) in the group_by, and Ecoregion is hardcoded to "Aquatic"
-# afterwards. Every other Realm keeps the full Realm/Biome/Ecoregion/Degraded
-# split.
+
 table_1_terrestrial <- table_1_base %>%
   filter(Realm_ms != "Aquatic") %>%
   group_by(Realm_ms, Biome_ms, Biome, Degraded_ms) %>%
@@ -360,10 +330,6 @@ table_1_aquatic <- table_1_base %>%
 
 table_1 <- bind_rows(table_1_terrestrial, table_1_aquatic) %>%
   mutate(
-    # Custom order for Realm/Biome to match the published table; Ecoregion
-    # and Degraded are left as plain character columns since their published
-    # order is just alphabetical (e.g. "Deserts..." before "Mediterranean...",
-    # "No" before "Yes")
     Realm = factor(Realm, levels = c("Terrestrial", "Transitional", "Aquatic")),
     Biome = factor(Biome, levels = c(
       "Tundra", "Forest", "Grasslands and Savannas",
@@ -375,8 +341,7 @@ table_1 <- bind_rows(table_1_terrestrial, table_1_aquatic) %>%
 
 print(table_1, n = Inf)
 
-# Append the "Total number of observations" row at the bottom of the table,
-# matching the published layout
+
 table_1_totals <- tibble(
   Realm = "Total number of observations", Biome = NA, Ecoregion = NA, Degraded = NA,
   `Nobs species richness` = sum(table_1$`Nobs species richness`),
@@ -389,9 +354,7 @@ table_1_full <- bind_rows(
 )
 table_1_full
 
-# Sanity check against the published table: should be 28 rows (27 ecosystem
-# rows + 1 totals row), with totals of 2872 species-richness observations
-# and 2630 seed-density observations
+
 nrow(table_1_full)
 sum(table_1$`Nobs species richness`)
 sum(table_1$`Nobs seed density`)
@@ -401,9 +364,6 @@ write.csv(table_1_full, "Data/Table_1.csv", row.names = FALSE)
 # ------------------------------------------------------------------------------
 # 9. METHODS-SECTION MIN/MAX EXAMPLES (sb_deets / sb_minmax / responses)
 # ------------------------------------------------------------------------------
-# Goal: find the min and max value of each key variable, together with the
-# country/study/record it came from, so we can cite real examples in the
-# methods section (e.g. "the largest study sampled X sites in Y country").
 
 study_refs <- sb %>% select(RowID, StudyID, Authors, Year, Title, Journal, Doi, URL) %>% distinct()
 
@@ -418,10 +378,6 @@ sb_deets <- sb_prep %>%
     `max-Sample_area_mm2` = max(as.numeric(Sample_area_mm2), na.rm = TRUE),
     `max-ratio_seeds_species` = max(as.numeric(ratio_seeds_species), na.rm = TRUE),
     `min-ratio_seeds_species` = min(as.numeric(ratio_seeds_species), na.rm = TRUE),
-    # FIXED: these three referenced Total_Sample_Area_m2/Sample_Volume_mm3/
-    # Total_Sample_Volume_m3, but sb_calc actually created
-    # Total_sample_area_m2/Sample_volume_mm3/Total_sample_volume_m3 (lowercase
-    # "sample"/"volume") - corrected to match the real column names.
     `max-Total_Sample_Area_m2` = max(as.numeric(Total_sample_area_m2), na.rm = TRUE),
     `min-Total_Sample_Area_m2` = min(as.numeric(Total_sample_area_m2), na.rm = TRUE),
     `min-Sample_Volume_mm3` = min(as.numeric(Sample_volume_mm3), na.rm = TRUE),
@@ -444,10 +400,7 @@ sb_deets <- sb_prep %>%
 
 View(sb_deets)
 
-# Records where the minimum value of a variable is zero (e.g. studies that
-# recorded zero seeds/species) - 15 such rows
-# FLAG: study_refs is not defined anywhere in this script; it must be
-# created/loaded elsewhere before this line will run.
+
 sb_zero <- sb_deets %>%
   filter(minmax == "min") %>%
   filter(value == 0) %>%
@@ -456,9 +409,7 @@ sb_zero
 nrow(sb_zero)
 View(sb_zero)
 
-# For each variable, find the record(s) holding the global max, and the
-# global min excluding zero (since zero mins are handled separately above).
-# Then count how many records tie for that min/max per variable.
+
 sb_minmax <- bind_rows(
   sb_max <- sb_deets %>%
     filter(minmax == "max") %>%
@@ -488,17 +439,12 @@ head(min_max)
 colnames(sb_prep)
 min_max %>% select(name) %>% distinct()
 
-# Pull the full record details back in for the variables we want to cite as
-# examples in the methods section
-# FLAG: study_refs is still undefined anywhere in this script - must be
-# created/loaded elsewhere before this line will run.
+
 responses <- sb_minmax %>%
   filter(name %in% c("Seed_density_m2", "Total_seeds", "Total_species",
                      "ratio_seeds_species", "Total_Sample_Area_m2",
                      "Total_number_samples", "Number_sites")) %>%
   left_join(sb_prep) %>%
-  # FIXED: Total_Sample_Area_m2/Total_Sample_Volume_m3 -> Total_sample_area_m2/
-  # Total_sample_volume_m3, to match the columns actually in sb_prep.
   select(Biome_broad_hab, Country, StudyID, RowID, name, minmax, value, n,
          Total_species, Seed_density_m2, Total_seeds, ratio_seeds_species,
          Total_number_samples, Number_sites, Total_sample_area_m2, Total_sample_volume_m3) %>%
@@ -507,8 +453,7 @@ responses <- sb_minmax %>%
 colnames(responses)
 View(responses)
 
-# Variables where more than one record ties for the min/max (n > 1) need a
-# judgement call on which example to cite
+
 studies_mmin_multi <- responses %>% filter(n > 1)
 View(studies_mmin_multi)
 

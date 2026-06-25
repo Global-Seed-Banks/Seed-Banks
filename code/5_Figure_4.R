@@ -46,11 +46,7 @@ sb_rich_area <- sb_prep %>%
 # ------------------------------------------------------------------------------
 # 3. LOAD MODEL FITS (richness + density, all realms)
 # ------------------------------------------------------------------------------
-# FIXED: previously setwd() into Model_Fits/Habs/ to load these (twice, once
-# for the richness models and once for the density models), which left every
-# later relative path (e.g. the write.csv() calls near the bottom) pointed at
-# the wrong folder. Loading with relative paths instead keeps the working
-# directory at ~/Dropbox/GSB/ for the rest of the script.
+
 load('Model_Fits/Habs/rich_aq.Rdata')
 load('Model_Fits/Habs/rich_ar.Rdata')
 load('Model_Fits/Habs/rich_forest.Rdata')
@@ -279,10 +275,7 @@ forest_d_50_ce <- forest_d_df_50 %>%
   arrange(Biome, desc(Habitat_degraded)) %>%
   mutate(Habitat_degraded = fct_relevel(Habitat_degraded, "0", "1"))
 
-# FIXED: removed a stray bare `forest_d_ce` line that referenced an object
-# never defined under that name (the real tables are forest_d_90_ce and
-# forest_d_50_ce, built above) - this would error if the script were run
-# top to bottom.
+
 
 forest_joint <- forest_d_90_ce %>%
   mutate(Habitat_degraded = as.factor(Habitat_degraded)) %>%
@@ -1035,23 +1028,7 @@ fig_aq_joint
 # ------------------------------------------------------------------------------
 # 11. SHARED LEGEND
 # ------------------------------------------------------------------------------
-# fig_legend_joint is a throwaway scaffold plot - only its guide box is kept
-# (via g_legend() below), so its axis labels/theme never actually get
-# displayed. Built only to extract one shared "State" shape legend used
-# across all seven panels above.
-#
-# NOTE: color was previously a single fixed "grey" applied to one geom_point
-# layer covering all three Biome levels used here (Boreal/Temperate/
-# Tropical, borrowed from forest_joint purely as a convenient 3-level
-# factor), which made every legend key (Undisturbed/Degraded/Arable) render
-# grey regardless of shape - inconsistent with the rest of the figures,
-# where grey is reserved specifically for "Degraded". Fixed here: the
-# Boreal-data layer (-> "Undisturbed habitat" key) and the Tropical-data
-# layer (-> "Arable" key) are now black; the Temperate-data layer (->
-# "Degraded habitat" key) stays grey. This mapping depends on the default
-# alphabetical factor order of Biome ("Boreal" < "Temperate" < "Tropical"),
-# which is what scale_shape_manual()'s values/labels below are already
-# keyed to.
+
 fig_legend_joint <- ggplot() +
   geom_vline(xintercept = 0, linetype = "longdash") +
   geom_hline(yintercept = 0, linetype = "longdash") +
@@ -1102,7 +1079,9 @@ Fig_4 <- (fig_tund_joint + fig_forest_joint + fig_grass_joint) /
   plot_layout(heights = c(10, 10, 10, 1))
 Fig_4
 
-ggsave("Figures/Fig_4.png", plot = Fig_4, width = 16, height = 16, units = "in", dpi = 300)
+#ggsave("Figures/Fig_4.png", plot = Fig_4, width = 16, height = 16, units = "in", dpi = 300)
+
+ggsave("Figures/Fig_4.pdf", plot = Fig_4,  width = 406.4, height = 406.4, units = "mm",   device = cairo_pdf)
 
 # ------------------------------------------------------------------------------
 # 13. SUMMARY TABLES & EXPORT
@@ -1112,22 +1091,13 @@ table_joint <- tund_joint %>%
 head(table_joint)
 print(table_joint, n = Inf)
 
-# FIXED: was a hardcoded absolute path ("~/Dropbox/GSB/Data/..."); now
-# relative to the setwd() set in section 2.
 write.csv(table_joint, "Data/joint.csv")
 
 # ------------------------------------------------------------------------------
 # TABLE S5 (continued) - "0.01" and "15" m2 columns (table_s5)
 # ------------------------------------------------------------------------------
 # Builds the same per-realm richness-prediction pipeline used above for the
-# "1" m2 column (the "_r1"/"_r1_df" blocks, e.g. tund_r1/tund_r1_df), just
-# evaluated at Total_sample_area_m2 = 0.01 and 15 instead of 1. Reuses the
-# same richness models (mod_*_r, already loaded above) and the same
-# per-realm filtered datasets (sb_tund_r, sb_forest_r, etc., already built
-# above for the "1" m2 blocks) - this is NOT new modelling, just the existing
-# prediction pipeline run at two more sample-area values. LOW RISK: unlike
-# Table S4, this reuses code/models already proven to run in this script (the
-# "_r1" blocks above) - only the seq(...) value changes.
+# "1" m2 column (the "_r1"/"_r1_df" blocks, e.g. tund_r1/tund_r1_df),
 
 # ============================== "0.01" m2 ==============================
 # --- Tundra (panel a) - 0.01 m2 ---
@@ -1747,19 +1717,7 @@ table_s5c <- tund_r1_df %>%
   unite("1", Estimate:CI, sep = " ")
 print(table_s5c, n = Inf)
 
-# table_s5c above is only the "1" m2 column of TABLE S5 (Realm/Biome/
-# Habitat_degraded/0.01/1/15). `table_s5` (the "0.01" and "15" m2 columns,
-# joined below) is now built above - see the "TABLE S5 (continued)" block.
-#
-# `table_s5` does NOT exist anywhere in the originally provided scripts -
-# it has been newly constructed here by replicating the exact "_r1"/"_r1_df"
-# prediction pipeline already used above for the "1" m2 column, just
-# evaluated at Total_sample_area_m2 = 0.01 and 15 instead of 1, reusing the
-# same already-loaded richness models (mod_*_r) and per-realm datasets. This
-# is low-risk relative to other inferred work in this project, since it does
-# not invent any new modelling logic - it only reruns proven, working code
-# at two more input values. Still worth spot-checking the resulting numbers
-# against the published Table S5 once run.
+
 table_s5 <- table_s5 %>%
   left_join(table_s5c) %>%
   mutate(Realm = as.factor(Realm)) %>%
@@ -1770,6 +1728,4 @@ table_s5 <- table_s5 %>%
   select(Realm, Biome, Habitat_degraded, `0.01`, `1`, `15`)
 print(table_s5, n = Inf)
 
-# FIXED: was a hardcoded absolute path ("~/Dropbox/GSB/Data/..."); now
-# relative to the setwd() set in section 2.
 write.csv(table_s5, "Data/Table_S5.csv")
