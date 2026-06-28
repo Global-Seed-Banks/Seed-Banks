@@ -1,4 +1,5 @@
-# Global-Seed-Banks/Seed-Banks
+# Global-Seed-Banks/Seed-Banks [![DOI](https://zenodo.org/badge/248781712.svg)](https://doi.org/10.5281/zenodo.21008573)
+
 
 Code for: Divergent patterns of richness and density in the global soil seed bank
 *Alistair G. Auffret, Emma Ladouceur, Natalie S. Haussmann, Petr Keil , Eirini Daouti  Tatiana G. Elumeeva, Ineta Kačergytė, Jonas Knape, Dorota Kotowska, Matthew Low, Vladimir G. Onipchenko, Matthieu Paquet, Diana Rubene, Jan Plue. 2026 Divergent patterns of richness and density in the global soil seed bank. Nature Communications.*
