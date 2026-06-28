@@ -1,10 +1,10 @@
 # Global-Seed-Banks/Seed-Banks
 
 Code for: Divergent patterns of richness and density in the global soil seed bank
-*Alistair G. Auffret, Emma Ladouceur, Natalie S. Haussmann, Petr Keil , Eirini Daouti  Tatiana G. Elumeeva, Ineta Kačergytė, Jonas Knape, Dorota Kotowska, Matthew Low, Vladimir G. Onipchenko, Matthieu Paquet, Diana Rubene, Jan Plue. (2026) Divergent patterns of richness and density in the global soil seed bank. Nature Communications.*
+*Alistair G. Auffret, Emma Ladouceur, Natalie S. Haussmann, Petr Keil , Eirini Daouti  Tatiana G. Elumeeva, Ineta Kačergytė, Jonas Knape, Dorota Kotowska, Matthew Low, Vladimir G. Onipchenko, Matthieu Paquet, Diana Rubene, Jan Plue. 2026 Divergent patterns of richness and density in the global soil seed bank. Nature Communications.*
 
 ### Data
-*Auffret, Alistair G., Emma Ladouceur, Natalie S. Haussmann, Eirini Daouti, Tatiana G. Elumeeva, Ineta Kačergytė, Jonas Knape,  Dorota Kotowska, Matthew Low, Vladimir G. Onipchenko, Matthieu Paquet, Diana Rubene, Jan Plue. (2024) A Global Database of Soil Seed Bank Richness, Density, and Abundance. Ecology 105(11). https://doi.org/10.1002/ecy.4438*
+*Auffret, Alistair G., Emma Ladouceur, Natalie S. Haussmann, Eirini Daouti, Tatiana G. Elumeeva, Ineta Kačergytė, Jonas Knape,  Dorota Kotowska, Matthew Low, Vladimir G. Onipchenko, Matthieu Paquet, Diana Rubene, Jan Plue. 2024 A Global Database of Soil Seed Bank Richness, Density, and Abundance. Ecology 105(11). https://doi.org/10.1002/ecy.4438*
 
 * All you need is **sb_pub.csv** Downloaded from data paper link above.
 
