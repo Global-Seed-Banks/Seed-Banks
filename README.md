@@ -29,5 +29,5 @@ Code for: Divergent patterns of richness and density in the global soil seed ban
 
 * **8_Figure_S2** Figure_S2. Species richness in the soil seed bank as a function of total soil samples (m2) for every biome and ecoregion. 
 
-* **cluster** All statistical models were run on a HPC Cluster. Submit scripts and R scripts for each statistical model found in this folder and the models saved as .RData files. Model objects can be found within the data repository.
+* **cluster** All statistical models were run on a HPC Cluster. Submit scripts and R scripts for each statistical model found in this folder and the models saved as .RData files. Model objects can be downloaded from Zenodo above.
 
